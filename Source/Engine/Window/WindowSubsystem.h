@@ -8,12 +8,9 @@
 namespace CusEngine {
 	class WindowSubsystem final : public Subsystem {
 	public:
-		virtual bool OnCreate(Engine* engine);
-		virtual void OnUpdate();
-		virtual void OnDestroy();
-
-		virtual SubsystemOrder GetInitOrder() { return SubsystemOrder::After; } // TODO(0x): change this funcs to return a list
-		virtual SubsystemOrder GetCreateOrder() { return SubsystemOrder::After; }
+		virtual bool OnCreate(Engine* engine) override;
+		virtual void OnUpdate() override;
+		virtual void OnDestroy() override;
 	private:
 		bool _glfwInitialized = false;
 

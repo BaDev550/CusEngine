@@ -17,30 +17,37 @@ namespace CusEngine {
 		void Shutdown(const std::string_view reson);
 
 		template<class T, typename... Args>
-		void AddSubsystem(Args&&...) {
-			type_info info = typeid(T);
-			if (auto it = _pendingInitList.find(info); it != _pendingInitList.end()) {
+		void AddSubsystem(Args&&... args) {
+			std::type_index typeindex = typeid(T);
+			if (auto it = _systemLookupTable.find(typeindex); it != _systemLookupTable.end()) {
 				Logger::Warn("EngineSubsystem", "Tried to add subsystem witch is already inside of the list.");
 				return;
 			}
-			_pendingInitList[info] = Mem::Allocator::Construct<T>(std::forward<Args>(args)...);
-			Logger::Info("EngineSubsystem", "Subsystem {} added to engine.", info.name);
+			_pendingInitList.push_back(Mem::Allocator::Construct<T>(std::forward<Args>(args)...));
+			_systemInitLookupTable[typeindex] = _pendingInitList.size();
+			Logger::Info("EngineSubsystem", "Subsystem {} added to engine.", typeindex.name());
 		}
 
 		template<class T>
 		T* GetSubsystem() {
-			type_info info = typeid(T);
-			if (auto it = _pendingInitList.find(info); it != _pendingInitList.end()) {
-				return it->second;
+			std::type_index typeindex = typeid(T);
+			if (auto it = _systemLookupTable.find(typeindex); it != _systemLookupTable.end()) {
+				return _activeSubsystemList[it.secound];
 			}
-			Logger::Error("EngineSubsystem", "Failed to find subsystem {}", info.name);
+			Logger::Error("EngineSubsystem", "Failed to find subsystem {}", typeindex.name());
 			return nullptr;
 		}
 	private:
+		void SortAndInitializeSystems();
+
 		bool _running = true;
 
-		std::unordered_map<type_info, Subsystem*> _pendingInitList;
-		std::unordered_map<type_info, Subsystem*> _activeSubsystemList;
-		std::unordered_map<type_info, Subsystem*> _pendingDestroyList;
+		std::vector<Subsystem*> _pendingInitList;
+		std::unordered_map<std::type_index, usize> _systemInitLookupTable;
+
+		std::vector<Subsystem*> _activeSubsystemList;
+		std::unordered_map<std::type_index, usize> _systemLookupTable;
+
+		std::vector<Subsystem*> _pendingDestroyList;
 	};
 }
