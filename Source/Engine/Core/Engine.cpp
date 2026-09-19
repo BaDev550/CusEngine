@@ -2,25 +2,26 @@
 #include "Core/Logger.h"
 
 namespace CusEngine {
-	Engine::Engine() {
-		WindowDesc desc{};
-		desc.width = 800;
-		desc.height = 800;
-		desc.title = "CusEngine Renderer";
-		_window = Mem::Allocator::ConstructUnique<Window>(desc);
-	}
-
-	Engine::~Engine() {
-		Logger::Info("Engine", "Shuting down...");
-
-	}
+	Engine::Engine() {}
+	Engine::~Engine() { Logger::Info("Engine", "Shuting down..."); }
 
 	void Engine::Run() {
 		Logger::Info("Engine", "Engine running...");
 
-		while (!_window->ShouldClose() && _running) {
+		// TODO(0x): add bubble sort to handle pending init list
+		for (const auto& [name, subsystem] : _activeSubsystemList) {
+			subsystem->OnCreate(this);
+		}
 
-			_window->PollEvents();
+		while (_running) {
+
+			for (const auto& [name, subsystem] : _activeSubsystemList) {
+				subsystem->OnUpdate();
+			}
+		}
+
+		for (const auto& [name, subsystem] : _activeSubsystemList) {
+			subsystem->OnDestroy();
 		}
 	}
 
