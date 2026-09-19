@@ -3,7 +3,13 @@
 #include <queue>
 
 namespace CusEngine {
-	Engine::Engine() {}
+	Engine* Engine::_instance = nullptr;
+
+	Engine::Engine() {
+		Logger::Assert(!_instance, "Engine", "No 2nd instance of engine!");
+		_instance = this;
+	}
+
 	Engine::~Engine() { Logger::Info("Engine", "Shuting down..."); }
 
 	void Engine::Run() {
@@ -87,9 +93,10 @@ namespace CusEngine {
 		_pendingInitList = std::move(sortedList);
 
 		for (auto system : _pendingInitList) {
-			system->OnCreate(this);
-
+			_systemLookupTable[system->GetTypeID()] = _activeSubsystemList.size();
 			_activeSubsystemList.push_back(system);
+
+			system->OnCreate(this);
 		}
 		_pendingInitList.clear();
 	}

@@ -11,7 +11,6 @@ namespace CusEngine::Mem {
 		usize alignment;
 	};
 
-
 	class MemoryTracker final {
 	public:
 		void Record(void* ptr, MemBlock block) {
@@ -33,9 +32,6 @@ namespace CusEngine::Mem {
 	private:
 		std::unordered_map<void*, MemBlock> _memoryBlocks;
 	};
-
-	template<class T>
-	using Ref = std::shared_ptr<T>;
 
 	template<class T>
 	using Unique = std::unique_ptr<T>;
@@ -65,11 +61,6 @@ namespace CusEngine::Mem {
 				static_cast<T*>(ptr)->~T();
 				Free(ptr);
 			}
-		}
-
-		template<typename T, typename... Args>
-		static Ref<T> ConstructRef(Args&&... args) {
-			return std::make_shared<T>(std::forward<Args>(args)...);
 		}
 
 		template<typename T, typename... Args>

@@ -2,6 +2,7 @@
 #include "Core/Types.h"
 #include "Core/Memory.h"
 #include "Window/Window.h"
+#include "Graphics/RHI/RHI_RenderContext.h"
 #include "Subsystem/Subsystem.h"
 #include <vector>
 
@@ -11,9 +12,11 @@ namespace CusEngine {
 		virtual bool OnCreate(Engine* engine) override;
 		virtual void OnUpdate() override;
 		virtual void OnDestroy() override;
+
+		Window* GetWindow() const { return _window.get(); }
 	private:
 		bool _glfwInitialized = false;
 
-		std::vector<Mem::Unique<Window>> _windowList;
+		Mem::Unique<Window> _window = nullptr;
 	};
 }

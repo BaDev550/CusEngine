@@ -20,24 +20,22 @@ namespace CusEngine {
 		desc.width = 800;
 		desc.height = 800;
 		desc.title = "Engine Debug Window";
-		Mem::Unique<Window> tempWindow = Mem::Allocator::ConstructUnique<Window>(desc);
+		_window = Mem::Allocator::ConstructUnique<Window>(desc);
 
-		_windowList.push_back(std::move(tempWindow));
 		return true;
 	}
 
 	void WindowSubsystem::OnUpdate() {
-		for (auto& window : _windowList) {
-			window->PollEvents();
+		_window->PollEvents();
 
-			if (window->ShouldClose()) {
-				_engine->Shutdown("Window closed");
-			}
+		if (_window->ShouldClose()) {
+			_engine->Shutdown("Window closed");
 		}
 	}
 
 	void WindowSubsystem::OnDestroy() {
-		_windowList.clear();
+		_window = nullptr;
+
 		if (_glfwInitialized) {
 			glfwTerminate();
 		}

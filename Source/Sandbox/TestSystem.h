@@ -2,6 +2,7 @@
 
 #include <Subsystem/Subsystem.h>
 #include <Window/WindowSubsystem.h>
+#include <Renderer/RenderSubsystem.h>
 
 using namespace CusEngine;
 
@@ -20,5 +21,6 @@ public:
 
 	virtual void GetDependencyGraph(DependencyGraph& graph) {
 		graph.Require<WindowSubsystem>(DependencyOrder::After);
+		graph.Require<RenderSubsystem>(DependencyOrder::After);
 	}
 };

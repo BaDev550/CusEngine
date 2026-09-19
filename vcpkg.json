@@ -4,6 +4,9 @@
     "glfw3",
     "glm",
     "vulkan-headers",
-    "vulkan-memory-allocator"
+    "vulkan-memory-allocator",
+    "glslang",
+    "shaderc",
+    "spirv-tools"
   ]
 }

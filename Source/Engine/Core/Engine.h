@@ -13,6 +13,8 @@ namespace CusEngine {
 		Engine(const Engine&) = delete;
 		Engine& operator=(const Engine&) = delete;
 
+		static Engine* Get() { return _instance; }
+
 		void Run();
 		void Shutdown(const std::string_view reson);
 
@@ -32,7 +34,7 @@ namespace CusEngine {
 		T* GetSubsystem() {
 			std::type_index typeindex = typeid(T);
 			if (auto it = _systemLookupTable.find(typeindex); it != _systemLookupTable.end()) {
-				return _activeSubsystemList[it.secound];
+				return static_cast<T*>(_activeSubsystemList[it->second]);
 			}
 			Logger::Error("EngineSubsystem", "Failed to find subsystem {}", typeindex.name());
 			return nullptr;
@@ -40,6 +42,7 @@ namespace CusEngine {
 	private:
 		void SortAndInitializeSystems();
 
+		static Engine* _instance;
 		bool _running = true;
 
 		std::vector<Subsystem*> _pendingInitList;
