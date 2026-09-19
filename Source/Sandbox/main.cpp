@@ -7,8 +7,8 @@
 int main() {
 	{
 		CusEngine::Engine engine{};
-		engine.AddSubsystem<CusEngine::WindowSubsystem>();
 		engine.AddSubsystem<TestSubsystem>();
+		engine.AddSubsystem<CusEngine::WindowSubsystem>();
 		engine.Run();
 	}
 	return 0;

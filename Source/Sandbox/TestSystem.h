@@ -10,6 +10,8 @@ public:
 	virtual bool OnCreate(Engine* engine) override {
 		Subsystem::OnCreate(engine);
 
+		Logger::Info("TestSubsystem", "Created!");
+
 		return true;
 	}
 
@@ -17,6 +19,6 @@ public:
 	virtual void OnDestroy() override {}
 
 	virtual void GetDependencyGraph(DependencyGraph& graph) {
-		graph.Require<WindowSubsystem>(DependencyOrder::Before);
+		graph.Require<WindowSubsystem>(DependencyOrder::After);
 	}
 };

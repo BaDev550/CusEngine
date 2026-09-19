@@ -8,6 +8,8 @@ namespace CusEngine {
 	{
 		Subsystem::OnCreate(engine);
 
+		Logger::Info("WindowSubsystem", "Created!");
+
 		if (!_glfwInitialized) {
 			Logger::Assert(glfwInit(), "GLFW", "Failed to initialize GLFW context");
 			glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);

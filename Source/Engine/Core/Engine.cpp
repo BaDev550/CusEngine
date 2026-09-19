@@ -1,5 +1,6 @@
 #include "Engine.h"
 #include "Core/Logger.h"
+#include <queue>
 
 namespace CusEngine {
 	Engine::Engine() {}
@@ -9,11 +10,6 @@ namespace CusEngine {
 		Logger::Info("Engine", "Engine running...");
 
 		SortAndInitializeSystems();
-
-		// TODO(0x): add bubble sort to handle pending init list
-		for (const auto& subsystem : _activeSubsystemList) {
-			subsystem->OnCreate(this);
-		}
 
 		while (_running) {
 
@@ -33,19 +29,68 @@ namespace CusEngine {
 	}
 
 	void Engine::SortAndInitializeSystems() {
-		for (int i = 0; i < _pendingInitList.size(); i++) { // TODO(0x): fix this bitch ass O(n2)
-			Subsystem* currSystem = _pendingInitList.at(i);
+		const usize numSystems = _pendingInitList.size();
 
-			DependencyGraph currentGraph;
-			currSystem->GetDependencyGraph(currentGraph);
+		std::vector<std::vector<usize>> adjList(numSystems);
+		std::vector<int> inDegree(numSystems, 0);
 
-			DependencyGraph::DependencyList currentList = currentGraph.GetList();
+		for (usize i = 0; i < numSystems; i++) {
+			Subsystem* currSystem = _pendingInitList[i];
+			std::string currSystemName = currSystem->GetTypeID().name();
 
-			for (auto& [index, order] : currentList) {
-				Logger::Info(
-					currSystem->GetTypeID().name(), 
-					"Dependent on: {}", _pendingInitList[_systemInitLookupTable[index]]->GetTypeID().name());
+			DependencyGraph graph;
+			currSystem->GetDependencyGraph(graph);
+
+			for (const auto& [depType, order] : graph.GetList()) {
+				auto it = _systemInitLookupTable.find(depType);
+				if (it == _systemInitLookupTable.end()) {
+					Logger::Warn(currSystemName, "Dependency {} is not in the lookup table!", depType.name());
+					continue;
+				}
+				usize depIndex = it->second;
+
+				if (depIndex >= numSystems || i >= numSystems) { continue; }
+
+				if (order == DependencyOrder::Before) {
+					adjList[i].push_back(depIndex);
+					inDegree[depIndex]++;
+				}
+				else if (order == DependencyOrder::After) {
+					adjList[depIndex].push_back(i);
+					inDegree[i]++;
+				}
 			}
 		}
+
+		std::queue<usize> readyQueue;
+		for (usize i = 0; i < numSystems; i++) {
+			if (inDegree[i] == 0)
+				readyQueue.push(i);
+		}
+
+		std::vector<Subsystem*> sortedList;
+		sortedList.reserve(numSystems);
+
+		while (!readyQueue.empty()) {
+			usize u = readyQueue.front();
+			readyQueue.pop();
+
+			sortedList.push_back(_pendingInitList[u]);
+			for (usize v : adjList[u]) {
+				inDegree[v]--;
+				if (inDegree[v] == 0)
+					readyQueue.push(v);
+			}
+		}
+
+		Logger::Assert((sortedList.size() == numSystems), "Engine", "Circular dependency detected in Subsystem initialization!");
+		_pendingInitList = std::move(sortedList);
+
+		for (auto system : _pendingInitList) {
+			system->OnCreate(this);
+
+			_activeSubsystemList.push_back(system);
+		}
+		_pendingInitList.clear();
 	}
 }

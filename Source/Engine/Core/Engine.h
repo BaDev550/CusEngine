@@ -23,8 +23,8 @@ namespace CusEngine {
 				Logger::Warn("EngineSubsystem", "Tried to add subsystem witch is already inside of the list.");
 				return;
 			}
-			_pendingInitList.push_back(Mem::Allocator::Construct<T>(std::forward<Args>(args)...));
 			_systemInitLookupTable[typeindex] = _pendingInitList.size();
+			_pendingInitList.push_back(Mem::Allocator::Construct<T>(std::forward<Args>(args)...));
 			Logger::Info("EngineSubsystem", "Subsystem {} added to engine.", typeindex.name());
 		}
 
