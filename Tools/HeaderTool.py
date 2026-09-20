@@ -4,7 +4,8 @@ def generate_reflection(header_path, output_path, source_dir):
     with open(header_path, 'r', encoding='utf-8') as f:
         content = f.read()
 
-    class_match = re.search(r'CUS_CLASS\(\)\s*class\s+(?:[A-Z0-9_]+\s+)?(\w+)', content)
+    # IMPROVED REGEX: Safely handles macros like ENGINE_API and multiline layouts before ':'
+    class_match = re.search(r'CUS_CLASS\(\)\s*class\s+(?:[A-Z0-9_]+\s+)?(\w+)\s*(?::\s*(?:public|private|protected)\s+([a-zA-Z0-9_:]+))?', content)
     
     if not class_match:
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
@@ -13,17 +14,40 @@ def generate_reflection(header_path, output_path, source_dir):
         return
 
     class_name = class_match.group(1)
+    base_class = class_match.group(2)
+    
     props = re.findall(r'CUS_PROP\(\)[^;]+?(\w+)\s*(?:=.*?)?;', content)
 
     abs_header = os.path.abspath(header_path).replace('\\', '/')
 
     out_code = f'#include "{abs_header}"\n'
-    out_code += f'#include <Reflection/ReflectionMacros.h>\n\n' 
+    out_code += f'#include <Reflection/ReflectionMacros.h>\n'
+    out_code += f'#include <Core/Engine.h>\n' 
+    out_code += f'#include <type_traits>\n\n'
     
     out_code += f'BEGIN_REFLECT({class_name})\n'
     for prop in props:
         out_code += f'    REFLECT_PROPERTY({class_name}, {prop})\n'
-    out_code += f'END_REFLECT({class_name})\n'
+    out_code += f'END_REFLECT({class_name})\n\n'
+
+    out_code += f'namespace CusEngine {{\n'
+    out_code += f'    struct {class_name}_ModuleAutoInit {{\n'
+    out_code += f'        {class_name}_ModuleAutoInit() {{\n'
+    out_code += f'            if constexpr (std::is_base_of_v<CusEngine::Subsystem, {class_name}>) {{\n'
+    
+    if base_class:
+        if base_class != "Subsystem":
+            out_code += f'                CusEngine::Engine::Get().AddSubsystem<{base_class}>(new {class_name}());\n'
+        else:
+            out_code += f'                CusEngine::Engine::Get().AddSubsystem(new {class_name}());\n'
+    else:
+        out_code += f'                CusEngine::Engine::Get().AddSubsystem(new {class_name}());\n'
+        
+    out_code += f'            }}\n'
+    out_code += f'        }}\n'
+    out_code += f'    }};\n'
+    out_code += f'    inline {class_name}_ModuleAutoInit global_{class_name}_ModuleAutoInit_Instance;\n'
+    out_code += f'}}\n'
 
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     with open(output_path, 'w', encoding='utf-8') as f:

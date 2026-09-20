@@ -25,8 +25,8 @@ namespace CusEngine {
 			}
 		}
 
-		for (int i = _activeSubsystemList.size(); i == 0; i++) {
-			Subsystem* system = _activeSubsystemList.at(i);
+		for (int i = static_cast<int>(_activeSubsystemList.size()) - 1; i >= 0; i--) {
+			Subsystem* system = _activeSubsystemList[i];
 			if (system) {
 				system->OnDestroy();
 				delete system;
@@ -43,14 +43,6 @@ namespace CusEngine {
 	void Engine::PreInitializePlugins() {
 		PluginSubsystem pluginLoader;
 		pluginLoader.LoadPlugin("RHI_Vulkan.dll");
-
-		auto* vulkanInstance = Reflect::TypeRegistry::Get().Create<Subsystem>("Vulkan_RHISubsystem");
-		if (vulkanInstance) {
-			AddSubsystem<RHI::RHISubsystem>(vulkanInstance);
-		}
-		else {
-			Logger::Error("Engine", "Failed to reflect Vulkan_RHISubsystem from RHI_Vulkan.dll");
-		}
 	}
 
 	void Engine::SortAndInitializeSystems() {
