@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Core/Types.h"
+#include "Core/Core.h"
 #include <chrono>
 #include <string>
 #include <string_view>
@@ -14,7 +15,7 @@ namespace CusEngine {
 		Fatal
 	};
 
-	class Logger final {
+	class ENGINE_API Logger final {
 	public:
 		template<typename... Args>
 		static void Info(std::string_view catagory, std::format_string<Args...> fmt, Args&&... args) {

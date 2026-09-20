@@ -3,13 +3,7 @@
 #include <queue>
 
 namespace CusEngine {
-	Engine* Engine::_instance = nullptr;
-
-	Engine::Engine() {
-		Logger::Assert(!_instance, "Engine", "No 2nd instance of engine!");
-		_instance = this;
-	}
-
+	Engine::Engine() {}
 	Engine::~Engine() { Logger::Info("Engine", "Shuting down..."); }
 
 	void Engine::Run() {

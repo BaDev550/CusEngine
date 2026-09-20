@@ -74,12 +74,12 @@ namespace CusEngine::RHI {
 
 	void Vulkan_RenderCommands::BeginFrame() {
 		if (_recreateSwapchainNextFrame) {
-			auto windowSubsystem = Engine::Get()->GetSubsystem<WindowSubsystem>();
-			auto window = windowSubsystem->GetWindow();
-
-			_context->WaitDeviceIdle();
-			_swapchain->Destroy();
-			_swapchain->Recreate(window->GetWidth(), window->GetHeight());
+			//auto windowSubsystem = Engine::Get().GetSubsystem<WindowSubsystem>();
+			//auto window = windowSubsystem->GetWindow();
+			//
+			//_context->WaitDeviceIdle();
+			//_swapchain->Destroy();
+			//_swapchain->Recreate(window->GetWidth(), window->GetHeight());
 			_recreateSwapchainNextFrame = false;
 		}
 

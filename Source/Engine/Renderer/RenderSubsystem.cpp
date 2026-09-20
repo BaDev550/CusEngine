@@ -10,7 +10,9 @@ namespace CusEngine {
 
 		auto window = engine->GetSubsystem<WindowSubsystem>()->GetWindow();
 
+#if 0
 		_commands = RHI::CreateRenderCommands(window->GetRenderContext(), window->GetSwapchain());
+#endif
 
 		Logger::Info("RenderSubsystem", "Created!");
 		return true;

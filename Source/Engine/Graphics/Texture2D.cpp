@@ -14,7 +14,7 @@ namespace CusEngine {
 		imageDesc.height = _desc.Height;
 		imageDesc.format = _desc.Format;
 		imageDesc.usage = RHI::ImageUsage::Sampled | RHI::ImageUsage::TransferDst;
-		_image = Mem::Ref<RHI::Image>(RHI::CreateImage(commands, imageDesc));
+		//_image = Mem::Ref<RHI::Image>(RHI::CreateImage(commands, imageDesc));
 
 		//commands->Submit([this, commands, data]() {
 		//	size_t bufferSize = (_desc.Width * _desc.Height * 4); // TODO(0x): switch 4 witch a format to component count switch

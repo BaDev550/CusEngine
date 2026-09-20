@@ -13,7 +13,10 @@ namespace CusEngine {
 		Engine(const Engine&) = delete;
 		Engine& operator=(const Engine&) = delete;
 
-		static Engine* Get() { return _instance; }
+		static Engine& Get() { 
+			static Engine instance;
+			return instance;
+		}
 
 		void Run();
 		void Shutdown(const std::string_view reson);
@@ -42,7 +45,6 @@ namespace CusEngine {
 	private:
 		void SortAndInitializeSystems();
 
-		static Engine* _instance;
 		bool _running = true;
 
 		std::vector<Subsystem*> _pendingInitList;

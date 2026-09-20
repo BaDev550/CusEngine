@@ -15,7 +15,7 @@ namespace CusEngine {
 			desc.tileMode = RHI::ImageTileMode::Optimal;
 			desc.layout = RHI::ImageLayout::ColorAttachment;
 			desc.format = colorFormat;
-			_colorAttachments.push_back(Mem::Ref<RHI::Image>(RHI::CreateImage(commands, desc)));
+			//_colorAttachments.push_back(Mem::Ref<RHI::Image>(RHI::CreateImage(commands, desc)));
 		}
 
 		for (const auto& depthFormat : _desc.DepthFormats) {
@@ -26,7 +26,7 @@ namespace CusEngine {
 			desc.tileMode = RHI::ImageTileMode::Optimal;
 			desc.layout = RHI::ImageLayout::DepthAttachment;
 			desc.format = depthFormat;
-			_depthAttachments.push_back(Mem::Ref<RHI::Image>(RHI::CreateImage(commands, desc)));
+			//_depthAttachments.push_back(Mem::Ref<RHI::Image>(RHI::CreateImage(commands, desc)));
 		}
 		Logger::Info(GetDebugName(), "Color {} and Depth {} images are created", _colorAttachments.size(), _depthAttachments.size());
 	}

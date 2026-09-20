@@ -1,12 +1,14 @@
 #pragma once
 #include "Types.h"
 
-#ifdef ENGINE_EXPORTS
-//#define ENGINE_API __declspec(dllexport)
+#ifdef ENGINE_EXPORTS_STATIC_LIB
 #define ENGINE_API
 #else
-//#define ENGINE_API __declspec(dllimport)
-#define ENGINE_API
+#ifdef ENGINE_EXPORTS
+#define ENGINE_API __declspec(dllexport)
+#else
+#define ENGINE_API __declspec(dllimport)
+#endif
 #endif
 
 #define BIT(x) (1 << x)

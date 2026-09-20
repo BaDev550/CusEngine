@@ -2,6 +2,8 @@
 #include "Core/Logger.h"
 #include <GLFW/glfw3.h>
 
+#include "Subsystem/PluginLoader.h"
+
 namespace CusEngine {
 	Window::Window(const WindowDesc& desc) : _desc(desc) {
 		_handle = glfwCreateWindow(_desc.width, _desc.height, _desc.title.c_str(), nullptr, nullptr);
