@@ -3,10 +3,11 @@
   "dependencies": [
     "glfw3",
     "glm",
-    "vulkan-headers",
-    "vulkan-memory-allocator",
     "glslang",
     "shaderc",
-    "spirv-tools"
+    "spirv-tools",
+    "vulkan-headers",
+    "vulkan-memory-allocator",
+    "glad"
   ]
 }
