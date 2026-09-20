@@ -26,9 +26,12 @@ namespace CusEngine::RHI {
 		BufferDesc _desc;
 
 		void* _mappedPtr = nullptr;
-		size_t _allocationSize = SIZE_MAX;
+
+		u64 _gpuAddress = 0;
+		usize _allocationSize = SIZE_MAX;
 		VkBuffer _buffer = VK_NULL_HANDLE;
 		VmaAllocation _allocation;
-		u64 _gpuAddress = 0;
+		
+		friend class VulkanContext;
 	};
 }

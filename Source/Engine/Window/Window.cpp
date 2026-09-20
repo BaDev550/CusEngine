@@ -1,5 +1,6 @@
 #include <Engine/Window/Window.h>
 #include <Engine/Core/Logger.h>
+#include <Engine/Core/Memory.h>
 #include <GLFW/glfw3.h>
 
 namespace CusEngine {
@@ -36,6 +37,12 @@ namespace CusEngine {
 	}
 
 	Window::~Window() {
+		_context->WaitDeviceIdle();
+
+		Mem::Allocator::Destroy<RHI::Commands>(_commands);
+		Mem::Allocator::Destroy<RHI::Swapchain>(_swapchain);
+		Mem::Allocator::Destroy<RHI::Context>(_context);
+
 		glfwDestroyWindow(_handle);
 	}
 

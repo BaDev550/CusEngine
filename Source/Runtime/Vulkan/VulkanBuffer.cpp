@@ -3,34 +3,9 @@
 #include <Runtime/Vulkan/VulkanContext.h>
 
 namespace CusEngine::RHI {
-	VulkanBuffer::VulkanBuffer(const BufferDesc& desc) : _desc(desc) {
-		//VkBufferCreateInfo bufferInfo{};
-		//bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-		//bufferInfo.size = _desc.size;
-		//bufferInfo.usage = Utils::GetVkBufferUsage(_desc.usage);
-		//bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		//
-		//VmaAllocationCreateInfo allocInfo{};
-		//allocInfo.usage = Utils::GetVkMemoryUsage(_desc.memoryUsage);
-		//allocInfo.flags = Utils::GetVkAllocationFlags(_desc.allocationFlags);
-		//VmaAllocationInfo info{};
-		//Logger::Assert((
-		//	vmaCreateBuffer(
-		//		GetContext<VulkanContext>()->GetAllocator(),
-		//		&bufferInfo,
-		//		&allocInfo,
-		//		&_buffer,
-		//		&_allocation,
-		//		&info) == VK_SUCCESS), "Vulkan buffer", "Failed to create buffer!");
-		//
-		//_mappedPtr = info.pMappedData;
-		//_allocationSize = info.size;
-	}
-
+	VulkanBuffer::VulkanBuffer(const BufferDesc& desc) : _desc(desc) {}
 	VulkanBuffer::~VulkanBuffer() {
-		if (_buffer != VK_NULL_HANDLE) {
-			vmaDestroyBuffer(GetContext<VulkanContext>()->GetAllocator(), _buffer, _allocation);
-		}
+		if (_buffer != VK_NULL_HANDLE) vmaDestroyBuffer(GetContext<VulkanContext>()->GetAllocator(), _buffer, _allocation);
 	}
 
 	void VulkanBuffer::Write(const void* data, usize size, usize offset) {

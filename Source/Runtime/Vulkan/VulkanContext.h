@@ -25,7 +25,7 @@ namespace CusEngine::RHI {
 		virtual Swapchain* CreateSwapchain(const SwapchainDesc& desc) override;
 		virtual ContextDesc* GetDesc() override;
 
-		void CopyBufferToImage(VkCommandBuffer cmd, VkBuffer buffer, VkImage image, VkImageLayout layout, uint32_t width, uint32_t height);
+		void CopyBufferToImage(VkCommandBuffer cmd, VkBuffer buffer, VkImage image, VkImageLayout layout, uint32_t width, uint32_t height); // TODO(0x): move this into commands
 		void CopyBuffer(VkCommandBuffer cmd, size_t size, VkBuffer srcBuffer, VkBuffer dstBuffer);
 		void TransitionImageLayout(VkCommandBuffer  cmd, Image* image, ImageLayout newLayout);
 

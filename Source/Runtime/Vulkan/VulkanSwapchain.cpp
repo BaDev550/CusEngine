@@ -3,10 +3,7 @@
 #include <Engine/Core/Memory.h>
 
 namespace CusEngine::RHI {
-	VulkanSwapchain::VulkanSwapchain(const SwapchainDesc& desc) : _desc(desc) {
-		//Recreate(desc);
-	}
-
+	VulkanSwapchain::VulkanSwapchain(const SwapchainDesc& desc) : _desc(desc) { }
 	VulkanSwapchain::~VulkanSwapchain() {
 		Destroy();
 	}
@@ -17,11 +14,10 @@ namespace CusEngine::RHI {
 		_extent.x = desc.width;
 		_extent.y = desc.height;
 		VkSurfaceCapabilitiesKHR surfaceCaps{};
-		Logger::Assert((vkGetPhysicalDeviceSurfaceCapabilitiesKHR(vkContext->GetPhysicalDevice(), vkContext->GetSurface(), &surfaceCaps) == VK_SUCCESS), "Vulkan swapchain", "Failed to get surface caps");
+		Logger::Assert((vkGetPhysicalDeviceSurfaceCapabilitiesKHR(vkContext->GetPhysicalDevice(), vkContext->GetSurface(), &surfaceCaps) == VK_SUCCESS), GetObjectDebugName(), "Failed to get surface caps");
 
 		uint32_t requestedImageCount = std::max(2u, surfaceCaps.minImageCount);
-		if (surfaceCaps.maxImageCount > 0)
-			requestedImageCount = std::min(requestedImageCount, surfaceCaps.maxImageCount);
+		if (surfaceCaps.maxImageCount > 0) requestedImageCount = std::min(requestedImageCount, surfaceCaps.maxImageCount);
 
 		VkSwapchainCreateInfoKHR createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
@@ -35,25 +31,31 @@ namespace CusEngine::RHI {
 		createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
 		createInfo.preTransform = surfaceCaps.currentTransform;
 		createInfo.presentMode = _desc.vsync ? VK_PRESENT_MODE_FIFO_KHR : VK_PRESENT_MODE_IMMEDIATE_KHR;
-		Logger::Assert((vkCreateSwapchainKHR(vkContext->GetDevice(), &createInfo, nullptr, &_swapchain) == VK_SUCCESS), "Vulkan swapchain", "Failed to create swapchain");
-		Logger::Info("VulkanSwapchain", "Swapchain created!");
-#if 0
+		Logger::Assert((vkCreateSwapchainKHR(vkContext->GetDevice(), &createInfo, nullptr, &_swapchain) == VK_SUCCESS), GetObjectDebugName(), "Failed to create swapchain");
+		Logger::Info(GetObjectDebugName(), "Swapchain created!");
+
 		{
-			std::vector<VkImage> _RAWimages;
-			std::vector<VkImageView> _RAWimageViews;
+			std::vector<VkImage> vkImages;
+			std::vector<VkImageView> vkImageViews;
+			vkGetSwapchainImagesKHR(vkContext->GetDevice(), _swapchain, &_imageCount, nullptr);
+			vkImages.resize(_imageCount);
+			vkImageViews.resize(_imageCount);
+			vkGetSwapchainImagesKHR(vkContext->GetDevice(), _swapchain, &_imageCount, vkImages.data());
 
-			uint32_t imageCount = 0;
-			vkGetSwapchainImagesKHR(vkContext->GetDevice(), _swapchain, &imageCount, nullptr);
-			_RAWimages.resize(imageCount);
-			vkGetSwapchainImagesKHR(vkContext->GetDevice(), _swapchain, &imageCount, _RAWimages.data());
-			_RAWimageViews.resize(imageCount);
-			_colorAttachments.resize(imageCount);
-			_imageCount = imageCount;
+			_colorAttachments.resize(_imageCount);
 
-			for (uint32_t i = 0; i < imageCount; i++) {
+			for (uint32_t i = 0; i < _imageCount; i++) {
+				ImageDesc attachmentDesc{};
+				attachmentDesc.width = _extent.x;
+				attachmentDesc.height = _extent.y;
+				attachmentDesc.format = _colorFormat;
+				attachmentDesc.layout = ImageLayout::Undefined;
+				attachmentDesc.usage = ImageUsage::ColorAttachment;
+				VulkanImage* vkColorAttachment = Mem::Allocator::Construct<VulkanImage>(attachmentDesc);
+
 				VkImageViewCreateInfo imageViewInfo{};
 				imageViewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-				imageViewInfo.image = _RAWimages[i];
+				imageViewInfo.image = vkImages[i];
 				imageViewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
 				imageViewInfo.format = Utils::GetVkFormat(_colorFormat);
 				imageViewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -61,56 +63,44 @@ namespace CusEngine::RHI {
 				imageViewInfo.subresourceRange.baseMipLevel = 0;
 				imageViewInfo.subresourceRange.layerCount = 1;
 				imageViewInfo.subresourceRange.baseArrayLayer = 0;
-				Logger::Assert((vkCreateImageView(vkContext->GetDevice(), &imageViewInfo, nullptr, &_RAWimageViews[i]) == VK_SUCCESS), "Vulkan swapchain", "Failed to create image view for swapchain image");
+				Logger::Assert((vkCreateImageView(vkContext->GetDevice(), &imageViewInfo, nullptr, &vkImageViews[i]) == VK_SUCCESS), GetObjectDebugName(), "Failed to create image view for swapchain image");
 
-				ImageDesc swapchainColorAttachmentDesc{};
-				swapchainColorAttachmentDesc.width = _extent.x;
-				swapchainColorAttachmentDesc.height = _extent.y;
-				swapchainColorAttachmentDesc.format = _colorFormat;
-				swapchainColorAttachmentDesc.layout = ImageLayout::Undefined;
-				swapchainColorAttachmentDesc.usage = ImageUsage::ColorAttachment;
-				_colorAttachments[i] = Mem::Allocator::Construct<VulkanImage>(_RAWimages[i], _RAWimageViews[i], VK_NULL_HANDLE, swapchainColorAttachmentDesc);
+				vkColorAttachment->_context = _context;
+				vkColorAttachment->_image = vkImages[i];
+				vkColorAttachment->_imageView = vkImageViews[i];
+				vkColorAttachment->_allocation = VK_NULL_HANDLE;
+
+				_colorAttachments[i] = vkColorAttachment;
 			}
 
-			VkImage _RAWdepthImage;
-			VmaAllocation _RAWdepthImageAllocation;
-			VkImageView _RAWdepthImageView;
-			Logger::Assert((
-				_context->CreateImage(
-					_extent.x, 
-					_extent.y, 
-					Utils::GetVkFormat(_depthFormat), 
-					VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, 
-					&_RAWdepthImage, 
-					&_RAWdepthImageAllocation
-				) == VK_SUCCESS), "Vulkan swapchain", "Failed to create swapchain depth image!");
+			{
+				ImageDesc depthAttachmentDesc{};
+				depthAttachmentDesc.width = _extent.x;
+				depthAttachmentDesc.height = _extent.y;
+				depthAttachmentDesc.format = _depthFormat;
+				depthAttachmentDesc.layout = ImageLayout::Undefined;
+				depthAttachmentDesc.usage = ImageUsage::DepthStencilAttachment;
 
-			VkImageViewCreateInfo depthImgViewCreateInfo{};
-			depthImgViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-			depthImgViewCreateInfo.image = _RAWdepthImage;
-			depthImgViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-			depthImgViewCreateInfo.format = Utils::GetVkFormat(_depthFormat);
-			depthImgViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-			depthImgViewCreateInfo.subresourceRange.levelCount = 1;
-			depthImgViewCreateInfo.subresourceRange.baseMipLevel = 0;
-			depthImgViewCreateInfo.subresourceRange.layerCount = 1;
-			depthImgViewCreateInfo.subresourceRange.baseArrayLayer = 0;
-			Logger::Assert((vkCreateImageView(_context->GetVkDeviceHandle(), &depthImgViewCreateInfo, nullptr, &_RAWdepthImageView) == VK_SUCCESS), "Vulkan swapchain", "Failed to create image view");
+				VulkanImage* depthAttachment = static_cast<VulkanImage*>(_context->CreateImage(depthAttachmentDesc));
+				Logger::Assert(depthAttachment, GetObjectDebugName(), "Failed to create swapchain depth image!");
 
-			ImageDesc swapchainDepthAttachmentDesc{};
-			swapchainDepthAttachmentDesc.width = _extent.x;
-			swapchainDepthAttachmentDesc.height = _extent.y;
-			swapchainDepthAttachmentDesc.format = _depthFormat;
-			swapchainDepthAttachmentDesc.layout = ImageLayout::Undefined;
-			swapchainDepthAttachmentDesc.usage = ImageUsage::DepthStencilAttachment;
-			_depthAttachment = Mem::Ref<Vulkan_Image>::Create(
-				_RAWdepthImage,
-				_RAWdepthImageView,
-				_RAWdepthImageAllocation,
-				swapchainDepthAttachmentDesc
-			);
+				VkImageView vkDepthImageView;
+				VkImageViewCreateInfo depthImgViewCreateInfo{};
+				depthImgViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+				depthImgViewCreateInfo.image = depthAttachment->GetImage();
+				depthImgViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+				depthImgViewCreateInfo.format = Utils::GetVkFormat(_depthFormat);
+				depthImgViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+				depthImgViewCreateInfo.subresourceRange.levelCount = 1;
+				depthImgViewCreateInfo.subresourceRange.baseMipLevel = 0;
+				depthImgViewCreateInfo.subresourceRange.layerCount = 1;
+				depthImgViewCreateInfo.subresourceRange.baseArrayLayer = 0;
+				Logger::Assert((vkCreateImageView(GetContext<VulkanContext>()->GetDevice(), &depthImgViewCreateInfo, nullptr, &vkDepthImageView) == VK_SUCCESS), GetObjectDebugName(), "Failed to create image view");
+
+				depthAttachment->_imageView = vkDepthImageView;
+				_depthAttachment = std::move(depthAttachment);
+			}
 		}
-#endif
 	}
 
 	void VulkanSwapchain::Recreate(u32 width, u32 height) {
@@ -122,22 +112,11 @@ namespace CusEngine::RHI {
 	void VulkanSwapchain::Destroy() {
 		VulkanContext* vkContext = GetContext<VulkanContext>();
 
-#if 0
 		for (auto& image : _colorAttachments) {
-			VulkanImage* vkImage = static_cast<VulkanImage*>(image);
-
-			vkDestroyImageView(vkContext->GetDevice(), vkImage->GetImageView(), nullptr);
+			Mem::Allocator::Destroy(image);
 		}
+		Mem::Allocator::Destroy(_depthAttachment);
 		_colorAttachments.clear();
-
-		Mem::Ref<Vulkan_Image> vkDepthImage = _depthAttachment.AsStatic<Vulkan_Image>();
-
-		vmaDestroyImage(_context->GetAllocator(), vkDepthImage->GetVkImage(), vkDepthImage->GetVmaAllocation());
-		vkDestroyImageView(_context->GetVkDeviceHandle(), vkDepthImage->GetVkImageView(), nullptr);
-		vkDepthImage->_image = VK_NULL_HANDLE;
-		vkDepthImage->_imageView = VK_NULL_HANDLE;
-		vkDepthImage->_allocation = VK_NULL_HANDLE;
-#endif
 
 		vkDestroySwapchainKHR(vkContext->GetDevice(), _swapchain, nullptr);
 	}

@@ -5,6 +5,7 @@
 
 #include <Runtime/Vulkan/VulkanSwapchain.h>
 #include <Runtime/Vulkan/VulkanCommands.h>
+#include <Runtime/Vulkan/VulkanBuffer.h>
 
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
@@ -14,7 +15,7 @@
 
 namespace CusEngine::RHI {
 #define ENABLE_FEATURE_IF_SUPPORTED(supported, feature) \
-	Logger::Info("VulkanRenderContext", "{}: [{}, {}]", #supported, feature ? "Supported" : "Not supported", _desc.features.supported ? "Enabled" : "Disabled"); \
+	Logger::Info("rhi_object_vulkan_context", "{}: [{}, {}]", #supported, feature ? "Supported" : "Not supported", _desc.features.supported ? "Enabled" : "Disabled"); \
 	if (_desc.features.supported && !feature) { throw std::runtime_error(#supported " is not supported"); } \
 	else { feature = _desc.features.supported; }
 
@@ -24,7 +25,7 @@ namespace CusEngine::RHI {
 		const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
 		void* pUserData) {
 
-		Logger::Error("VulkanRenderContext", "%s", pCallbackData->pMessage);
+		Logger::Error("rhi_object_vulkan_context", "%s", pCallbackData->pMessage);
 		return VK_FALSE;
 	}
 
@@ -61,7 +62,7 @@ namespace CusEngine::RHI {
 	}
 
 	Context* CreateContext(const ContextDesc& desc) {
-		return new VulkanContext(desc);
+		return Mem::Allocator::Construct<VulkanContext>(desc);
 	}
 
 	VulkanContext::VulkanContext(const ContextDesc& desc) : _desc(desc) {
@@ -73,7 +74,7 @@ namespace CusEngine::RHI {
 			CreateVMA();
 		}
 		catch (const std::runtime_error& err) {
-			Logger::Assert(false, "VulkanRenderContext", "{}", err.what());
+			Logger::Assert(false, "rhi_object_vulkan_context", "{}", err.what());
 		}
 	}
 
@@ -100,29 +101,66 @@ namespace CusEngine::RHI {
 
 	Buffer* VulkanContext::CreateBuffer(const BufferDesc& desc)
 	{
-		return nullptr;
+		VulkanBuffer* buffer = Mem::Allocator::Construct<VulkanBuffer>(desc);
+
+		buffer->_context = this;
+
+		VkBufferUsageFlags usage = Utils::GetVkBufferUsage(desc.usage);
+		VmaMemoryUsage memoryUsage = Utils::GetVkMemoryUsage(desc.memoryUsage);
+		VmaAllocationCreateFlags allocFlags = Utils::GetVkAllocationFlags(desc.allocationFlags);
+
+		VkBufferCreateInfo bufferInfo{};
+		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+		bufferInfo.size = desc.size;
+		bufferInfo.usage = usage;
+		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		
+		VmaAllocationCreateInfo allocInfo{};
+		allocInfo.usage = memoryUsage;
+		allocInfo.flags = allocFlags;
+		VmaAllocationInfo info{};
+		Logger::Assert((
+			vmaCreateBuffer(
+				_allocator,
+				&bufferInfo,
+				&allocInfo,
+				&buffer->_buffer,
+				&buffer->_allocation,
+				&info) == VK_SUCCESS), buffer->GetObjectDebugName(), "Failed to create buffer!");
+		
+		buffer->_mappedPtr = info.pMappedData;
+		buffer->_allocationSize = info.size;
+
+		return buffer;
 	}
 
 	Image* VulkanContext::CreateImage(const ImageDesc& desc)
 	{
-#if 0
+		VulkanImage* image = Mem::Allocator::Construct<VulkanImage>(desc);
+
+		image->_context = this;
+
+		VkFormat vkFormat = Utils::GetVkFormat(desc.format); // mybe change this
+		VkImageTiling vkTiling = Utils::GetVkImageTiling(desc.tileMode);
+		VkImageUsageFlags vKUsage = Utils::GetVkImageUsage(desc.usage);
+
 		VkImageCreateInfo imageInfo{};
 		imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 		imageInfo.imageType = VK_IMAGE_TYPE_2D;
-		imageInfo.format = format;
-		imageInfo.extent = VkExtent3D(width, height, 1.0f);
+		imageInfo.format = vkFormat;
+		imageInfo.extent = VkExtent3D(desc.width, desc.height, 1.0f);
 		imageInfo.mipLevels = 1;
 		imageInfo.arrayLayers = 1;
 		imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-		imageInfo.tiling = tiling;
-		imageInfo.usage = usage;
+		imageInfo.tiling = vkTiling;
+		imageInfo.usage = vKUsage;
 		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 		VmaAllocationCreateInfo allocInfo{};
 		allocInfo.flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT;
 		allocInfo.usage = VMA_MEMORY_USAGE_AUTO;
-		return vmaCreateImage(_allocator, &imageInfo, &allocInfo, image, allocation, nullptr);
-#endif
-		return nullptr;
+		vmaCreateImage(_allocator, &imageInfo, &allocInfo, &image->_image, &image->_allocation, nullptr);
+
+		return image;
 	}
 
 	Swapchain* VulkanContext::CreateSwapchain(const SwapchainDesc& desc)
@@ -293,7 +331,7 @@ namespace CusEngine::RHI {
 		if (vkCreateInstance(&createInfo, nullptr, &_instance) != VK_SUCCESS) {
 			throw std::runtime_error("Failed to create vulkan istance");
 		}
-		Logger::Info("VulkanRenderContext", "Vulkan instance created");
+		Logger::Info("rhi_object_vulkan_context", "Vulkan instance created");
 	}
 
 	void VulkanContext::CreateVMA() {
@@ -338,9 +376,9 @@ namespace CusEngine::RHI {
 
 		VkPhysicalDeviceProperties properties;
 		vkGetPhysicalDeviceProperties(_physicalDevice, &properties);
-		Logger::Info("VulkanRenderContext", "Selected GPU: {}", properties.deviceName);
-		Logger::Info("VulkanRenderContext", "Vulkan API version: {}.{}.{}", VK_VERSION_MAJOR(properties.apiVersion), VK_VERSION_MINOR(properties.apiVersion), VK_VERSION_PATCH(properties.apiVersion));
-		Logger::Info("VulkanRenderContext", "Driver version: {}.{}.{}", VK_VERSION_MAJOR(properties.driverVersion), VK_VERSION_MINOR(properties.driverVersion), VK_VERSION_PATCH(properties.driverVersion));
+		Logger::Info("rhi_object_vulkan_context", "Selected GPU: {}", properties.deviceName);
+		Logger::Info("rhi_object_vulkan_context", "Vulkan API version: {}.{}.{}", VK_VERSION_MAJOR(properties.apiVersion), VK_VERSION_MINOR(properties.apiVersion), VK_VERSION_PATCH(properties.apiVersion));
+		Logger::Info("rhi_object_vulkan_context", "Driver version: {}.{}.{}", VK_VERSION_MAJOR(properties.driverVersion), VK_VERSION_MINOR(properties.driverVersion), VK_VERSION_PATCH(properties.driverVersion));
 	}
 
 	void VulkanContext::CreateDevice() {
@@ -392,7 +430,7 @@ namespace CusEngine::RHI {
 
 		vkGetDeviceQueue(_device, _graphicsAndPresentQueueIndex, 0, &_graphicsAndPresentQueue);
 		
-		Logger::Info("VulkanRenderContext", "Logical device created");
+		Logger::Info("rhi_object_vulkan_context", "Logical device created");
 	}
 
 	void VulkanContext::CreateSurface() {

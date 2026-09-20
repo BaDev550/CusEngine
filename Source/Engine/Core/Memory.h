@@ -39,14 +39,16 @@ namespace CusEngine::Mem {
 	class Allocator final {
 	public:
 		static void* Allocate(usize size, usize align = 16) {
-			void* mem = ::operator new(size, std::align_val_t(align));
+			void* mem = ::operator new(size, std::align_val_t(align), std::nothrow);
 			_tracker.Record(mem, { size, align });
 			return mem;
 		}
 
 		static void Free(void* ptr) {
+			if (!ptr) return;
+
 			MemBlock block = _tracker.Release(ptr);
-			::operator delete(ptr, block.alignment);
+			::operator delete(ptr, std::align_val_t(block.alignment));
 		}
 
 		template<typename T, typename... Args>
@@ -56,11 +58,16 @@ namespace CusEngine::Mem {
 		}
 
 		template<typename T>
-		static void Destroy(void* ptr) {
-			if (ptr) {
-				static_cast<T*>(ptr)->~T();
-				Free(ptr);
-			}
+		static void Destroy(T* ptr) {
+			if (!ptr) return;
+			void* base = ptr;
+
+			if constexpr (std::is_polymorphic_v<T>)
+				base = dynamic_cast<void*>(ptr);
+
+			ptr->~T();
+			Free(base);
+			ptr = nullptr;
 		}
 
 		template<typename T, typename... Args>

@@ -7,7 +7,6 @@ namespace CusEngine::RHI {
 
 	class RHIObject {
 	public:
-		RHIObject() { Logger::Info(GetObjectDebugName(), "Created!"); }
 		virtual ~RHIObject() = default;
 		virtual std::string_view GetObjectDebugName() const { return "rhi_object_unknown"; }
 

@@ -35,16 +35,16 @@ namespace CusEngine::RHI {
 				VkCommandPoolCreateInfo poolCreateInfo{};
 				poolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 				poolCreateInfo.queueFamilyIndex = vkContext->GetGraphicsAndPresentQueueIndex();
-				Logger::Assert((vkCreateCommandPool(vkContext->GetDevice(), &poolCreateInfo, nullptr, &fd.CommandPool) == VK_SUCCESS), "Vulkan Render Commands", "Failed to create frame command pool");
+				Logger::Assert((vkCreateCommandPool(vkContext->GetDevice(), &poolCreateInfo, nullptr, &fd.CommandPool) == VK_SUCCESS), GetObjectDebugName(), "Failed to create frame command pool");
 
 				VkCommandBufferAllocateInfo allocInfo{};
 				allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 				allocInfo.commandPool = fd.CommandPool;
 				allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 				allocInfo.commandBufferCount = 1;
-				Logger::Assert((vkAllocateCommandBuffers(vkContext->GetDevice(), &allocInfo, &fd.CommandBuffer) == VK_SUCCESS), "Vulkan Render Commands", "Failed to create frame command buffer");
+				Logger::Assert((vkAllocateCommandBuffers(vkContext->GetDevice(), &allocInfo, &fd.CommandBuffer) == VK_SUCCESS), GetObjectDebugName(), "Failed to create frame command buffer");
 			}
-			Logger::Info("Vulkan Render Commands", "Command pool and buffers created for frames");
+			Logger::Info(GetObjectDebugName(), "Command pool and buffers created for frames");
 		}
 	}
 
@@ -59,8 +59,8 @@ namespace CusEngine::RHI {
 			VkSemaphoreCreateInfo tlsemaphoreCreateInfo{};
 			tlsemaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 			tlsemaphoreCreateInfo.pNext = &tlsemaphoreTypeInfo;
-			Logger::Assert((vkCreateSemaphore(vkContext->GetDevice(), &tlsemaphoreCreateInfo, nullptr, &_timelineSemaphore) == VK_SUCCESS), "Vulkan Render Commands", "Failed to create timeline semaphore!");
-			Logger::Info("Vulkan Render Commands", "Timeline semaphore created");
+			Logger::Assert((vkCreateSemaphore(vkContext->GetDevice(), &tlsemaphoreCreateInfo, nullptr, &_timelineSemaphore) == VK_SUCCESS), GetObjectDebugName(), "Failed to create timeline semaphore!");
+			Logger::Info(GetObjectDebugName(), "Timeline semaphore created");
 		}
 	}
 
@@ -71,15 +71,15 @@ namespace CusEngine::RHI {
 			for (VkSemaphore& s : _renderFinishedSemaphores) {
 				VkSemaphoreCreateInfo createInfo{};
 				createInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-				Logger::Assert((vkCreateSemaphore(vkContext->GetDevice(), &createInfo, nullptr, &s) == VK_SUCCESS), "Vulkan Render Commands", "Failed to create render finished binary semaphore!");
+				Logger::Assert((vkCreateSemaphore(vkContext->GetDevice(), &createInfo, nullptr, &s) == VK_SUCCESS), GetObjectDebugName(), "Failed to create render finished binary semaphore!");
 			}
 
 			for (FrameData& fd : _frames) {
 				VkSemaphoreCreateInfo createInfo{};
 				createInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-				Logger::Assert((vkCreateSemaphore(vkContext->GetDevice(), &createInfo, nullptr, &fd.ImageAvailableSemaphore) == VK_SUCCESS), "Vulkan Render Commands", "Failed to create image acquired binary semaphore!");
+				Logger::Assert((vkCreateSemaphore(vkContext->GetDevice(), &createInfo, nullptr, &fd.ImageAvailableSemaphore) == VK_SUCCESS), GetObjectDebugName(), "Failed to create image acquired binary semaphore!");
 			}
-			Logger::Info("Vulkan Render Commands", "Binary ImageAvailableSemaphore and RenderFinishedSemaphores are created");
+			Logger::Info(GetObjectDebugName(), "Binary ImageAvailableSemaphore and RenderFinishedSemaphores are created");
 		}
 	}
 
@@ -290,7 +290,7 @@ namespace CusEngine::RHI {
 
 	VulkanCommands::FrameData* VulkanCommands::GetCurrentFrameData()
 	{
-		Logger::Assert(_frameRecording, "Vulkan Render Commands", "No active recording!");
+		Logger::Assert(_frameRecording, GetObjectDebugName(), "No active recording!");
 		return &_frames[_currentFrameIndex];
 	}
 }

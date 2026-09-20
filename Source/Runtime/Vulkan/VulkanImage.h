@@ -10,7 +10,6 @@ namespace CusEngine::RHI {
 	class VulkanImage final : public Image {
 	public:
 		VulkanImage(const ImageDesc& desc);
-		VulkanImage(VkImage image, VkImageView view, VmaAllocation allocation, const ImageDesc& desc);
 		virtual ~VulkanImage();
 
 		virtual std::string_view GetObjectDebugName() const override final { return "rhi_object_vulkan_image"; }
@@ -29,6 +28,8 @@ namespace CusEngine::RHI {
 		VkImage _image = VK_NULL_HANDLE;
 		VkImageView _imageView = VK_NULL_HANDLE;
 		VmaAllocation _allocation = VK_NULL_HANDLE;
-		u32 _samplerId = 0;
+
+		friend class VulkanContext;
+		friend class VulkanSwapchain;
 	};
 }
