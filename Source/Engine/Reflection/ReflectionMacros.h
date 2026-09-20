@@ -1,5 +1,6 @@
 #pragma once
-#include <Engine/Reflection/TypeRegistry.h>
+#include <Engine/Core/Engine.h>
+#include <Engine/Reflection/ReflectionSubsystem.h>
 
 #define CUS_CLASS() 
 #define CUS_PROP()
@@ -7,10 +8,12 @@
 #define REFLECT_CLASS(Type) \
 public: \
     virtual const CusEngine::Reflect::ClassType* GetTypeInfo() const override { \
-        return CusEngine::Reflect::TypeRegistry::Get().GetClass(#Type); \
+        CusEngine::Reflect::ReflectionSubsystem* system = CusEngine::Engine()::Get()->GetSubsystem<CusEngine::Reflect::ReflectionSubsystem>(); \
+        return system->GetClass(#Type); \
     } \
     static const CusEngine::Reflect::ClassType* StaticTypeInfo() { \
-        return CusEngine::Reflect::TypeRegistry::Get().GetClass(#Type); \
+        CusEngine::Reflect::ReflectionSubsystem* system = CusEngine::Engine()::Get()->GetSubsystem<CusEngine::Reflect::ReflectionSubsystem>(); \
+        return system->GetClass(#Type); \
     }
 
 #define BEGIN_REFLECT(Type) \
@@ -28,10 +31,11 @@ public: \
                 );
 
 #define END_REFLECT(Type) \
-            CusEngine::Reflect::TypeRegistry::Get().RegisterClass(typeInfo); \
+            CusEngine::Reflect::ReflectionSubsystem* system = CusEngine::Engine()::Get()->GetSubsystem<CusEngine::Reflect::ReflectionSubsystem>(); \
+            system->RegisterClass(typeInfo); \
         } \
         ~Type##_AutoRegister() { \
-            CusEngine::Reflect::TypeRegistry::Get().UnregisterClass(#Type); \
+            system->UnregisterClass(#Type); \
         } \
     }; \
     Type##_AutoRegister global_##Type##_AutoRegister_Instance; \

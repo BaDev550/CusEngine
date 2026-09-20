@@ -3,6 +3,7 @@
 #include <Engine/Window/WindowSubsystem.h>
 #include <Engine/Renderer/RenderSubsystem.h>
 #include <Engine/Subsystem/PluginLoaderSubsystem.h>
+#include <Engine/Reflection/ReflectionSubsystem.h>
 #include <Engine/MT/JobSubsystem.h>
 
 #include "TestSystem.h"
@@ -12,6 +13,7 @@ int main() {
 		CusEngine::Engine engine{};
 		engine.AddSubsystem<TestSubsystem>();
 		engine.AddSubsystem<CusEngine::PluginSubsystem>();
+		engine.AddSubsystem<CusEngine::Reflect::ReflectionSubsystem>();
 		engine.AddSubsystem<CusEngine::MT::JobSubsystem>();
 		engine.AddSubsystem<CusEngine::RenderSubsystem>();
 		engine.AddSubsystem<CusEngine::WindowSubsystem>(); 

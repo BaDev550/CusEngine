@@ -1,12 +1,20 @@
 #pragma once
 #include <Engine/Core/Core.h>
 #include <Engine/Core/Logger.h>
+#include <Engine/Subsystem/Subsystem.h>
 #include <Engine/Reflection/TypeDescriptor.h>
 
 namespace CusEngine::Reflect {
-    class ENGINE_API TypeRegistry {
+    class ENGINE_API ReflectionSubsystem : public Subsystem {
     public:
-        static TypeRegistry& Get();
+        virtual bool OnCreate(Engine* engine) override {
+            Subsystem::OnCreate(engine); // do some shit inhere
+            return true;
+        }
+        virtual void OnUpdate() override {}
+        virtual void OnDestroy() override {}
+
+        virtual void GetDependencyGraph(DependencyGraph& graph) override;
 
         void RegisterClass(const ClassType& typeInfo);
         void UnregisterClass(const std::string& className);
