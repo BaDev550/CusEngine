@@ -11,7 +11,6 @@ target_link_libraries(Engine
     PUBLIC 
         glm::glm-header-only
     PRIVATE
-        RHI_Vulkan
         glfw 
         unofficial::shaderc::shaderc
 )

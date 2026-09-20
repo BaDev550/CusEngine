@@ -1,13 +1,17 @@
 #include "Window/Window.h"
 #include "Core/Logger.h"
+#include "Core/Engine.h"
+#include "Graphics/RHI/RHISubsystem.h"
 #include <GLFW/glfw3.h>
 
 namespace CusEngine {
-	Window::Window(const WindowDesc& desc) : _desc(desc) {
+	Window::Window(Engine* engine, const WindowDesc& desc) : _desc(desc) {
 		_handle = glfwCreateWindow(_desc.width, _desc.height, _desc.title.c_str(), nullptr, nullptr);
 		Logger::Assert(_handle, "GLFW", "Failed to create window");
 		Logger::Info("GLFW", "Window created width: {}, height: {}, title: {}", _desc.width, _desc.height, _desc.title);
 		glfwMakeContextCurrent(_handle);
+
+		auto rhi = engine->GetSubsystem<RHI::RHISubsystem>();
 
 		RHI::GPUFeatures features{};
 		features.dynamicRendering = true;
@@ -23,14 +27,14 @@ namespace CusEngine {
 		renderContextDesc.windowHandle = _handle;
 		renderContextDesc.features = features;
 
-		_renderContext = RHI::CreateRenderContext(renderContextDesc);
+		_renderContext = rhi->CreateRenderContext(renderContextDesc);
 
 		RHI::SwapchainDesc swapchainDesc{};
 		swapchainDesc.width = _desc.width;
 		swapchainDesc.height = _desc.height;
 		swapchainDesc.vsync = false;
 
-		_swapchain = RHI::CreateSwapchain(_renderContext, swapchainDesc);
+		_swapchain = rhi->CreateSwapchain(_renderContext, swapchainDesc);
 	}
 
 	Window::~Window() {

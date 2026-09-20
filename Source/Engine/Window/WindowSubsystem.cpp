@@ -1,14 +1,17 @@
 #include "Window/WindowSubsystem.h"
 #include "Core/Engine.h"
 
+#include "Renderer/RenderSubsystem.h"
+#include "Subsystem/PluginLoaderSubsystem.h"
+#include "Reflection/TypeRegistry.h"
+#include "Graphics/RHI/RHISubsystem.h"
+
 #include <GLFW/glfw3.h>
 
 namespace CusEngine {
 	bool WindowSubsystem::OnCreate(Engine* engine)
 	{
 		Subsystem::OnCreate(engine);
-
-		Logger::Info("WindowSubsystem", "Created!");
 
 		if (!_glfwInitialized) {
 			Logger::Assert(glfwInit(), "GLFW", "Failed to initialize GLFW context");
@@ -20,7 +23,7 @@ namespace CusEngine {
 		desc.width = 800;
 		desc.height = 800;
 		desc.title = "Engine Debug Window";
-		_window = Mem::Allocator::ConstructUnique<Window>(desc);
+		_window = Mem::Allocator::ConstructUnique<Window>(engine, desc);
 
 		return true;
 	}
@@ -40,4 +43,6 @@ namespace CusEngine {
 			glfwTerminate();
 		}
 	}
+
+	void WindowSubsystem::GetDependencyGraph(DependencyGraph& graph) { }
 }

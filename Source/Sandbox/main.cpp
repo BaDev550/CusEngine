@@ -2,6 +2,7 @@
 
 #include <Window/WindowSubsystem.h>
 #include <Renderer/RenderSubsystem.h>
+#include <Graphics/RHI/RHISubsystem.h>
 #include <Subsystem/PluginLoaderSubsystem.h>
 #include <MT/JobSubsystem.h>
 

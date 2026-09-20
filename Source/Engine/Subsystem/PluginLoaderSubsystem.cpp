@@ -10,9 +10,6 @@
 namespace CusEngine {
     bool PluginSubsystem::OnCreate(Engine* engine) {
         Subsystem::OnCreate(engine);
-
-        Logger::Info("PluginSubsystem", "Created!");
-
         return true;
     }
 

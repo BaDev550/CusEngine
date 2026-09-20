@@ -14,7 +14,7 @@ public: \
     }
 
 #define BEGIN_REFLECT(Type) \
-    namespace { \
+    namespace CusEngine { \
         struct Type##_AutoRegister { \
             Type##_AutoRegister() { \
                 CusEngine::Reflect::ClassType typeInfo; \

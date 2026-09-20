@@ -163,20 +163,5 @@ namespace CusEngine {
 			u32 height;
 			bool vsync = true;
 		};
-
-		extern "C" {
-			ENGINE_API [[nodiscard]] RenderContext* CreateRenderContext(const RenderContextDesc& desc);
-			ENGINE_API void DestroyRenderContext(RenderContext* context);
-
-			ENGINE_API [[nodiscard]] RenderCommands* CreateRenderCommands(RenderContext* context, Swapchain* swapchain);
-			ENGINE_API void DestroyRenderCommands(RenderCommands* commands);
-
-			ENGINE_API [[nodiscard]] Swapchain* CreateSwapchain(RenderContext* context, const SwapchainDesc& desc);
-			ENGINE_API void DestroySwapchain(Swapchain* swapchain);
-
-			ENGINE_API [[nodiscard]] Image* CreateImage(RenderCommands* commands, const ImageDesc& desc);
-			ENGINE_API [[nodiscard]] Buffer* CreateBuffer(RenderCommands* commands, const BufferDesc& desc);
-			ENGINE_API [[nodiscard]] Pipeline* CreatePipeline(RenderCommands* commands, const PipelineDesc& desc);
-		}
 	}
 }

@@ -13,14 +13,15 @@
 #include "Graphics/Framebuffer.h"
 
 namespace CusEngine {
-	class ENGINE_API RenderSubsystem final : public Subsystem {
+	class ENGINE_API RenderSubsystem : public Subsystem {
 	public:
 		virtual bool OnCreate(Engine* engine) override;
 		virtual void OnUpdate() override;
 		virtual void OnDestroy() override;
 
 		virtual void GetDependencyGraph(DependencyGraph& graph) override;
-	private:
+	protected:
 		RHI::RenderCommands* _commands = nullptr;
+
 	};
 }

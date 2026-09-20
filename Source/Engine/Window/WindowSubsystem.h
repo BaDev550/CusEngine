@@ -14,6 +14,8 @@ namespace CusEngine {
 		virtual void OnDestroy() override;
 
 		Window* GetWindow() const { return _window.get(); }
+
+		virtual void GetDependencyGraph(DependencyGraph& graph) override;
 	private:
 		bool _glfwInitialized = false;
 

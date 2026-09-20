@@ -11,9 +11,10 @@ namespace CusEngine {
 		std::string title = "Window";
 	};
 
-	class Window final {
+	class Engine;
+	class ENGINE_API Window final {
 	public:
-		Window(const WindowDesc& desc);
+		Window(Engine* engine, const WindowDesc& desc);
 		~Window();
 
 		bool ShouldClose() const;

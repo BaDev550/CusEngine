@@ -21,16 +21,16 @@ namespace CusEngine {
 		void Run();
 		void Shutdown(const std::string_view reson);
 
-		template<class T, typename... Args>
+		template<class T, typename... Args> requires (!std::is_pointer_v<T>&& std::is_constructible_v<T, Args...>)
 		void AddSubsystem(Args&&... args) {
-			std::type_index typeindex = typeid(T);
-			if (auto it = _systemLookupTable.find(typeindex); it != _systemLookupTable.end()) {
-				Logger::Warn("EngineSubsystem", "Tried to add subsystem witch is already inside of the list.");
-				return;
-			}
-			_systemInitLookupTable[typeindex] = _pendingInitList.size();
-			_pendingInitList.push_back(Mem::Allocator::Construct<T>(std::forward<Args>(args)...));
-			Logger::Info("EngineSubsystem", "Subsystem {} added to engine.", typeindex.name());
+			T* instance = Mem::Allocator::Construct<T>(std::forward<Args>(args)...);
+			RegisterSubsystem(typeid(T), instance);
+		}
+
+		template<class BaseType = Subsystem>
+		BaseType* AddSubsystem(Subsystem* instance) {
+			RegisterSubsystem(typeid(BaseType), instance);
+			return static_cast<BaseType*>(instance);
 		}
 
 		template<class T>
@@ -43,9 +43,13 @@ namespace CusEngine {
 			return nullptr;
 		}
 	private:
+		void RegisterSubsystem(std::type_index type, Subsystem* instance);
 		void SortAndInitializeSystems();
+		void InitializeSingleSubsystem(std::type_index type, Subsystem* instance);
+		void PreInitializePlugins();
 
 		bool _running = true;
+		bool _initialized = false;
 
 		std::vector<Subsystem*> _pendingInitList;
 		std::unordered_map<std::type_index, usize> _systemInitLookupTable;
