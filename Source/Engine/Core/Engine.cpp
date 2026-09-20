@@ -1,11 +1,7 @@
-#include "Engine.h"
-#include "Core/Logger.h"
-#include <queue>
+#include <Engine/Core/Engine.h>
+#include <Engine/Core/Logger.h>
 
-#include "Subsystem/PluginLoaderSubsystem.h"
-#include "Object.h"
-#include "Reflection/TypeRegistry.h"
-#include "Reflection/TypeDescriptor.h"
+#include <queue>
 
 namespace CusEngine {
 	Engine::Engine() {}

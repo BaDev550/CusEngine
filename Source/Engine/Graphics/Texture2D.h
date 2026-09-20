@@ -1,5 +1,6 @@
 #pragma once
 
+#if 0
 #include "RHI/RHI.h"
 #include "RenderObject.h"
 
@@ -24,3 +25,4 @@ namespace CusEngine {
 		Mem::Ref<RHI::Image> _image;
 	};
 }
+#endif

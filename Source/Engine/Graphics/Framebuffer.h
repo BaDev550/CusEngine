@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Graphics/RHI/RHI_Image.h"
-#include "Core/Memory.h"
-#include "Core/Ref.h"
+#include <Engine/Core/Memory.h>
+#include <Runtime/RHI/Image/RHIImage.h>
 
+#if 0
 namespace CusEngine {
 	struct FramebufferDesc {
 		u32 width = 1;
@@ -35,3 +35,4 @@ namespace CusEngine {
 		std::vector<Mem::Ref<RHI::Image>> _depthAttachments;
 	};
 }
+#endif

@@ -1,6 +1,5 @@
 #pragma once
-#include <Core/Object.h>
-#include <Reflection/ReflectionMacros.h>
+#include <Engine/Core/Object.h>
 
 CUS_CLASS()
 class HealthComponent : public CusEngine::Object {

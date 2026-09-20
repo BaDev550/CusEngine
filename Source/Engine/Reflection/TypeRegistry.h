@@ -1,7 +1,7 @@
 #pragma once
-#include "Core/Core.h"
-#include "Core/Logger.h"
-#include "TypeDescriptor.h"
+#include <Engine/Core/Core.h>
+#include <Engine/Core/Logger.h>
+#include <Engine/Reflection/TypeDescriptor.h>
 
 namespace CusEngine::Reflect {
     class ENGINE_API TypeRegistry {

@@ -1,5 +1,6 @@
 #pragma once
 
+#if 0
 #include "Core/Core.h"
 //#include "ResourceManager/Resource.h"
 #include <vector>
@@ -18,3 +19,4 @@ namespace Graphics {
 	//	virtual ResourceType GetResourceType() const override { return ResourceType::Shader; }
 	//};
 }
+#endif

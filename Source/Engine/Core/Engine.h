@@ -1,6 +1,6 @@
 #pragma once
-#include "Core/Memory.h"
-#include "Subsystem/Subsystem.h"
+#include <Engine/Core/Memory.h>
+#include <Engine/Subsystem/Subsystem.h>
 
 #include <unordered_map>
 #include <string_view>

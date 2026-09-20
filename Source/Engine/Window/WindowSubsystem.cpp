@@ -1,5 +1,5 @@
-#include "Window/WindowSubsystem.h"
-#include "Core/Engine.h"
+#include <Engine/Window/WindowSubsystem.h>
+#include <Engine/Core/Engine.h>
 
 #include <GLFW/glfw3.h>
 

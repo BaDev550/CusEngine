@@ -1,16 +1,12 @@
 #pragma once
-#include "Subsystem/Subsystem.h"
+#include <Engine/Subsystem/Subsystem.h>
 
-#include "Graphics/RHI/RHI.h"
-#include "Graphics/RHI/RHI_Swapchain.h"
-#include "Graphics/RHI/RHI_RenderCommands.h"
-#include "Graphics/RHI/RHI_RenderContext.h"
-#include "Graphics/RHI/RHI_Image.h"
-#include "Graphics/RHI/RHI_Buffer.h"
-#include "Graphics/RHI/RHI_Pipeline.h"
-
-#include "Graphics/Texture2D.h"
-#include "Graphics/Framebuffer.h"
+#include <Runtime/RHI/Swapchain/RHISwapchain.h>
+#include <Runtime/RHI/Command/RHICommands.h>
+#include <Runtime/RHI/Context/RHIContext.h>
+#include <Runtime/RHI/Image/RHIImage.h>
+#include <Runtime/RHI/Buffer/RHIBuffer.h>
+#include <Runtime/RHI/Pipeline/RHIPipeline.h>
 
 namespace CusEngine {
 	class ENGINE_API RenderSubsystem final : public Subsystem {
@@ -20,10 +16,5 @@ namespace CusEngine {
 		virtual void OnDestroy() override;
 
 		virtual void GetDependencyGraph(DependencyGraph& graph) override;
-	private:
-		void BeginSwapchainPass();
-		void EndSwapchainPass();
-
-		RHI::RenderCommands* _commands = nullptr;
 	};
 }

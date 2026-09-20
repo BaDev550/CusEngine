@@ -1,7 +1,7 @@
 #pragma once
-#include "Core/Core.h"
-#include "Reflection/TypeDescriptor.h"
-#include <Reflection/ReflectionMacros.h>
+#include <Engine/Core/Core.h>
+#include "Engine/Reflection/TypeDescriptor.h"
+#include <Engine/Reflection/ReflectionMacros.h>
 
 namespace CusEngine {
     class ENGINE_API Object {

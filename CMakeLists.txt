@@ -19,7 +19,6 @@ foreach(OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
 endforeach()
 
 add_subdirectory("Source/Engine")
-add_subdirectory("Source/Modules/RHI_Vulkan") #TEMP
-add_subdirectory("Source/Modules/RHI_OpenGL") #TEMP
-add_subdirectory("Source/Plugins/Gameplay")
+add_subdirectory("Source/Runtime")
+add_subdirectory("Source/Plugins")
 add_subdirectory("Source/Sandbox")

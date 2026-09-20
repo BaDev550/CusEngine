@@ -1,5 +1,5 @@
 #pragma once
-#include "Reflection/TypeRegistry.h"
+#include <Engine/Reflection/TypeRegistry.h>
 
 #define CUS_CLASS() 
 #define CUS_PROP()

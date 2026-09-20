@@ -1,5 +1,6 @@
 #pragma once
-#include "Types.h"
+#include <Engine/Core/Types.h>
+#include <iostream>
 
 #ifdef ENGINE_EXPORTS_STATIC_LIB
 #define ENGINE_API // TEMP

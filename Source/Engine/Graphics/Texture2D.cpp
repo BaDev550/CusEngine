@@ -1,6 +1,5 @@
-#pragma once
-
 #include "Texture2D.h"
+#if 0
 #include "RHI/RHI_Utils.h"
 #include "RHI/RHI_Buffer.h"
 #include "RHI/RHI_Image.h"
@@ -48,3 +47,4 @@ namespace CusEngine {
 		return _bindlessID;
 	}
 }
+#endif

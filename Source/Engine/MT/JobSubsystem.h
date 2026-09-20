@@ -1,6 +1,6 @@
 #pragma once
-#include "Core/Core.h"
-#include "Subsystem/Subsystem.h"
+#include <Engine/Core/Core.h>
+#include <Engine/Subsystem/Subsystem.h>
 
 #include <thread>
 #include <mutex>

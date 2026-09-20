@@ -1,8 +1,8 @@
 #pragma once
 
-#include <Subsystem/Subsystem.h>
-#include <Window/WindowSubsystem.h>
-#include <Renderer/RenderSubsystem.h>
+#include <Engine/Subsystem/Subsystem.h>
+#include <Engine/Window/WindowSubsystem.h>
+#include <Engine/Renderer/RenderSubsystem.h>
 
 using namespace CusEngine;
 

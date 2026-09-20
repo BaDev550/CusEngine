@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Core/Core.h"
-#include "Core/Types.h"
-#include "Core/Logger.h"
+#include <Engine/Core/Core.h>
+#include <Engine/Core/Types.h>
+#include <Engine/Core/Logger.h>
 #include <string>
 #include <typeinfo>
 #include <typeindex>

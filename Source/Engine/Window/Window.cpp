@@ -1,5 +1,5 @@
-#include "Window/Window.h"
-#include "Core/Logger.h"
+#include <Engine/Window/Window.h>
+#include <Engine/Core/Logger.h>
 #include <GLFW/glfw3.h>
 
 namespace CusEngine {
@@ -8,29 +8,6 @@ namespace CusEngine {
 		Logger::Assert(_handle, "GLFW", "Failed to create window");
 		Logger::Info("GLFW", "Window created width: {}, height: {}, title: {}", _desc.width, _desc.height, _desc.title);
 		glfwMakeContextCurrent(_handle);
-
-		RHI::GPUFeatures features{};
-		features.dynamicRendering = true;
-		features.bufferDeviceAddress = true;
-		features.descriptorIndexing = true;
-		features.robustBufferAccess = true;
-		features.runtimeDescriptorArray = true;
-		features.samplerAnisotropy = true;
-		features.synchronization2 = true;
-		features.timelineSemaphore = true;
-
-		RHI::RenderContextDesc renderContextDesc{};
-		renderContextDesc.windowHandle = _handle;
-		renderContextDesc.features = features;
-
-		_renderContext = RHI::CreateRenderContext(renderContextDesc);
-
-		RHI::SwapchainDesc swapchainDesc{};
-		swapchainDesc.width = _desc.width;
-		swapchainDesc.height = _desc.height;
-		swapchainDesc.vsync = false;
-
-		_swapchain = RHI::CreateSwapchain(_renderContext, swapchainDesc);
 	}
 
 	Window::~Window() {

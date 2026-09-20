@@ -1,8 +1,8 @@
 #pragma once
 #include <string>
 #include <vector>
-#include "Core/Core.h"
-#include "Subsystem.h"
+#include <Engine/Core/Core.h>
+#include <Engine/Subsystem/Subsystem.h>
 
 namespace CusEngine {
     class ENGINE_API PluginSubsystem final : public Subsystem {

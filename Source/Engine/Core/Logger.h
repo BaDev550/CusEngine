@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Core/Types.h"
-#include "Core/Core.h"
+#include <Engine/Core/Types.h>
+#include <Engine/Core/Core.h>
 #include <chrono>
 #include <string>
 #include <string_view>

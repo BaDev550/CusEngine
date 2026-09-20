@@ -18,7 +18,7 @@ def generate_reflection(header_path, output_path, source_dir):
     abs_header = os.path.abspath(header_path).replace('\\', '/')
 
     out_code = f'#include "{abs_header}"\n'
-    out_code += f'#include <Reflection/ReflectionMacros.h>\n\n' 
+    out_code += f'#include <Engine/Reflection/ReflectionMacros.h>\n\n' 
     
     out_code += f'BEGIN_REFLECT({class_name})\n'
     for prop in props:
