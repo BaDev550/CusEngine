@@ -11,8 +11,8 @@ int main() {
 	{
 		CusEngine::Engine engine{};
 		engine.AddSubsystem<TestSubsystem>();
-		engine.AddSubsystem<CusEngine::MT::JobSubsystem>();
 		engine.AddSubsystem<CusEngine::PluginSubsystem>();
+		engine.AddSubsystem<CusEngine::MT::JobSubsystem>();
 		engine.AddSubsystem<CusEngine::RenderSubsystem>();
 		engine.AddSubsystem<CusEngine::WindowSubsystem>();
 		engine.Run();

@@ -8,6 +8,14 @@ namespace CusEngine {
 		Logger::Assert(_handle, "GLFW", "Failed to create window");
 		Logger::Info("GLFW", "Window created width: {}, height: {}, title: {}", _desc.width, _desc.height, _desc.title);
 		glfwMakeContextCurrent(_handle);
+
+		RHI::ContextDesc contextDesc{};
+#ifdef _DEBUG
+		contextDesc.enableValidationLayer = true;
+#endif
+		contextDesc.windowHandle = _handle;
+
+		_context = RHI::CreateContext(contextDesc);
 	}
 
 	Window::~Window() {

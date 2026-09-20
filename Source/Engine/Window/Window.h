@@ -2,6 +2,8 @@
 #include <Engine/Core/Types.h>
 #include <string>
 
+#include <Runtime/RHI/Context/RHIContext.h>
+
 struct GLFWwindow;
 namespace CusEngine {
 	struct WindowDesc {
@@ -23,5 +25,7 @@ namespace CusEngine {
 	private:
 		WindowDesc _desc;
 		GLFWwindow* _handle = nullptr;
+
+		RHI::Context* _context = nullptr;
 	};
 }
