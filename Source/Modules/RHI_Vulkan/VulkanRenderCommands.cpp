@@ -76,10 +76,9 @@ namespace CusEngine::RHI {
 		if (_recreateSwapchainNextFrame) {
 			//auto windowSubsystem = Engine::Get().GetSubsystem<WindowSubsystem>();
 			//auto window = windowSubsystem->GetWindow();
-			//
 			//_context->WaitDeviceIdle();
 			//_swapchain->Destroy();
-			//_swapchain->Recreate(window->GetWidth(), window->GetHeight());
+			//_swapchain->Recreate(800, 800);
 			_recreateSwapchainNextFrame = false;
 		}
 

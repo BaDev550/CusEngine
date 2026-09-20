@@ -21,6 +21,9 @@ namespace CusEngine {
 
 		virtual void GetDependencyGraph(DependencyGraph& graph) override;
 	private:
+		void BeginSwapchainPass();
+		void EndSwapchainPass();
+
 		RHI::RenderCommands* _commands = nullptr;
 	};
 }

@@ -2,6 +2,7 @@
 
 #include "Core/Core.h"
 #include "Core/Types.h"
+#include "Core/Logger.h"
 #include <string>
 #include <typeinfo>
 #include <typeindex>
@@ -14,7 +15,7 @@ namespace CusEngine {
 		After
 	};
 
-	constexpr inline std::string OrderToString(DependencyOrder order) {
+	constexpr inline std::string_view OrderToString(DependencyOrder order) {
 		switch (order)
 		{
 		case CusEngine::DependencyOrder::Before: return "Before";
@@ -44,7 +45,11 @@ namespace CusEngine {
 	public:
 		virtual ~Subsystem() = default;
 
-		virtual bool OnCreate(Engine* engine) { _engine = engine; return true; }
+		virtual bool OnCreate(Engine* engine) { 
+			_engine = engine;
+			Logger::Info(typeid(*this).name(), "Created!");
+			return true; 
+		}
 		virtual void OnUpdate() {}
 		virtual void OnDestroy() {}
 
