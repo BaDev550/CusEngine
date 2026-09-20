@@ -13,9 +13,26 @@ namespace CusEngine {
 #ifdef _DEBUG
 		contextDesc.enableValidationLayer = true;
 #endif
+		contextDesc.features.dynamicRendering = true;
+		contextDesc.features.bufferDeviceAddress = true;
+		contextDesc.features.descriptorIndexing = true;
+		contextDesc.features.robustBufferAccess = true;
+		contextDesc.features.runtimeDescriptorArray = true;
+		contextDesc.features.synchronization2 = true;
+		contextDesc.features.timelineSemaphore = true;
 		contextDesc.windowHandle = _handle;
 
+		RHI::SwapchainDesc swapchainDesc{};
+		swapchainDesc.width = _desc.width;
+		swapchainDesc.height = _desc.height;
+		swapchainDesc.vsync = false;
+
 		_context = RHI::CreateContext(contextDesc);
+		_swapchain = _context->CreateSwapchain(swapchainDesc);
+
+		RHI::CommandsDesc commandsDesc{};
+		commandsDesc.targetSwapchain = _swapchain;
+		_commands = _context->CreateCommands(commandsDesc);
 	}
 
 	Window::~Window() {

@@ -1,4 +1,5 @@
 #pragma once
+#include <Engine/Core/Logger.h>
 #include <string_view>
 
 namespace CusEngine::RHI {
@@ -6,12 +7,13 @@ namespace CusEngine::RHI {
 
 	class RHIObject {
 	public:
+		RHIObject() { Logger::Info(GetObjectDebugName(), "Created!"); }
 		virtual ~RHIObject() = default;
-		virtual std::string_view GetObjectDebugName() const = 0;
+		virtual std::string_view GetObjectDebugName() const { return "rhi_object_unknown"; }
 
-		template<class T = Context> requires(std::is_base_of_v<Context, T>())
+		template<class T = Context>
 		T* GetContext() { return static_cast<T*>(_context); }
-	protected:
+
 		Context* _context = nullptr;
 	};
 }

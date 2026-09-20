@@ -3,6 +3,9 @@
 #include <Engine/Core/Logger.h>
 #include <Engine/Core/Memory.h>
 
+#include <Runtime/Vulkan/VulkanSwapchain.h>
+#include <Runtime/Vulkan/VulkanCommands.h>
+
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
 
@@ -11,7 +14,7 @@
 
 namespace CusEngine::RHI {
 #define ENABLE_FEATURE_IF_SUPPORTED(supported, feature) \
-	Logger::Info("VulkanRenderContext", "{}: {}", #supported, feature ? "Supported" : "Not supported"); \
+	Logger::Info("VulkanRenderContext", "{}: [{}, {}]", #supported, feature ? "Supported" : "Not supported", _desc.features.supported ? "Enabled" : "Disabled"); \
 	if (_desc.features.supported && !feature) { throw std::runtime_error(#supported " is not supported"); } \
 	else { feature = _desc.features.supported; }
 
@@ -85,9 +88,14 @@ namespace CusEngine::RHI {
 		if (_instance) vkDestroyInstance(_instance, nullptr);
 	}
 
-	Commands* VulkanContext::CreateCommands()
+	Commands* VulkanContext::CreateCommands(const CommandsDesc& desc)
 	{
-		return nullptr;
+		VulkanCommands* vkCommands = Mem::Allocator::Construct<VulkanCommands>(desc);
+		vkCommands->_context = this;
+		vkCommands->CreateCommandPool();
+		vkCommands->CreateTimelineSemaphore();
+		vkCommands->CreateRenderFinishedSemaphore();
+		return vkCommands;
 	}
 
 	Buffer* VulkanContext::CreateBuffer(const BufferDesc& desc)
@@ -97,17 +105,7 @@ namespace CusEngine::RHI {
 
 	Image* VulkanContext::CreateImage(const ImageDesc& desc)
 	{
-		return nullptr;
-	}
-
-	Swapchain* VulkanContext::CreateSwapchain(const SwapchainDesc& desc)
-	{
-		return nullptr;
-	}
-
-	ContextDesc* VulkanContext::GetDesc() { return &_desc; }
-
-	VkResult VulkanContext::CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageUsageFlags usage, VkImage* image, VmaAllocation* allocation, VkImageTiling tiling) {
+#if 0
 		VkImageCreateInfo imageInfo{};
 		imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 		imageInfo.imageType = VK_IMAGE_TYPE_2D;
@@ -123,7 +121,19 @@ namespace CusEngine::RHI {
 		allocInfo.flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT;
 		allocInfo.usage = VMA_MEMORY_USAGE_AUTO;
 		return vmaCreateImage(_allocator, &imageInfo, &allocInfo, image, allocation, nullptr);
+#endif
+		return nullptr;
 	}
+
+	Swapchain* VulkanContext::CreateSwapchain(const SwapchainDesc& desc)
+	{
+		VulkanSwapchain* vkSwapchain = Mem::Allocator::Construct<VulkanSwapchain>(desc);
+		vkSwapchain->_context = this;
+		vkSwapchain->Recreate(vkSwapchain->GetDesc());
+		return vkSwapchain;
+	}
+
+	ContextDesc* VulkanContext::GetDesc() { return &_desc; }
 
 	void VulkanContext::CopyBufferToImage(VkCommandBuffer cmd, VkBuffer buffer, VkImage image, VkImageLayout layout, uint32_t width, uint32_t height) {
 		VkBufferImageCopy region{};

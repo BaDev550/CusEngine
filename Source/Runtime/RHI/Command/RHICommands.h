@@ -5,6 +5,7 @@
 
 #include <Runtime/RHI/Object/RHIObject.h>
 #include <Runtime/RHI/Image/RHIImageLayout.h>
+#include <Runtime/RHI/Command/RHICommandsDesc.h>
 
 namespace CusEngine::RHI {
 	class Image;
@@ -20,7 +21,7 @@ namespace CusEngine::RHI {
 		virtual void BeginFrame() = 0;
 		virtual void EndFrame() = 0;
 		virtual void Submit(CommandFunc func) = 0;
-		virtual void Track(const RHIObject* object) = 0;
+		virtual void Track(RHIObject* object) = 0;
 		virtual void Wait() = 0;
 
 		virtual void BeginDynamicRendering(std::vector<Image*> colorAttachments, Image* depthAttachment, glm::vec2 extent, glm::vec4 clearColor = glm::vec4(0.1f, 0.1f, 0.1f, 1.0f)) = 0;
@@ -29,7 +30,7 @@ namespace CusEngine::RHI {
 		virtual void TransitionImageLayout(Image* image, ImageLayout newLayout) = 0;
 		virtual void CopyBuffer(Buffer* srcBuffer, Buffer* dstBuffer, size_t size) = 0;
 		virtual void CopyBufferToImage(Buffer* buffer, Image* image, ImageLayout layout, u32 width, u32 height) = 0;
-		virtual u32 RegisterBindlessImage(const Image* image) = 0;
+		virtual const CommandsDesc& GetDesc() const = 0;
 
 		virtual [[nodiscard]] uint32_t GetImageIndex() const noexcept = 0;
 	};

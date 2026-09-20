@@ -19,12 +19,15 @@ namespace CusEngine::RHI {
 		virtual void WaitDeviceIdle() override;
 		virtual void Shutdown() final override;
 
-		virtual Commands* CreateCommands() override;
+		virtual Commands* CreateCommands(const CommandsDesc& desc) override;
 		virtual Buffer* CreateBuffer(const BufferDesc& desc) override;
 		virtual Image* CreateImage(const ImageDesc& desc) override;
 		virtual Swapchain* CreateSwapchain(const SwapchainDesc& desc) override;
-
 		virtual ContextDesc* GetDesc() override;
+
+		void CopyBufferToImage(VkCommandBuffer cmd, VkBuffer buffer, VkImage image, VkImageLayout layout, uint32_t width, uint32_t height);
+		void CopyBuffer(VkCommandBuffer cmd, size_t size, VkBuffer srcBuffer, VkBuffer dstBuffer);
+		void TransitionImageLayout(VkCommandBuffer  cmd, Image* image, ImageLayout newLayout);
 
 		[[nodiscard]] VkInstance GetInstance() const { return _instance; }
 		[[nodiscard]] VkDevice GetDevice() const { return _device; }
@@ -40,11 +43,6 @@ namespace CusEngine::RHI {
 		void CreateSurface();
 		void PickPhysicalDevice();
 		void CreateDevice();
-
-		VkResult CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageUsageFlags usage, VkImage* image, VmaAllocation* allocation, VkImageTiling tiling = VK_IMAGE_TILING_OPTIMAL);
-		void CopyBufferToImage(VkCommandBuffer cmd, VkBuffer buffer, VkImage image, VkImageLayout layout, uint32_t width, uint32_t height);
-		void CopyBuffer(VkCommandBuffer cmd, size_t size, VkBuffer srcBuffer, VkBuffer dstBuffer);
-		void TransitionImageLayout(VkCommandBuffer  cmd, Image* image, ImageLayout newLayout);
 
 		std::vector<const char*> GetRequiredExtensions();
 		u32 FindGraphicsAndPresentQueueIndex(VkPhysicalDevice physicalDevice);

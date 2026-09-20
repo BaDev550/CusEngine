@@ -12,6 +12,7 @@ namespace CusEngine::RHI {
 	struct ImageDesc;
 	struct BufferDesc;
 	struct SwapchainDesc;
+	struct CommandsDesc;
 
 	class ENGINE_API Context {
 	public:
@@ -21,7 +22,7 @@ namespace CusEngine::RHI {
 		virtual void WaitDeviceIdle() = 0;
 		virtual void Shutdown() = 0;
 
-		virtual Commands* CreateCommands() = 0;
+		virtual Commands* CreateCommands(const CommandsDesc& desc) = 0;
 		virtual Buffer* CreateBuffer(const BufferDesc& desc) = 0;
 		virtual Image* CreateImage(const ImageDesc& desc) = 0;
 		virtual Swapchain* CreateSwapchain(const SwapchainDesc& desc) = 0;

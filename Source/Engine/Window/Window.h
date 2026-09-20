@@ -3,6 +3,8 @@
 #include <string>
 
 #include <Runtime/RHI/Context/RHIContext.h>
+#include <Runtime/RHI/Swapchain/RHISwapchain.h>
+#include <Runtime/RHI/Command/RHICommands.h>
 
 struct GLFWwindow;
 namespace CusEngine {
@@ -27,5 +29,7 @@ namespace CusEngine {
 		GLFWwindow* _handle = nullptr;
 
 		RHI::Context* _context = nullptr;
+		RHI::Commands* _commands = nullptr;
+		RHI::Swapchain* _swapchain = nullptr;
 	};
 }

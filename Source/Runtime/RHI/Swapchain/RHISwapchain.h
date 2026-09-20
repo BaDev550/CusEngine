@@ -22,9 +22,10 @@ namespace CusEngine::RHI {
 		virtual [[nodiscard]] u32 GetImageCount() const = 0;
 
 		virtual [[nodiscard]] const std::vector<Image*>& GetColorAttachments() const = 0;
-		virtual [[nodiscard]] const Image*& GetDepthAttachment() const = 0;
+		virtual [[nodiscard]] const Image* GetDepthAttachment() const = 0;
 
 		virtual [[nodiscard]] const Format GetColorFormat() const = 0;
 		virtual [[nodiscard]] const Format GetDepthFormat() const = 0;
+		virtual [[nodiscard]] const SwapchainDesc& GetDesc() const = 0;
 	};
 }
