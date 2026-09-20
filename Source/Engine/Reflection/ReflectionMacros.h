@@ -28,8 +28,11 @@ public: \
                 );
 
 #define END_REFLECT(Type) \
-                CusEngine::Reflect::TypeRegistry::Get().RegisterClass(typeInfo); \
-            } \
-        }; \
-        static Type##_AutoRegister global_##Type##_AutoRegister; \
+            CusEngine::Reflect::TypeRegistry::Get().RegisterClass(typeInfo); \
+        } \
+        ~Type##_AutoRegister() { \
+            CusEngine::Reflect::TypeRegistry::Get().UnregisterClass(#Type); \
+        } \
+    }; \
+    Type##_AutoRegister global_##Type##_AutoRegister_Instance; \
     }

@@ -2,6 +2,11 @@
 #include "Core/Logger.h"
 #include <queue>
 
+#include "Subsystem/PluginLoaderSubsystem.h"
+#include "Object.h"
+#include "Reflection/TypeRegistry.h"
+#include "Reflection/TypeDescriptor.h"
+
 namespace CusEngine {
 	Engine::Engine() {}
 	Engine::~Engine() { Logger::Info("Engine", "Shuting down..."); }
@@ -10,6 +15,35 @@ namespace CusEngine {
 		Logger::Info("Engine", "Engine running...");
 
 		SortAndInitializeSystems();
+
+		auto* pluginSystem = GetSubsystem<PluginSubsystem>();
+		if (pluginSystem) {
+			pluginSystem->LoadPlugin("Gameplay.dll");
+		}
+
+		Object* myHealth = Reflect::TypeRegistry::Get().Create<Object>("HealthComponent");
+
+		if (myHealth) {
+			const Reflect::ClassType* typeInfo = Reflect::TypeRegistry::Get().GetClass("HealthComponent");
+
+			if (typeInfo) {
+				const Reflect::Property* currHealth = typeInfo->GetProperty("CurrentHealth");
+				const Reflect::Property* maxHealth = typeInfo->GetProperty("MaxHealth");
+
+				if (currHealth && maxHealth) {
+					float currentHp = std::any_cast<float>(currHealth->Get(myHealth));
+					float maxHp = std::any_cast<float>(maxHealth->Get(myHealth));
+					Logger::Info("HealthComponent", "Max HP: {}", maxHp);
+					Logger::Info("HealthComponent", "Current HP: {}", currentHp);
+
+					currHealth->Set(myHealth, 75.0f);
+
+					currentHp = std::any_cast<float>(currHealth->Get(myHealth));
+					Logger::Info("HealthComponent", "New HP: {}", currentHp);
+				}
+			}
+		}
+		delete myHealth;
 
 		while (_running) {
 

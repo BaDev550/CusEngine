@@ -1,23 +1,17 @@
 #pragma once
+#include "Core/Core.h"
 #include "Core/Logger.h"
 #include "TypeDescriptor.h"
 
 namespace CusEngine::Reflect {
-    class TypeRegistry {
+    class ENGINE_API TypeRegistry {
     public:
-        static TypeRegistry& Get() {
-            static TypeRegistry instance;
-            return instance;
-        }
+        static TypeRegistry& Get();
 
-        void RegisterClass(const ClassType& typeInfo) {
-            _classes[typeInfo.Name] = typeInfo;
-        }
+        void RegisterClass(const ClassType& typeInfo);
+        void UnregisterClass(const std::string& className);
 
-        const ClassType* GetClass(const std::string& className) const {
-            auto it = _classes.find(className);
-            return it != _classes.end() ? &it->second : nullptr;
-        }
+        const ClassType* GetClass(const std::string& className) const;
 
         template<typename T = void>
         T* Create(const std::string& className) {

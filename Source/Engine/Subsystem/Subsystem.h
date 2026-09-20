@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Core/Core.h"
 #include "Core/Types.h"
 #include <string>
 #include <typeinfo>
@@ -39,7 +40,7 @@ namespace CusEngine {
 	};
 
 	class Engine;
-	class Subsystem {
+	class ENGINE_API Subsystem {
 	public:
 		virtual ~Subsystem() = default;
 

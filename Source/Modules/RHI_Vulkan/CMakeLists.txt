@@ -7,9 +7,9 @@ find_package(Vulkan REQUIRED)
 find_package(VulkanMemoryAllocator CONFIG REQUIRED)
 
 target_compile_definitions(RHI_Vulkan PRIVATE ENGINE_EXPORTS_STATIC_LIB)
+target_include_directories(RHI_Vulkan PRIVATE ${CMAKE_SOURCE_DIR}/Source/Engine)
 
 target_link_libraries(RHI_Vulkan PRIVATE
-	Engine
 	glfw
 	glm::glm-header-only
 	Vulkan::Vulkan

@@ -7,7 +7,7 @@
 #include <vector>
 
 namespace CusEngine {
-	class WindowSubsystem final : public Subsystem {
+	class ENGINE_API WindowSubsystem final : public Subsystem {
 	public:
 		virtual bool OnCreate(Engine* engine) override;
 		virtual void OnUpdate() override;

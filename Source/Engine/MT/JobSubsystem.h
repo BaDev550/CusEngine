@@ -15,7 +15,7 @@ namespace CusEngine::MT { // TODO(0x): change this entair fucking system!
 	};
 
 	using JobFunc = std::function<void()>;
-	class JobSubsystem final : public Subsystem {
+	class ENGINE_API JobSubsystem final : public Subsystem {
 	public:
 		virtual bool OnCreate(Engine* engine) override;
 		virtual void OnUpdate() override;

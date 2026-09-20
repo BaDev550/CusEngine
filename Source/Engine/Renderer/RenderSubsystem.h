@@ -13,7 +13,7 @@
 #include "Graphics/Framebuffer.h"
 
 namespace CusEngine {
-	class RenderSubsystem final : public Subsystem {
+	class ENGINE_API RenderSubsystem final : public Subsystem {
 	public:
 		virtual bool OnCreate(Engine* engine) override;
 		virtual void OnUpdate() override;

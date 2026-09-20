@@ -6,7 +6,7 @@
 #include <string_view>
 
 namespace CusEngine {
-	class Engine final {
+	class ENGINE_API Engine final {
 	public:
 		Engine();
 		~Engine();

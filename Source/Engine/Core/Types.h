@@ -11,8 +11,6 @@ using i8 =	int8_t;
 using i16 = int16_t;
 using i32 = int32_t;
 
-using byte = char;
-
 using usize = size_t;
 
 inline constexpr u32 u32_max = std::numeric_limits<u32>::max();
