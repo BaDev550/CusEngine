@@ -51,7 +51,9 @@ namespace CusEngine {
 			return true; 
 		}
 		virtual void OnUpdate() {}
-		virtual void OnDestroy() {}
+		virtual void OnDestroy() {
+			Logger::Info(typeid(*this).name(), "Destroyed!");
+		}
 
 		virtual void GetDependencyGraph(DependencyGraph& graph) { }
 		

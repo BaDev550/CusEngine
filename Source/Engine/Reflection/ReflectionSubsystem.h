@@ -11,8 +11,6 @@ namespace CusEngine::Reflect {
             Subsystem::OnCreate(engine); // do some shit inhere
             return true;
         }
-        virtual void OnUpdate() override {}
-        virtual void OnDestroy() override {}
 
         virtual void GetDependencyGraph(DependencyGraph& graph) override;
 

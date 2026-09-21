@@ -12,10 +12,10 @@ namespace CusEngine {
 		virtual void OnUpdate() override;
 		virtual void OnDestroy() override;
 
-		Window* GetWindow() const { return _window.get(); }
+		Window* GetWindow() const { return _window; }
 	private:
 		bool _glfwInitialized = false;
 
-		Mem::Unique<Window> _window = nullptr;
+		Window* _window = nullptr;
 	};
 }

@@ -17,7 +17,8 @@ namespace CusEngine {
     void PluginSubsystem::OnUpdate() {}
 
     void PluginSubsystem::OnDestroy() {
-        Logger::Info("PluginSubsystem", "Shutting down, unloading plugins...");
+        Subsystem::OnDestroy();
+        
         UnloadAll();
     }
 
@@ -39,12 +40,15 @@ namespace CusEngine {
     }
 
     void PluginSubsystem::UnloadAll() {
+        if (_loadedPlugins.size() > 0) {
+            Logger::Info(GetTypeID().name(), "Unloading {} plugins...", _loadedPlugins.size());
 #ifdef _WIN32
-        for (auto it = _loadedPlugins.rbegin(); it != _loadedPlugins.rend(); ++it) {
-            FreeLibrary(static_cast<HMODULE>(*it));
-        }
-        _loadedPlugins.clear();
+            for (auto it = _loadedPlugins.rbegin(); it != _loadedPlugins.rend(); ++it) {
+                FreeLibrary(static_cast<HMODULE>(*it));
+            }
+            _loadedPlugins.clear();
 #endif
+        }
     }
 
     void PluginSubsystem::GetDependencyGraph(DependencyGraph& graph) {

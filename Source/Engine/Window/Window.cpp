@@ -9,43 +9,9 @@ namespace CusEngine {
 		Logger::Assert(_handle, "GLFW", "Failed to create window");
 		Logger::Info("GLFW", "Window created width: {}, height: {}, title: {}", _desc.width, _desc.height, _desc.title);
 		glfwMakeContextCurrent(_handle);
-
-		RHI::ContextDesc contextDesc{};
-#ifdef _DEBUG
-		contextDesc.enableValidationLayer = true;
-#endif
-		contextDesc.features.dynamicRendering = true;
-		contextDesc.features.bufferDeviceAddress = true;
-		contextDesc.features.descriptorIndexing = true;
-		contextDesc.features.robustBufferAccess = true;
-		contextDesc.features.runtimeDescriptorArray = true;
-		contextDesc.features.synchronization2 = true;
-		contextDesc.features.timelineSemaphore = true;
-		contextDesc.windowHandle = _handle;
-
-		RHI::SwapchainDesc swapchainDesc{};
-		swapchainDesc.width = _desc.width;
-		swapchainDesc.height = _desc.height;
-		swapchainDesc.vsync = false;
-
-		_context = RHI::CreateContext(contextDesc);
-		_context->InitializeImGui();
-
-		_swapchain = _context->CreateSwapchain(swapchainDesc);
-
-		RHI::CommandsDesc commandsDesc{};
-		commandsDesc.targetSwapchain = _swapchain;
-		_commands = _context->CreateCommands(commandsDesc);
 	}
 
 	Window::~Window() {
-		_context->WaitDeviceIdle();
-
-		Mem::Allocator::Destroy<RHI::Commands>(_commands);
-		Mem::Allocator::Destroy<RHI::Swapchain>(_swapchain);
-		_context->DestroyImGui();
-		Mem::Allocator::Destroy<RHI::Context>(_context);
-
 		glfwDestroyWindow(_handle);
 	}
 

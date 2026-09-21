@@ -11,7 +11,7 @@ namespace CusEngine::Mem {
 		usize alignment;
 	};
 
-	class MemoryTracker final {
+	class MemoryTracker final { // FIXME(0x): add header to allocated memory for trackign
 	public:
 		void Record(void* ptr, MemBlock block) {
 			_memoryBlocks[ptr] = block;
@@ -30,7 +30,7 @@ namespace CusEngine::Mem {
 			}
 		}
 	private:
-		std::unordered_map<void*, MemBlock> _memoryBlocks;
+		std::unordered_map<void*, MemBlock> _memoryBlocks; // fuck u
 	};
 
 	template<class T>

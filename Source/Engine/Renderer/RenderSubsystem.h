@@ -16,5 +16,9 @@ namespace CusEngine {
 		virtual void OnDestroy() override;
 
 		virtual void GetDependencyGraph(DependencyGraph& graph) override;
+	private:
+		RHI::Context* _context = nullptr;
+		RHI::Commands* _commands = nullptr;
+		RHI::Swapchain* _swapchain = nullptr;
 	};
 }

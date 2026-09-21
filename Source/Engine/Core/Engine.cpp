@@ -19,8 +19,12 @@ namespace CusEngine {
 			}
 		}
 
-		for (const auto& subsystem : _activeSubsystemList) {
-			subsystem->OnDestroy();
+		for (auto it = _activeSubsystemList.rbegin(); it != _activeSubsystemList.rend(); ++it) {
+			Subsystem* system = *it;
+			if (system) {
+				system->OnDestroy();
+				Mem::Allocator::Destroy(system);
+			}
 		}
 	}
 

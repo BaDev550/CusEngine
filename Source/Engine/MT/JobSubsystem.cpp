@@ -40,6 +40,8 @@ namespace CusEngine::MT {
 	}
 
 	void JobSubsystem::OnDestroy() {
+		Subsystem::OnDestroy();
+
 		Wait();
 
 		{
