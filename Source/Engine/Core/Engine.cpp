@@ -3,12 +3,17 @@
 
 #include <queue>
 
+#include <Runtime/IO/FileBuffer.h>
+
 namespace CusEngine {
 	Engine::Engine() {}
 	Engine::~Engine() { Logger::Info("Engine", "Shuting down..."); }
 
 	void Engine::Run() {
 		Logger::Info("Engine", "Engine running...");
+
+		FileBuffer buffer{};
+		std::vector<u64> data = buffer.Read("F:/VSProjects/CusEngine/out/build/x64-debug/bin/RenderSave.png");
 
 		SortAndInitializeSystems();
 

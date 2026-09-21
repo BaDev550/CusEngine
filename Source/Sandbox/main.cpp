@@ -6,6 +6,8 @@
 #include <Engine/Reflection/ReflectionSubsystem.h>
 #include <Engine/MT/JobSubsystem.h>
 
+#include <Runtime/IO/FileBuffer.h>
+
 #include "TestSystem.h"
 
 int main() {
