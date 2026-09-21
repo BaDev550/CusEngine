@@ -25,8 +25,8 @@ namespace CusEngine::RHI {
 		virtual [[nodiscard]] const Format GetColorFormat() const final override { return _colorFormat; }
 		virtual [[nodiscard]] const Format GetDepthFormat() const final override { return _depthFormat; }
 
-		virtual [[nodiscard]] const std::vector<Image*>& GetColorAttachments() const override { return _colorAttachments; };
-		virtual [[nodiscard]] const Image* GetDepthAttachment() const override { return _depthAttachment; };
+		virtual [[nodiscard]] std::vector<Image*>& GetColorAttachments() override { return _colorAttachments; };
+		virtual [[nodiscard]] Image* GetDepthAttachment() override { return _depthAttachment; };
 		virtual [[nodiscard]] const SwapchainDesc& GetDesc() const override { return _desc; }
 	private:
 		SwapchainDesc _desc;

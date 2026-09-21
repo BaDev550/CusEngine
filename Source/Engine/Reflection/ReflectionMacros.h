@@ -8,11 +8,11 @@
 #define REFLECT_CLASS(Type) \
 public: \
     virtual const CusEngine::Reflect::ClassType* GetTypeInfo() const override { \
-        CusEngine::Reflect::ReflectionSubsystem* system = CusEngine::Engine()::Get()->GetSubsystem<CusEngine::Reflect::ReflectionSubsystem>(); \
+        CusEngine::Reflect::ReflectionSubsystem* system = CusEngine::Engine::Get().GetSubsystem<CusEngine::Reflect::ReflectionSubsystem>(); \
         return system->GetClass(#Type); \
     } \
     static const CusEngine::Reflect::ClassType* StaticTypeInfo() { \
-        CusEngine::Reflect::ReflectionSubsystem* system = CusEngine::Engine()::Get()->GetSubsystem<CusEngine::Reflect::ReflectionSubsystem>(); \
+        CusEngine::Reflect::ReflectionSubsystem* system = CusEngine::Engine::Get().GetSubsystem<CusEngine::Reflect::ReflectionSubsystem>(); \
         return system->GetClass(#Type); \
     }
 
@@ -31,7 +31,7 @@ public: \
                 );
 
 #define END_REFLECT(Type) \
-            CusEngine::Reflect::ReflectionSubsystem* system = CusEngine::Engine()::Get()->GetSubsystem<CusEngine::Reflect::ReflectionSubsystem>(); \
+            CusEngine::Reflect::ReflectionSubsystem* system = CusEngine::Engine::Get().GetSubsystem<CusEngine::Reflect::ReflectionSubsystem>(); \
             system->RegisterClass(typeInfo); \
         } \
         ~Type##_AutoRegister() { \

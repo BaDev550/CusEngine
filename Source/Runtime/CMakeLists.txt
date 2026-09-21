@@ -2,9 +2,10 @@
 add_library(Runtime STATIC ${SOURCECODE})
 
 find_package(glfw3 CONFIG REQUIRED)
+find_package(imgui CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
-find_package(unofficial-shaderc CONFIG REQUIRED)
 find_package(Vulkan REQUIRED)
+find_package(unofficial-shaderc CONFIG REQUIRED)
 find_package(VulkanMemoryAllocator CONFIG REQUIRED)
 
 target_include_directories(Runtime PUBLIC "${CMAKE_SOURCE_DIR}/Source")
@@ -13,6 +14,7 @@ target_link_libraries(Runtime
         glm::glm-header-only
     PRIVATE
         glfw 
+        imgui::imgui
         Vulkan::Vulkan
 	    GPUOpen::VulkanMemoryAllocator
         unofficial::shaderc::shaderc

@@ -28,6 +28,7 @@ namespace CusEngine {
 		WindowDesc _desc;
 		GLFWwindow* _handle = nullptr;
 
+	public:
 		RHI::Context* _context = nullptr;
 		RHI::Commands* _commands = nullptr;
 		RHI::Swapchain* _swapchain = nullptr;

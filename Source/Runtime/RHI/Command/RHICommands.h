@@ -20,6 +20,8 @@ namespace CusEngine::RHI {
 
 		virtual void BeginFrame() = 0;
 		virtual void EndFrame() = 0;
+		virtual void BeginImGui() = 0;
+		virtual void EndImGui() = 0;
 		virtual void Submit(CommandFunc func) = 0;
 		virtual void Track(RHIObject* object) = 0;
 		virtual void Wait() = 0;

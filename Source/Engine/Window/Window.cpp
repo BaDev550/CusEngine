@@ -29,6 +29,8 @@ namespace CusEngine {
 		swapchainDesc.vsync = false;
 
 		_context = RHI::CreateContext(contextDesc);
+		_context->InitializeImGui();
+
 		_swapchain = _context->CreateSwapchain(swapchainDesc);
 
 		RHI::CommandsDesc commandsDesc{};
@@ -41,6 +43,7 @@ namespace CusEngine {
 
 		Mem::Allocator::Destroy<RHI::Commands>(_commands);
 		Mem::Allocator::Destroy<RHI::Swapchain>(_swapchain);
+		_context->DestroyImGui();
 		Mem::Allocator::Destroy<RHI::Context>(_context);
 
 		glfwDestroyWindow(_handle);

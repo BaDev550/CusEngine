@@ -21,8 +21,8 @@ namespace CusEngine::RHI {
 		virtual [[nodiscard]] glm::vec2 GetExtent() const = 0;
 		virtual [[nodiscard]] u32 GetImageCount() const = 0;
 
-		virtual [[nodiscard]] const std::vector<Image*>& GetColorAttachments() const = 0;
-		virtual [[nodiscard]] const Image* GetDepthAttachment() const = 0;
+		virtual [[nodiscard]] std::vector<Image*>& GetColorAttachments() = 0;
+		virtual [[nodiscard]] Image* GetDepthAttachment() = 0;
 
 		virtual [[nodiscard]] const Format GetColorFormat() const = 0;
 		virtual [[nodiscard]] const Format GetDepthFormat() const = 0;

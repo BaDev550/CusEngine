@@ -19,12 +19,14 @@ namespace CusEngine::RHI {
 
 		virtual void BeginFrame() override final;
 		virtual void EndFrame() override final;
+		virtual void BeginImGui() override final;
+		virtual void EndImGui() override final;
 		virtual void Submit(CommandFunc func) override final;
 		virtual void Track(RHIObject* object) override final;
 		virtual void Wait() override final;
 
-		virtual void BeginDynamicRendering(std::vector<Image*> colorAttachments, Image* depthAttachment, glm::vec2 extent, glm::vec4 clearColor = glm::vec4(0.1f, 0.1f, 0.1f, 1.0f)) override final {}
-		virtual void EndDynamicRendering() override final {}
+		virtual void BeginDynamicRendering(std::vector<Image*> colorAttachments, Image* depthAttachment, glm::vec2 extent, glm::vec4 clearColor = glm::vec4(0.1f, 0.1f, 0.1f, 1.0f)) override final;
+		virtual void EndDynamicRendering() override final;
 
 		virtual void TransitionImageLayout(Image* image, ImageLayout newLayout) override;
 		virtual void CopyBuffer(Buffer* srcBuffer, Buffer* dstBuffer, size_t size) override;

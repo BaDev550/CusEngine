@@ -5,6 +5,10 @@
 #include <Engine/Core/Engine.h>
 #include <Engine/Window/WindowSubsystem.h>
 
+#include <imgui.h>
+#include <imgui_impl_vulkan.h>
+#include <imgui_impl_glfw.h>
+
 namespace CusEngine::RHI {
 	VulkanCommands::VulkanCommands(const CommandsDesc& desc) : _desc(desc) {
 
@@ -188,6 +192,17 @@ namespace CusEngine::RHI {
 		_frameRecording = false;
 	}
 
+	void VulkanCommands::BeginImGui() {
+		_context->NewFrameImGui();
+	}
+
+	void VulkanCommands::EndImGui() {
+		FrameData* fd = GetCurrentFrameData();
+
+		ImGui::Render();
+		ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), fd->CommandBuffer);
+	}
+
 	void VulkanCommands::Submit(CommandFunc func) { _commandQueue.push_back(std::move(func)); }
 	void VulkanCommands::Track(RHIObject* object) { GetCurrentFrameData()->TrackedObjects.push_back(object); }
 
@@ -195,33 +210,34 @@ namespace CusEngine::RHI {
 		_context->WaitDeviceIdle();
 	}
 
-#if 0
-	void VulkanCommands::BeginDynamicRendering(std::vector<Mem::Ref<Image>> colorAttachments, Mem::Ref<Image> depthAttachment, glm::vec2 extent, glm::vec4 clearColor) {
+	void VulkanCommands::BeginDynamicRendering(std::vector<Image*> colorAttachments, Image* depthAttachment, glm::vec2 extent, glm::vec4 clearColor) {
+		VulkanContext* vkContext = GetContext<VulkanContext>();
+
 		FrameData* fd = GetCurrentFrameData();
 		uint32_t colorAttachmentCount = static_cast<uint32_t>(colorAttachments.size());
 
 		std::vector<VkRenderingAttachmentInfo> colorAttachmentInfos(colorAttachmentCount);
 		for (uint32_t i = 0; i < colorAttachmentCount; i++) {
 			auto& attachment = colorAttachmentInfos[i];
-			Vulkan_Image* vkImage = static_cast<Vulkan_Image*>(colorAttachments[i].Get());
+			VulkanImage* vkImage = static_cast<VulkanImage*>(colorAttachments[i]);
 			attachment.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
-			attachment.imageView = vkImage->GetVkImageView();
+			attachment.imageView = vkImage->GetImageView();
 			attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 			attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 			attachment.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 			attachment.clearValue.color = { {clearColor.x, clearColor.y, clearColor.z, clearColor.w} };
-			_context->TransitionImageLayout(fd->CommandBuffer, vkImage, ImageLayout::ColorAttachment);
+			vkContext->TransitionImageLayout(fd->CommandBuffer, vkImage, ImageLayout::ColorAttachment);
 		}
 
 		VkRenderingAttachmentInfo depthAttachmentInfo{};
-		Vulkan_Image* vkDepthImage = static_cast<Vulkan_Image*>(depthAttachment.Get());
+		VulkanImage* vkDepthImage = static_cast<VulkanImage*>(depthAttachment);
 		depthAttachmentInfo.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
-		depthAttachmentInfo.imageView = vkDepthImage->GetVkImageView();
+		depthAttachmentInfo.imageView = vkDepthImage->GetImageView();
 		depthAttachmentInfo.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 		depthAttachmentInfo.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 		depthAttachmentInfo.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 		depthAttachmentInfo.clearValue.depthStencil = { 1.0f, 0 };
-		_context->TransitionImageLayout(fd->CommandBuffer, vkDepthImage, ImageLayout::DepthAttachment);
+		vkContext->TransitionImageLayout(fd->CommandBuffer, vkDepthImage, ImageLayout::DepthAttachment);
 
 		VkRect2D renderArea{};
 		renderArea.offset.x = 0;
@@ -256,15 +272,16 @@ namespace CusEngine::RHI {
 		}
 	}
 
-	void Vulkan_RenderCommands::EndDynamicRendering() {
+	void VulkanCommands::EndDynamicRendering() {
 		FrameData* fd = GetCurrentFrameData();
 		vkCmdEndRendering(fd->CommandBuffer);
 	}
-#endif
 
 	void VulkanCommands::TransitionImageLayout(Image* image, ImageLayout newLayout) {
+		VulkanContext* vkContext = GetContext<VulkanContext>();
+
 		FrameData* fd = GetCurrentFrameData();
-		//_context->TransitionImageLayout(fd->CommandBuffer, image, newLayout);
+		vkContext->TransitionImageLayout(fd->CommandBuffer, image, newLayout);
 	}
 
 	void VulkanCommands::CopyBuffer(Buffer* srcBuffer, Buffer* dstBuffer, size_t size) {

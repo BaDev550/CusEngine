@@ -16,6 +16,10 @@ namespace CusEngine::RHI {
 		VulkanContext(const ContextDesc& desc);
 		virtual ~VulkanContext();
 
+		virtual void InitializeImGui() override;
+		virtual void NewFrameImGui() override;
+		virtual void DestroyImGui() override;
+
 		virtual void WaitDeviceIdle() override;
 		virtual void Shutdown() final override;
 
@@ -59,6 +63,8 @@ namespace CusEngine::RHI {
 
 		VmaAllocator _allocator;
 		VkAllocationCallbacks _allocationCallbacks;
+
+		VkDescriptorPool _imguiPool;
 
 		std::vector<const char*> _extensions;
 		std::vector<const char*> _layers;

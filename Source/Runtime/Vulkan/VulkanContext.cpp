@@ -10,6 +10,10 @@
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
 
+#include <imgui.h>
+#include <imgui_impl_vulkan.h>
+#include <imgui_impl_glfw.h>
+
 #define VMA_IMPLEMENTATION
 #include <vma/vk_mem_alloc.h>
 
@@ -79,6 +83,69 @@ namespace CusEngine::RHI {
 	}
 
 	VulkanContext::~VulkanContext() {}
+
+	void VulkanContext::InitializeImGui() {
+		VkDescriptorPoolSize pool_sizes[] = {
+			{ VK_DESCRIPTOR_TYPE_SAMPLER, 1000 },
+			{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000 },
+			{ VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000 },
+			{ VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000 },
+			{ VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000 },
+			{ VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000 },
+			{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000 },
+			{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000 },
+			{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000 },
+			{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000 },
+			{ VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000 }
+		};
+
+		VkDescriptorPoolCreateInfo pool_info = {};
+		pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+		pool_info.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+		pool_info.maxSets = 1000;
+		pool_info.poolSizeCount = std::size(pool_sizes);
+		pool_info.pPoolSizes = pool_sizes;
+
+		vkCreateDescriptorPool(_device, &pool_info, nullptr, &_imguiPool); // add check
+
+		ImGui::CreateContext();
+		ImGui_ImplGlfw_InitForVulkan(_desc.windowHandle, true);
+
+		ImGui_ImplVulkan_InitInfo init_info = {};
+		init_info.Instance = _instance;
+		init_info.ApiVersion = VK_API_VERSION_1_3;
+		init_info.PhysicalDevice = _physicalDevice;
+		init_info.Device = _device;
+		init_info.Queue = _graphicsAndPresentQueue;
+		init_info.DescriptorPool = _imguiPool;
+		init_info.MinImageCount = 3;
+		init_info.ImageCount = 3;
+		init_info.UseDynamicRendering = true;
+
+		VkFormat format = VK_FORMAT_R8G8B8A8_SRGB;
+		VkPipelineRenderingCreateInfoKHR info{};
+		info.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO_KHR;
+		info.colorAttachmentCount = 1;
+		info.pColorAttachmentFormats = &format;
+		info.depthAttachmentFormat = VK_FORMAT_D32_SFLOAT;
+
+		init_info.PipelineInfoMain.PipelineRenderingCreateInfo = info;
+
+		ImGui_ImplVulkan_Init(&init_info);
+	}
+
+	void VulkanContext::NewFrameImGui() {
+		ImGui_ImplVulkan_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+	}
+
+	void VulkanContext::DestroyImGui() {
+		ImGui_ImplVulkan_Shutdown();
+		ImGui_ImplGlfw_Shutdown();
+		vkDestroyDescriptorPool(_device, _imguiPool, nullptr);
+		ImGui::DestroyContext();
+	}
 	
 	void VulkanContext::Shutdown() {
 		if (_allocator) vmaDestroyAllocator(_allocator);
@@ -197,11 +264,10 @@ namespace CusEngine::RHI {
 		vkDeviceWaitIdle(_device);
 	}
 
-#if 0
 	void VulkanContext::TransitionImageLayout(VkCommandBuffer cmd, Image* image, ImageLayout newLayout) {
 		if (image->GetDesc()->layout == newLayout) return;
 
-		Vulkan_Image* vkImage = static_cast<Vulkan_Image*>(image);
+		VulkanImage* vkImage = static_cast<VulkanImage*>(image);
 		VkImageLayout vkOldLayout = Utils::GetVkImageLayout(image->GetDesc()->layout);
 		VkImageLayout vkNewLayout = Utils::GetVkImageLayout(newLayout);
 		VkCommandBuffer vkCmd = reinterpret_cast<VkCommandBuffer>(cmd);
@@ -212,7 +278,7 @@ namespace CusEngine::RHI {
 		barrier.newLayout = vkNewLayout;
 		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		barrier.image = vkImage->GetVkImage();
+		barrier.image = vkImage->GetImage();
 		barrier.subresourceRange.aspectMask = Utils::IsFormatDepth(image->GetFormat()) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
 		barrier.subresourceRange.levelCount = 1;
 		barrier.subresourceRange.baseMipLevel = 0;
@@ -270,7 +336,6 @@ namespace CusEngine::RHI {
 		vkCmdPipelineBarrier(vkCmd, srcStage, dstStage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
 		vkImage->_desc.layout = newLayout;
 	}
-#endif
 #if 0
 	void Vulkan_RenderContext::UpdateTextureDescriptors(const std::vector<Memory::Ref<Texture2D>>& textures) {
 		std::vector<VkDescriptorImageInfo> imageDescriptors;

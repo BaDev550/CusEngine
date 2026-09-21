@@ -8,6 +8,13 @@
     "spirv-tools",
     "vulkan-headers",
     "vulkan-memory-allocator",
-    "glad"
+    "glad",
+    {
+      "name": "imgui",
+      "features": [
+        "vulkan-binding",
+        "glfw-binding"
+      ]
+    }
   ]
 }

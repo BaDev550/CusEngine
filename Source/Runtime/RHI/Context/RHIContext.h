@@ -19,6 +19,10 @@ namespace CusEngine::RHI {
 		Context() = default;
 		virtual ~Context() = default;
 
+		virtual void InitializeImGui() = 0;
+		virtual void NewFrameImGui() = 0;
+		virtual void DestroyImGui() = 0;
+
 		virtual void WaitDeviceIdle() = 0;
 		virtual void Shutdown() = 0;
 

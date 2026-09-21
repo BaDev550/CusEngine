@@ -2,6 +2,7 @@
 add_library(Engine SHARED ${SOURCECODE})
 
 find_package(glfw3 CONFIG REQUIRED)
+find_package(imgui CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(unofficial-shaderc CONFIG REQUIRED)
 
@@ -13,5 +14,6 @@ target_link_libraries(Engine
     PRIVATE
         Runtime
         glfw 
+        imgui::imgui
         unofficial::shaderc::shaderc
 )
