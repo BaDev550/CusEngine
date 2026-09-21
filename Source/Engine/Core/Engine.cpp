@@ -13,7 +13,9 @@ namespace CusEngine {
 		Logger::Info("Engine", "Engine running...");
 
 		FileBuffer buffer{};
-		std::vector<u64> data = buffer.Read("F:/VSProjects/CusEngine/out/build/x64-debug/bin/RenderSave.png");
+		std::vector<u64> data = buffer.Read("F:/VSProjects/CusEngine/out/build/x64-debug/bin/mario_2/mario_2.obj");
+		std::vector<u64> data1 = buffer.Read("F:/VSProjects/CusEngine/out/build/x64-debug/bin/mario_2/mario_2.obj");
+		std::vector<u64> data2 = buffer.Read("F:/VSProjects/CusEngine/out/build/x64-debug/bin/mario_2/mario_2.obj");
 
 		SortAndInitializeSystems();
 

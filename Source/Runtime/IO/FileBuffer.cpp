@@ -8,8 +8,10 @@ namespace CusEngine {
 	FileBuffer::FileBuffer(std::string_view path) : _path(path.data()) {}
 
 	std::vector<u64> FileBuffer::Read(std::string_view path) {
-		if ((_path == nullptr) && !path.empty()) _path = path.data();
+		if (_path == nullptr && !path.empty()) _path = path.data();
+		else if (_path != nullptr) { _path = _path; }
 		else { Logger::Warn("FileBuffer", "No valid path provided"); return {}; }
+
 		std::string pathStr(_path);
 
 		struct stat st;
@@ -20,7 +22,7 @@ namespace CusEngine {
 
 			if (!buffSize) { Logger::Warn("FileBuffer", "Empty file"); return {}; }
 			Logger::Info("FileBuffer", "Reading buffer: {}", pathStr);
-			Logger::Info("FileBuffer", "size: {}MB", buffSizeMB);
+			Logger::Info("FileBuffer", "size: {:.2f}MB", buffSizeMB);
 
 			std::vector<u64> fileBuffer((buffSize + sizeof(u64) - 1) / sizeof(u64));
 			{
