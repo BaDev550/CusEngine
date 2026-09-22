@@ -5,6 +5,8 @@
 
 #include <Runtime/IO/FileBuffer.h>
 
+#include <Engine/Asset/StaticMesh/StaticMeshCooker.h>
+
 namespace CusEngine {
 	Engine::Engine() {}
 	Engine::~Engine() { Logger::Info("Engine", "Shuting down..."); }
@@ -14,7 +16,12 @@ namespace CusEngine {
 
 		FileBuffer buffer{};
 		std::vector<u64> data = buffer.Read("wall_normal.png");
-		
+
+		StaticMeshCooker cooker;
+		AssetSource bigBarnSource{};
+		bigBarnSource.filePath = "model.fbx";
+		cooker.Cook(bigBarnSource);
+
 		SortAndInitializeSystems();
 
 		while (_running) {

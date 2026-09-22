@@ -1,14 +1,16 @@
 #pragma once
 
 #include <Engine/Core/Object.h>
+#include <Engine/Core/Result.h>
+#include <Engine/Asset/AssetSource.h>
 
 namespace CusEngine {
 	CUS_CLASS()
-	class AssetCooker : public Object {
+	class ENGINE_API AssetCooker : public Object {
 		REFLECT_CLASS(AssetCooker)
 	public:
-		virtual ~AssetCooker() = 0;
+		virtual ~AssetCooker() = default;
 
-		virtual bool Cook() = 0;
+		virtual Result Cook(AssetSource& source) = 0;
 	};
 }
