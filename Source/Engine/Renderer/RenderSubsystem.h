@@ -11,7 +11,7 @@
 namespace CusEngine {
 	class ENGINE_API RenderSubsystem final : public Subsystem {
 	public:
-		virtual bool OnCreate(Engine* engine) override;
+		virtual Result OnCreate(Engine* engine) override;
 		virtual void OnUpdate() override;
 		virtual void OnDestroy() override;
 
@@ -20,5 +20,11 @@ namespace CusEngine {
 		RHI::Context* _context = nullptr;
 		RHI::Commands* _commands = nullptr;
 		RHI::Swapchain* _swapchain = nullptr;
+
+		struct ImGuiPass {
+			std::vector<RHI::Image*> colorAttachments; // FIXME
+			u32 width;
+			u32 height;
+		} _imguiPass; 
 	};
 }

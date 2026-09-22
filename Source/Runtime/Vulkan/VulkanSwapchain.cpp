@@ -69,6 +69,7 @@ namespace CusEngine::RHI {
 				vkColorAttachment->_image = vkImages[i];
 				vkColorAttachment->_imageView = vkImageViews[i];
 				vkColorAttachment->_allocation = VK_NULL_HANDLE;
+				vkColorAttachment->SetObjectDebugName("rhi_vulkan_swapchain_color_attachment");
 
 				_colorAttachments[i] = vkColorAttachment;
 			}
@@ -98,6 +99,8 @@ namespace CusEngine::RHI {
 				Logger::Assert((vkCreateImageView(GetContext<VulkanContext>()->GetDevice(), &depthImgViewCreateInfo, nullptr, &vkDepthImageView) == VK_SUCCESS), GetObjectDebugName(), "Failed to create image view");
 
 				depthAttachment->_imageView = vkDepthImageView;
+				depthAttachment->SetObjectDebugName("rhi_vulkan_swapchain_depth_attachment");
+
 				_depthAttachment = std::move(depthAttachment);
 			}
 		}

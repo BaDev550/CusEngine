@@ -8,12 +8,12 @@ using namespace CusEngine;
 
 class TestSubsystem final : public Subsystem {
 public:
-	virtual bool OnCreate(Engine* engine) override {
+	virtual Result OnCreate(Engine* engine) override {
 		Subsystem::OnCreate(engine);
 
 		Logger::Info("TestSubsystem", "Created!");
 
-		return true;
+		return Result();
 	}
 
 	virtual void OnUpdate() override {}

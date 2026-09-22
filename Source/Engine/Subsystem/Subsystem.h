@@ -3,6 +3,7 @@
 #include <Engine/Core/Core.h>
 #include <Engine/Core/Types.h>
 #include <Engine/Core/Logger.h>
+#include <Engine/Core/Result.h>
 #include <string>
 #include <typeinfo>
 #include <typeindex>
@@ -45,10 +46,10 @@ namespace CusEngine {
 	public:
 		virtual ~Subsystem() = default;
 
-		virtual bool OnCreate(Engine* engine) { 
+		virtual Result OnCreate(Engine* engine) { 
 			_engine = engine;
 			Logger::Info(typeid(*this).name(), "Created!");
-			return true; 
+			return Result();
 		}
 		virtual void OnUpdate() {}
 		virtual void OnDestroy() {

@@ -8,7 +8,7 @@
 namespace CusEngine {
 	class ENGINE_API WindowSubsystem final : public Subsystem {
 	public:
-		virtual bool OnCreate(Engine* engine) override;
+		virtual Result OnCreate(Engine* engine) override;
 		virtual void OnUpdate() override;
 		virtual void OnDestroy() override;
 

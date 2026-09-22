@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Runtime/RHI/Common/RHIFormat.h>
+#include <Runtime/RHI/Image/RHIImageView.h>
 #include <Runtime/RHI/Common/RHIUtils.h>
 
 #include <vulkan/vulkan.h>
@@ -95,6 +96,16 @@ namespace CusEngine::RHI::Utils {
 		default:
 			Logger::Error("Vulkan RHI Utils", "Unknown tiling mode");
 			return VK_IMAGE_TILING_OPTIMAL;
+		}
+	}
+
+	constexpr [[nodiscard]] VkImageViewType GetVkImageViewType(ImageViewType type) noexcept {
+		switch (type)
+		{
+		case ImageViewType::Image2D: return VK_IMAGE_VIEW_TYPE_2D;
+		case ImageViewType::Image3D: return VK_IMAGE_VIEW_TYPE_3D;
+		default:
+			break;
 		}
 	}
 }

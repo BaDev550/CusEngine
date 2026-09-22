@@ -8,10 +8,10 @@
 #endif
 
 namespace CusEngine {
-    bool PluginSubsystem::OnCreate(Engine* engine) {
+    Result PluginSubsystem::OnCreate(Engine* engine) {
         Subsystem::OnCreate(engine);
 
-        return true;
+        return Result();
     }
 
     void PluginSubsystem::OnUpdate() {}

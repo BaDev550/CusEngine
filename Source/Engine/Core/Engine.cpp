@@ -13,10 +13,8 @@ namespace CusEngine {
 		Logger::Info("Engine", "Engine running...");
 
 		FileBuffer buffer{};
-		std::vector<u64> data = buffer.Read("F:/VSProjects/CusEngine/out/build/x64-debug/bin/mario_2/mario_2.obj");
-		std::vector<u64> data1 = buffer.Read("F:/VSProjects/CusEngine/out/build/x64-debug/bin/mario_2/mario_2.obj");
-		std::vector<u64> data2 = buffer.Read("F:/VSProjects/CusEngine/out/build/x64-debug/bin/mario_2/mario_2.obj");
-
+		std::vector<u64> data = buffer.Read("wall_normal.png");
+		
 		SortAndInitializeSystems();
 
 		while (_running) {
@@ -99,10 +97,13 @@ namespace CusEngine {
 		_pendingInitList = std::move(sortedList);
 
 		for (auto system : _pendingInitList) {
-			_systemLookupTable[system->GetTypeID()] = _activeSubsystemList.size();
-			_activeSubsystemList.push_back(system);
-
-			system->OnCreate(this);
+			if (Result result = system->OnCreate(this); !result) {
+				Logger::Error(system->GetTypeID().name(), "Failed to Create reson: {}", result.GetMessage());
+			}
+			else {
+				_systemLookupTable[system->GetTypeID()] = _activeSubsystemList.size();
+				_activeSubsystemList.push_back(system);
+			}
 		}
 		_pendingInitList.clear();
 	}

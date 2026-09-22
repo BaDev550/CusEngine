@@ -7,9 +7,9 @@
 namespace CusEngine::Reflect {
     class ENGINE_API ReflectionSubsystem : public Subsystem {
     public:
-        virtual bool OnCreate(Engine* engine) override {
+        virtual Result OnCreate(Engine* engine) override {
             Subsystem::OnCreate(engine); // do some shit inhere
-            return true;
+            return Result();
         }
 
         virtual void GetDependencyGraph(DependencyGraph& graph) override;

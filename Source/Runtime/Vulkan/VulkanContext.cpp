@@ -210,6 +210,7 @@ namespace CusEngine::RHI {
 		VkFormat vkFormat = Utils::GetVkFormat(desc.format); // mybe change this
 		VkImageTiling vkTiling = Utils::GetVkImageTiling(desc.tileMode);
 		VkImageUsageFlags vKUsage = Utils::GetVkImageUsage(desc.usage);
+		VkImageAspectFlags vkAspectFlags = Utils::IsFormatDepth(desc.format) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
 
 		VkImageCreateInfo imageInfo{};
 		imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -227,6 +228,25 @@ namespace CusEngine::RHI {
 		allocInfo.usage = VMA_MEMORY_USAGE_AUTO;
 		vmaCreateImage(_allocator, &imageInfo, &allocInfo, &image->_image, &image->_allocation, nullptr);
 
+		if (desc.view.type != ImageViewType::None) {
+			VkImageViewType type = Utils::GetVkImageViewType(desc.view.type);
+			VkImageViewCreateInfo viewInfo{};
+			viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+			viewInfo.image = image->_image;
+			viewInfo.format = vkFormat;
+			viewInfo.viewType = type;
+			viewInfo.subresourceRange.aspectMask = vkAspectFlags;
+			viewInfo.subresourceRange.levelCount = 1;
+			viewInfo.subresourceRange.baseArrayLayer = 0;
+			viewInfo.subresourceRange.layerCount = 1;
+			viewInfo.subresourceRange.baseMipLevel = desc.view.mipCount;
+			viewInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+			viewInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+			viewInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+			viewInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+			vkCreateImageView(_device, &viewInfo, nullptr, &image->_imageView);
+		}
+
 		return image;
 	}
 
@@ -239,6 +259,13 @@ namespace CusEngine::RHI {
 	}
 
 	ContextDesc* VulkanContext::GetDesc() { return &_desc; }
+
+	void VulkanContext::SetObjectDebugName(VkDebugUtilsObjectNameInfoEXT* info) {
+		auto pfnSetDebugUtilsObjectNameEXT = (PFN_vkSetDebugUtilsObjectNameEXT)vkGetDeviceProcAddr(_device, "vkSetDebugUtilsObjectNameEXT");
+		if (pfnSetDebugUtilsObjectNameEXT != nullptr) {
+			pfnSetDebugUtilsObjectNameEXT(_device, info);
+		}
+	}
 
 	void VulkanContext::CopyBufferToImage(VkCommandBuffer cmd, VkBuffer buffer, VkImage image, VkImageLayout layout, uint32_t width, uint32_t height) {
 		VkBufferImageCopy region{};

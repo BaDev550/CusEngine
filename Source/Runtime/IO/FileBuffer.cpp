@@ -3,6 +3,7 @@
 #include <fstream>
 #include <sys/stat.h>
 #include <Engine/Core/Logger.h>
+#include <Engine/Core/Profiler.h>
 
 namespace CusEngine {
 	FileBuffer::FileBuffer(std::string_view path) : _path(path.data()) {}
@@ -26,19 +27,17 @@ namespace CusEngine {
 
 			std::vector<u64> fileBuffer((buffSize + sizeof(u64) - 1) / sizeof(u64));
 			{
-				auto startTime = std::chrono::high_resolution_clock::now();
+				BEGIN_SCOPE(FileBufferReadTime);
 				FILE* file = fopen(pathStr.c_str(), "rb");
 				if (file) {
 					fread(&fileBuffer[0], 1, buffSize, file);
 					fclose(file);
-					auto endTime = std::chrono::high_resolution_clock::now();
-					float readTime = std::chrono::duration_cast<std::chrono::duration<float, std::milli>>(endTime - startTime).count();
-					Logger::Info("FileBuffer", "Buffer read {}ms", readTime);
 				}
 				else {
 					Logger::Error("FileBuffer", "Failed to read file {}", pathStr);
 					return {};
 				}
+				END_SCOPE(FileBufferReadTime);
 			}
 			return fileBuffer;
 		}

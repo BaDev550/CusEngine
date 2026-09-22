@@ -9,7 +9,7 @@
 #endif
 
 namespace CusEngine::MT {
-	bool JobSubsystem::OnCreate(Engine* engine) {
+	Result JobSubsystem::OnCreate(Engine* engine) {
 		Subsystem::OnCreate(engine);
 
 		u32 totalCores = std::thread::hardware_concurrency();
@@ -21,7 +21,7 @@ namespace CusEngine::MT {
 				SetThreadPowerMode(JobPriority::High);
 				WorkerLoop(JobPriority::High);
 				});
-			Logger::Info("Performance Core", "Attached to thread");
+			Logger::Info("PerformanceCore", "Attached to thread");
 		}
 
 		for (u32 i = 0; i < lowCoreCount; i++) {
@@ -29,10 +29,10 @@ namespace CusEngine::MT {
 				SetThreadPowerMode(JobPriority::Low);
 				WorkerLoop(JobPriority::Low);
 				});
-			Logger::Info("Efficiency Core", "Attached to thread");
+			Logger::Info("EfficiencyCore", "Attached to thread");
 		}
 
-		return true;
+		return Result();
 	}
 
 	void JobSubsystem::OnUpdate() {

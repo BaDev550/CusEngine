@@ -10,7 +10,7 @@ namespace CusEngine {
         PluginSubsystem() = default;
         virtual ~PluginSubsystem() = default;
 
-        virtual bool OnCreate(Engine* engine) override;
+        virtual Result OnCreate(Engine* engine) override;
         virtual void OnUpdate() override;
         virtual void OnDestroy() override;
 

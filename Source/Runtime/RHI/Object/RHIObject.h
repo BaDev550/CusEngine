@@ -8,6 +8,7 @@ namespace CusEngine::RHI {
 	class RHIObject {
 	public:
 		virtual ~RHIObject() = default;
+		virtual void SetObjectDebugName(const char* name) { }
 		virtual std::string_view GetObjectDebugName() const { return "rhi_object_unknown"; }
 
 		template<class T = Context>
