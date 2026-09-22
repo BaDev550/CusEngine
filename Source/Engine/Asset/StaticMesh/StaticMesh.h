@@ -4,7 +4,7 @@
 namespace CusEngine {
 	CUS_CLASS()
 	class ENGINE_API StaticMesh : public Asset {
-		REFLECT_CLASS(StaticMesh)
+		REFLECT_CLASS()
 	public:
 		StaticMesh() {}
 	private:

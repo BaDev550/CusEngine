@@ -7,17 +7,14 @@
 namespace CusEngine::Reflect {
     class ENGINE_API ReflectionSubsystem : public Subsystem {
     public:
-        virtual Result OnCreate(Engine* engine) override {
-            Subsystem::OnCreate(engine); // do some shit inhere
-            return Result();
-        }
+        virtual Result OnCreate(Engine* engine) override;
 
         virtual void GetDependencyGraph(DependencyGraph& graph) override;
 
         void RegisterClass(const ClassType& typeInfo);
         void UnregisterClass(const std::string& className);
 
-        const ClassType* GetClass(const std::string& className) const;
+        const ClassType* GetClass(std::string_view className) const;
 
         template<typename T = void>
         T* Create(const std::string& className) {

@@ -5,10 +5,10 @@
 
 #include <Runtime/IO/FileBuffer.h>
 
-#include <Engine/Asset/StaticMesh/StaticMeshCooker.h>
-
 namespace CusEngine {
-	Engine::Engine() {}
+	Engine::Engine() {
+		Logger::Info("Engine", "Hello");
+	}
 	Engine::~Engine() { Logger::Info("Engine", "Shuting down..."); }
 
 	void Engine::Run() {
@@ -16,11 +16,6 @@ namespace CusEngine {
 
 		FileBuffer buffer{};
 		std::vector<u64> data = buffer.Read("wall_normal.png");
-
-		StaticMeshCooker cooker;
-		AssetSource bigBarnSource{};
-		bigBarnSource.filePath = "model.fbx";
-		cooker.Cook(bigBarnSource);
 
 		SortAndInitializeSystems();
 
@@ -113,5 +108,11 @@ namespace CusEngine {
 			}
 		}
 		_pendingInitList.clear();
+	}
+
+	Engine& Engine::Get()
+	{
+		static Engine instance;
+		return instance;
 	}
 }

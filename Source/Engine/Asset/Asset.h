@@ -16,9 +16,8 @@ namespace CusEngine {
 
 	CUS_CLASS();
 	class ENGINE_API Asset : public Object {
-		REFLECT_CLASS(Asset);
 	public:
-		Asset();
+		Asset() = default;
 		virtual ~Asset() = default;
 	};
 }

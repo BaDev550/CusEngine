@@ -4,6 +4,8 @@
 #include <Engine/Core/Profiler.h>
 #include <imgui.h>
 
+#include <Engine/Asset/StaticMesh/StaticMeshCooker.h>
+
 namespace CusEngine {
 	Result RenderSubsystem::OnCreate(Engine* engine) {
 		Subsystem::OnCreate(engine);
@@ -82,6 +84,18 @@ namespace CusEngine {
 
 		_commands->BeginImGui();
 		ImGui::ShowDemoWindow();
+
+		ImGui::Begin("Debug");
+
+		if (ImGui::Button("Parse FBX")) {
+			StaticMeshCooker cooker;
+			AssetSource bigBarnSource{};
+			bigBarnSource.filePath = "model.fbx";
+			cooker.Cook(bigBarnSource);
+		}
+
+		ImGui::End();
+
 		_commands->BeginDynamicRendering({ colorAttachment }, depthAttachment, _swapchain->GetExtent());
 
 		_commands->EndImGui();

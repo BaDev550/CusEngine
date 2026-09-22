@@ -15,16 +15,18 @@ namespace CusEngine {
 		AssetData header;
 		header.magic = 0x4D4F444C; // MODL
 		header.id = UUID();
-		header.typeName = StaticMesh::StaticTypeInfo()->Name;
 		header.metaSize = sizeof(AssetData);
 		header.dataOffset = sizeof(AssetData);
 		header.dataSize = data.size();
-		
-		Logger::Info("StaticMeshCooker", "Reading: magic:{}, size:{}, offset:{}, id:{}", 
+		std::strcpy(header.typeName, StaticMesh::StaticTypeName().data());
+		std::string name = StaticMesh::StaticTypeName().data();
+
+		Logger::Info("StaticMeshCooker", "Reading: magic:{}, size:{}, offset:{}, id:{} type:{}", 
 			header.magic, 
 			header.dataSize, 
 			header.dataOffset, 
-			header.id.Str()
+			header.id.Str(),
+			header.typeName
 		);
 
 		return Result();

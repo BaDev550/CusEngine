@@ -7,10 +7,10 @@
 namespace CusEngine {
 	CUS_CLASS()
 	class ENGINE_API AssetCooker : public Object {
-		REFLECT_CLASS(AssetCooker)
+		REFLECT_CLASS()
 	public:
 		virtual ~AssetCooker() = default;
 
-		virtual Result Cook(AssetSource& source) = 0;
+		virtual Result Cook(AssetSource& source) { return Result(); };
 	};
 }

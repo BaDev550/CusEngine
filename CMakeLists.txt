@@ -20,5 +20,5 @@ endforeach()
 
 add_subdirectory("Source/Engine")
 add_subdirectory("Source/Runtime")
-add_subdirectory("Source/Plugins")
+#add_subdirectory("Source/Plugins")
 add_subdirectory("Source/Sandbox")

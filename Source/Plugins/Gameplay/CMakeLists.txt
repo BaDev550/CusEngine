@@ -28,7 +28,6 @@ endforeach()
 
 add_library(Gameplay SHARED ${SOURCECODE} ${GENERATED_SOURCES})
 
-target_compile_definitions(Gameplay PRIVATE ENGINE_EXPORTS)
 target_link_libraries(Gameplay PRIVATE
 	Engine
 )
