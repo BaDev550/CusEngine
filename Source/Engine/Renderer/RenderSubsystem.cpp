@@ -4,7 +4,7 @@
 #include <Engine/Core/Profiler.h>
 #include <imgui.h>
 
-#include <Engine/Asset/StaticMesh/StaticMeshCooker.h>
+#include <Engine/Asset/Texture/Texture2DCooker.h>
 
 namespace CusEngine {
 	Result RenderSubsystem::OnCreate(Engine* engine) {
@@ -88,10 +88,10 @@ namespace CusEngine {
 		ImGui::Begin("Debug");
 
 		if (ImGui::Button("Parse FBX")) {
-			StaticMeshCooker cooker;
-			AssetSource bigBarnSource{};
-			bigBarnSource.filePath = "model.fbx";
-			cooker.Cook(bigBarnSource);
+			Texture2DCooker cooker;
+			AssetSource textureSource{};
+			textureSource.filePath = "wall_normal.png";
+			cooker.Cook(textureSource);
 		}
 
 		ImGui::End();

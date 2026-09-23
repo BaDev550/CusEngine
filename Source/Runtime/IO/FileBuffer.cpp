@@ -6,7 +6,9 @@
 #include <Engine/Core/Profiler.h>
 
 namespace CusEngine {
-	FileBuffer::FileBuffer(std::string_view path) : _path(path.data()) {}
+	FileBuffer::FileBuffer(std::string_view path) : _path(path.data()) {
+		//_buff = fopen();
+	}
 
 	std::vector<u64> FileBuffer::Read(std::string_view path) {
 		if (_path == nullptr && !path.empty()) _path = path.data();
@@ -46,5 +48,22 @@ namespace CusEngine {
 			return {};
 		}
 		return {};
+	}
+
+	bool FileBuffer::Write(std::string_view path, void* data, usize size, FileWritingMethod method, usize offset) {
+		const char* op = (method == FileWritingMethod::Binary) ? "wb" : "w";
+		FILE* buff = fopen(path.data(), op);
+		if (buff) {
+			BEGIN_SCOPE(FileBufferWrite);
+			fseek(buff, static_cast<long>(offset), SEEK_SET);
+			fwrite(data, size, 1, buff);
+			fclose(buff);
+			END_SCOPE(FileBufferWrite);
+			return true;
+		}
+		else {
+			Logger::Error("FileBuffer", "Failed to open buffer");
+			return false;
+		}
 	}
 }

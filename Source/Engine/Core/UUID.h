@@ -17,9 +17,7 @@ namespace CusEngine {
 		UUID(std::string_view uuidStr) { _uuid = std::hash<std::string>{}(uuidStr.data()); }
 
 		std::string Str() const {
-			std::stringstream ss;
-			ss << std::hex << _uuid;
-			return ss.str();
+			return std::to_string(_uuid);
 		}
 
 		operator u64() const { return _uuid; }

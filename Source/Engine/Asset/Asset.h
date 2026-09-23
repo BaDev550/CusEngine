@@ -3,9 +3,8 @@
 #include <Engine/Core/UUID.h>
 
 namespace CusEngine {
-	struct AssetData {
-		constexpr static u32 Magic = 0x41534554; // ASET
-
+#define ASSET_EXTENSION ".casset"
+	struct AssetHeader {
 		u32 magic;
 		UUID id;
 		char typeName[256];
@@ -17,6 +16,7 @@ namespace CusEngine {
 	CUS_CLASS();
 	class ENGINE_API Asset : public Object {
 	public:
+		constexpr static u32 Magic = 0x41534554; // ASET
 		Asset() = default;
 		virtual ~Asset() = default;
 	};
