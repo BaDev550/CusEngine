@@ -5,12 +5,26 @@
 #include <Engine/Core/Logger.h>
 #include <Engine/Core/Profiler.h>
 
+#include <mio/mmap.hpp>
+
 namespace CusEngine {
 	FileBuffer::FileBuffer(std::string_view path) : _path(path.data()) {
 		//_buff = fopen();
 	}
 
-	std::vector<u64> FileBuffer::Read(std::string_view path) {
+	void FileBuffer::ReadMIO(std::vector<u8>& result, std::string_view path) {
+		Logger::Info("FileBuffer", "Streaming file: {}", path.data());
+		
+		BEGIN_SCOPE(FileBufferMIOReadTime);
+		std::error_code err;
+		mio::mmap_source mmap(path.data());
+		if (err) return;
+
+		result.assign(mmap.begin(), mmap.end());
+		END_SCOPE(FileBufferMIOReadTime);
+	}
+
+	std::vector<u8> FileBuffer::Read(std::string_view path) {
 		if (_path == nullptr && !path.empty()) _path = path.data();
 		else if (_path != nullptr) { _path = _path; }
 		else { Logger::Warn("FileBuffer", "No valid path provided"); return {}; }
@@ -27,7 +41,7 @@ namespace CusEngine {
 			Logger::Info("FileBuffer", "Reading buffer: {}", pathStr);
 			Logger::Info("FileBuffer", "size: {:.2f}MB", buffSizeMB);
 
-			std::vector<u64> fileBuffer((buffSize + sizeof(u64) - 1) / sizeof(u64));
+			std::vector<u8> fileBuffer((buffSize + sizeof(u8) - 1) / sizeof(u8));
 			{
 				BEGIN_SCOPE(FileBufferReadTime);
 				FILE* file = fopen(pathStr.c_str(), "rb");
@@ -51,7 +65,7 @@ namespace CusEngine {
 	}
 
 	bool FileBuffer::Write(std::string_view path, void* data, usize size, FileWritingMethod method, usize offset) {
-		const char* op = (method == FileWritingMethod::Binary) ? "wb" : "w";
+		const char* op = (method == FileWritingMethod::Binary) ? (offset > 0) ? "r+b" : "wb" : (offset > 0) ? "r" : "w";
 		FILE* buff = fopen(path.data(), op);
 		if (buff) {
 			BEGIN_SCOPE(FileBufferWrite);

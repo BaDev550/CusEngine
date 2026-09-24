@@ -14,9 +14,6 @@ namespace CusEngine {
 	void Engine::Run() {
 		Logger::Info("Engine", "Engine running...");
 
-		FileBuffer buffer{};
-		std::vector<u64> data = buffer.Read("wall_normal.png");
-
 		SortAndInitializeSystems();
 
 		while (_running) {

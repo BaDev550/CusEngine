@@ -17,8 +17,9 @@ namespace CusEngine {
 		FileBuffer(std::string_view path);
 		FileBuffer() = default;
 
-		std::vector<u64> Read(std::string_view path = "");
+		std::vector<u8> Read(std::string_view path = "");
 		bool Write(std::string_view path, void* data, usize size, FileWritingMethod method = FileWritingMethod::Binary, usize offset = 0);
+		void ReadMIO(std::vector<u8>& result, std::string_view path);
 	private:
 		const char* _path = nullptr;
 	};

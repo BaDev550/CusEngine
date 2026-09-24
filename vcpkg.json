@@ -15,6 +15,9 @@
         "vulkan-binding",
         "glfw-binding"
       ]
-    }
+    },
+    "stb",
+    "nvtt",
+    "mio"
   ]
 }
