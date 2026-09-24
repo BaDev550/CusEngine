@@ -12,7 +12,7 @@ namespace CusEngine {
 		//_buff = fopen();
 	}
 
-	void FileBuffer::ReadMIO(std::vector<u8>& result, std::string_view path) {
+	void FileBuffer::Stream(std::vector<u8>& result, std::string_view path) {
 		Logger::Info("FileBuffer", "Streaming file: {}", path.data());
 		
 		BEGIN_SCOPE(FileBufferMIOReadTime);

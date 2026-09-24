@@ -24,7 +24,7 @@ namespace CusEngine {
                 int width, height, comp;
                 std::vector<u8> rawData;
                 std::vector<u8> compressedData;
-                textureBuffer.ReadMIO(rawData, sourceFile.string());
+                textureBuffer.Stream(rawData, sourceFile.string());
                 u8* rawImageData = stbi_load_from_memory(rawData.data(), (rawData.size() * sizeof(u8)), &width, &height, &comp, 4);
 
                 CompressImageToBC3(rawImageData, width, height, compressedData);
@@ -50,7 +50,7 @@ namespace CusEngine {
 
         // TEMP load texture of testing
         {
-#if 0 // method 1 idk ms vise it is good but mio is more optimized but life-time trash version of it
+#if 1 // method 1 idk ms vise it is good but mio is more optimized but life-time trash version of it
             FileBuffer textureBuffer;
             std::vector<u8> data = textureBuffer.Read(targetFile.string());
 
@@ -95,10 +95,10 @@ namespace CusEngine {
                 header.id.Str());
             stream.close(); 
 #endif
-#if 1 // good but life-cycle of scope not optimal for texture importing to GPU
+#if 0 // good but life-cycle of scope not optimal for texture importing to GPU
             FileBuffer textureBuffer;
             std::vector<u8> data;
-            textureBuffer.ReadMIO(data, targetFile.string());
+            textureBuffer.Stream(data, targetFile.string());
 
             u32 magic;
             std::memcpy(&magic, data.data(), sizeof(u32));

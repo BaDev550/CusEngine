@@ -90,7 +90,7 @@ namespace CusEngine {
 		if (ImGui::Button("Parse FBX")) {
 			Texture2DCooker cooker;
 			AssetSource textureSource{};
-			textureSource.filePath = "mc.jpg";
+			textureSource.filePath = "dog-meme.png";
 			cooker.Cook(textureSource);
 		}
 
