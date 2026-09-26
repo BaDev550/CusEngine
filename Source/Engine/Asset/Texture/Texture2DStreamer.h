@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Engine/Asset/AssetCooker.h>
+#include <Engine/Asset/AssetStreamer.h>
 #include <nvtt/nvtt.h>
 
 namespace CusEngine {
@@ -22,9 +22,10 @@ namespace CusEngine {
         virtual void endImage() override {}
     };
 
-	class Texture2DCooker final : public AssetCooker {
+	class Texture2DStreamer final : public AssetStreamer {
 	public:
-		virtual Asset* Cook(AssetSource& source) override;
+		virtual Result Cook(AssetSource& source) override;
+        virtual Asset* Import(AssetSource& source) override;
 	private:
 		bool CompressImageToBC3(u8* rawData, u32 width, u32 height, std::vector<u8>& compressedImage);
 	};

@@ -33,6 +33,7 @@ find_package(imgui CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(unofficial-shaderc CONFIG REQUIRED)
 find_package(stb REQUIRED)
+find_package(nlohmann_json REQUIRED)
 
 find_path(NVTT_INCLUDE_DIR NAMES nvtt/nvtt.h REQUIRED)
 find_path(MIO_INCLUDE_DIR NAMES mio/mmap.hpp REQUIRED)
@@ -76,6 +77,7 @@ target_link_libraries(Engine
         Runtime
         glfw 
         imgui::imgui
+        nlohmann_json::nlohmann_json
         unofficial::shaderc::shaderc
         ${NVTT_LIBS}
 )

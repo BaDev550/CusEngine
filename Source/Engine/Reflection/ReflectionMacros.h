@@ -12,30 +12,69 @@ namespace CusEngine::Reflect {
 }
 
 constexpr std::string_view className(std::string_view sig, bool fullQualified = false) {
-    size_t endPos = sig.find("::StaticTypeInfo");
-    if (endPos == std::string_view::npos) {
-        endPos = sig.find("::GetTypeInfo");
+    size_t paramPos = sig.rfind('(');
+    if (paramPos != std::string_view::npos) {
+        sig = sig.substr(0, paramPos);
     }
-    if (endPos == std::string_view::npos) {
+
+    size_t funcColons = sig.rfind("::");
+    if (funcColons == std::string_view::npos) {
         return "";
     }
+    sig = sig.substr(0, funcColons);
 
-    std::string_view prefix = sig.substr(0, endPos);
-    size_t lastSpace = prefix.rfind(' ');
-    if (lastSpace != std::string_view::npos) {
-        prefix = prefix.substr(lastSpace + 1);
-    }
-    if (prefix.starts_with("class "))   prefix.remove_prefix(6);
-    if (prefix.starts_with("struct "))  prefix.remove_prefix(7);
+    int bracketDepth = 0;
+    size_t startPos = 0;
 
-    if (!fullQualified) {
-        size_t lastColon = prefix.rfind("::");
-        if (lastColon != std::string_view::npos) {
-            prefix = prefix.substr(lastColon + 2);
+    for (size_t i = sig.length(); i > 0; --i) {
+        char c = sig[i - 1];
+        if (c == '>') {
+            bracketDepth++;
+        }
+        else if (c == '<') {
+            bracketDepth--;
+        }
+        else if (bracketDepth == 0) {
+            if (c == ' ' || c == '\t') {
+                startPos = i;
+                break;
+            }
         }
     }
 
-    return prefix;
+    std::string_view fullName = sig.substr(startPos);
+
+    if (fullName.starts_with("class "))   fullName.remove_prefix(6);
+    if (fullName.starts_with("struct "))  fullName.remove_prefix(7);
+
+    if (fullQualified) {
+        return fullName;
+    }
+
+    bracketDepth = 0;
+    size_t lastColon = std::string_view::npos;
+
+    for (size_t i = fullName.length(); i > 0; --i) {
+        char c = fullName[i - 1];
+        if (c == '>') {
+            bracketDepth++;
+        }
+        else if (c == '<') {
+            bracketDepth--;
+        }
+        else if (bracketDepth == 0 && c == ':') {
+            if (i > 1 && fullName[i - 2] == ':') {
+                lastColon = i;
+                break;
+            }
+        }
+    }
+
+    if (lastColon != std::string_view::npos) {
+        return fullName.substr(lastColon);
+    }
+
+    return fullName;
 }
 
 #if defined(_MSC_VER)
@@ -43,15 +82,11 @@ constexpr std::string_view className(std::string_view sig, bool fullQualified = 
 #else
 #define CUS_FUNC_SIG __PRETTY_FUNCTION__
 #endif
-#define __CLASS_NAME__ className(CUS_FUNC_SIG)
 
 #define REFLECT_CLASS() \
 public: \
-    virtual const CusEngine::Reflect::ClassType* GetTypeInfo() const override { \
-        CusEngine::Reflect::ReflectionSubsystem* system = CusEngine::Engine::Get().GetSubsystem<CusEngine::Reflect::ReflectionSubsystem>(); \
-        return system->GetClass(__CLASS_NAME__); \
-    } \
-    static std::string_view StaticTypeName() { return __CLASS_NAME__; }
+    static constexpr std::string_view StaticClassName() { return className(CUS_FUNC_SIG, false); } \
+    static constexpr std::string_view StaticFullClassName() { return className(CUS_FUNC_SIG, true); }
 
 #define BEGIN_REFLECT(Type) \
     using namespace CusEngine; \

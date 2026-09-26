@@ -3,6 +3,8 @@
 #include <Engine/Core/UUID.h>
 
 namespace CusEngine {
+	class AssetStreamer;
+
 #define ASSET_EXTENSION ".casset"
 	struct AssetHeader {
 		u32 magic;
@@ -13,15 +15,21 @@ namespace CusEngine {
 		u64 dataSize = 0;
 	};
 
-	CUS_CLASS();
 	class ENGINE_API Asset : public Object {
+		REFLECT_CLASS();
 	public:
 		constexpr static u32 Magic = 0x41534554; // ASET
+
 		Asset() = default;
 		virtual ~Asset() = default;
 
 		[[nodiscard]] const UUID GetAssetID() const { return _id; }
+		void SetAssetID(UUID id) { _id = id; }
+
+		[[nodiscard]] AssetStreamer* GetAssetStreamer() const { return _streamer; }
+		void SetAssetStreamer(AssetStreamer* streamer) { _streamer = streamer; }
 	private:
 		UUID _id;
+		AssetStreamer* _streamer;
 	};
 }

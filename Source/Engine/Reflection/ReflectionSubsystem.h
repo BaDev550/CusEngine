@@ -16,6 +16,11 @@ namespace CusEngine::Reflect {
 
         const ClassType* GetClass(std::string_view className) const;
 
+        //template<typename T>
+        //const std::unordered_map<std::string, ClassType> GetClassesByBase(T) const {
+        //
+        //}
+
         template<typename T = void>
         T* Create(const std::string& className) {
             const ClassType* type = GetClass(className);

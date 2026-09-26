@@ -6,8 +6,13 @@
 #include <Runtime/IO/FileBuffer.h>
 
 namespace CusEngine {
+	Engine* Engine::_instance = nullptr;
+
 	Engine::Engine() {
-		Logger::Info("Engine", "Hello");
+		Logger::Assert(!_instance, "Engine", "NO 2nd INSTANCE OF ENGINE!!");
+
+		_instance = this;
+		Logger::Info("Engine", "Created");
 	}
 	Engine::~Engine() { Logger::Info("Engine", "Shuting down..."); }
 
@@ -107,9 +112,5 @@ namespace CusEngine {
 		_pendingInitList.clear();
 	}
 
-	Engine& Engine::Get()
-	{
-		static Engine instance;
-		return instance;
-	}
+	Engine* Engine::Get() { return _instance; }
 }

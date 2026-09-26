@@ -7,6 +7,6 @@ namespace CusEngine {
     class ENGINE_API Object {
     public:
         virtual ~Object() = default;
-        virtual const Reflect::ClassType* GetTypeInfo() const = 0;
+        //virtual const Reflect::ClassType* GetTypeInfo() const = 0;
     };
 }

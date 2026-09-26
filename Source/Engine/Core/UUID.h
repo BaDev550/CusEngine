@@ -4,6 +4,8 @@
 #include <random>
 #include <sstream>
 
+#include <nlohmann/json.hpp>
+
 namespace CusEngine {
 	struct ENGINE_API UUID {
 	public:
@@ -24,6 +26,9 @@ namespace CusEngine {
 	private:
 		u64 _uuid;
 	};
+
+	inline void to_json(nlohmann::json& j, const UUID& uuid) { j = static_cast<u64>(uuid); }
+	inline void from_json(const nlohmann::json& j, UUID& uuid) { uuid = UUID(j.get<u64>()); }
 }
 
 namespace std {

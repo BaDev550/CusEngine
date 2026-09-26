@@ -4,7 +4,8 @@
 #include <Engine/Core/Profiler.h>
 #include <imgui.h>
 
-#include <Engine/Asset/Texture/Texture2DCooker.h>
+#include <Engine/Asset/AssetSubsystem.h>
+#include <Engine/Asset/Texture/Texture2D.h>
 
 namespace CusEngine {
 	Result RenderSubsystem::OnCreate(Engine* engine) {
@@ -88,10 +89,12 @@ namespace CusEngine {
 		ImGui::Begin("Debug");
 
 		if (ImGui::Button("Parse FBX")) {
-			Texture2DCooker cooker;
-			AssetSource textureSource{};
-			textureSource.filePath = "texture.jpg";
-			cooker.Cook(textureSource);
+			auto* assetSystem = Engine::Get()->GetSubsystem<AssetSubsystem>();
+
+			Texture2D* textureAsset = assetSystem->Get<Texture2D>("guven-catak.jpg");
+			if (textureAsset) {
+				Logger::Info("RenderSubsystem", "Texture loaded to CPU");
+			}
 		}
 
 		ImGui::End();

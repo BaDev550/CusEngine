@@ -1,4 +1,4 @@
-#include "Texture2DCooker.h"
+#include "Texture2DStreamer.h"
 
 #include <Engine/Asset/Asset.h>
 #include <Engine/Core/Profiler.h>
@@ -10,40 +10,64 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
-namespace CusEngine {
-    Asset* Texture2DCooker::Cook(AssetSource& source) {
-        if (source.filePath.empty()) {
-            Logger::Error("Texture2DCooker", "No source file provided!");
-            return nullptr;
-        }
-        std::filesystem::path sourceFile = source.filePath;
-        std::filesystem::path targetFile = std::filesystem::path(source.filePath).replace_extension(ASSET_EXTENSION);
+#include <Engine/Asset/Texture/Texture2D.h>
 
+namespace CusEngine {
+    Result Texture2DStreamer::Cook(AssetSource& source) {
+        if (source.sourcePath.empty()) {
+            return Result("No source file provided!");
+        }
+        
         FileBuffer textureBuffer;
         int width, height, comp;
         std::vector<u8> rawData;
         std::vector<u8> compressedData;
-        textureBuffer.Stream(rawData, sourceFile.string());
+        textureBuffer.Stream(rawData, source.sourcePath);
         u8* rawImageData = stbi_load_from_memory(rawData.data(), (rawData.size() * sizeof(u8)), &width, &height, &comp, 4);
 
         CompressImageToBC3(rawImageData, width, height, compressedData);
 
         AssetHeader header{};
         header.magic = 0x54455854;
-        header.id = UUID(sourceFile.string());
+        header.id = source.id;
         header.metaSize = sizeof(AssetHeader);
-        std::strcpy(header.typeName, "Texture2D"); // TODO(0x): use RTR
+        std::strcpy(header.typeName, source.type.c_str());
         header.dataSize = (compressedData.size() * sizeof(u8));
         header.dataOffset = sizeof(AssetHeader);
 
-        textureBuffer.Write(targetFile.string(), &header, sizeof(AssetHeader), FileWritingMethod::Text);
-        textureBuffer.Write(targetFile.string(), compressedData.data(), header.dataSize, FileWritingMethod::Binary, header.dataOffset);
-        Logger::Info("Texture2DCooker", "Texture cooked to loc: {}", std::filesystem::absolute(targetFile).string());
+        textureBuffer.Write(source.cookedPath, &header, sizeof(AssetHeader), FileWritingMethod::Text);
+        textureBuffer.Write(source.cookedPath, compressedData.data(), header.dataSize, FileWritingMethod::Binary, header.dataOffset);
+        Logger::Info("Texture2DCooker", "Texture cooked to loc: {}", std::filesystem::absolute(source.cookedPath).string());
 
-        return nullptr;
+        return Result();
     }
 
-    bool Texture2DCooker::CompressImageToBC3(u8* rawData, u32 width, u32 height, std::vector<u8>& compressedImage) {
+    Asset* Texture2DStreamer::Import(AssetSource& source) {
+        FileBuffer textureBuffer;
+        std::vector<u8> data = textureBuffer.Read(source.cookedPath);
+
+        u32 magic;
+        std::memcpy(&magic, data.data(), sizeof(u32));
+        if (magic != 0x54455854) {
+            Logger::Error("Texture2DImporter", "Not a valid texture asset");
+            return nullptr;
+        }
+
+        AssetHeader header;
+        std::memcpy(&header, data.data(), sizeof(AssetHeader));
+
+        Logger::Info("Texture2DImporter", "Imported Texture info: \n type:{}\n datasize:{}\n dataoffset:{}\n UUID:{}",
+            header.typeName,
+            header.dataSize,
+            header.dataOffset,
+            header.id.Str());
+
+        Texture2D* texture = Mem::Allocator::Construct<Texture2D>();
+
+        return texture;
+    }
+
+    bool Texture2DStreamer::CompressImageToBC3(u8* rawData, u32 width, u32 height, std::vector<u8>& compressedImage) {
         compressedImage.clear();
 
         BEGIN_SCOPE(Texture2DNVTT);
