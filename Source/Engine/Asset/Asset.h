@@ -19,5 +19,9 @@ namespace CusEngine {
 		constexpr static u32 Magic = 0x41534554; // ASET
 		Asset() = default;
 		virtual ~Asset() = default;
+
+		[[nodiscard]] const UUID GetAssetID() const { return _id; }
+	private:
+		UUID _id;
 	};
 }

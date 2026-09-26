@@ -11,6 +11,6 @@ namespace CusEngine {
 	public:
 		virtual ~AssetCooker() = default;
 
-		virtual Result Cook(AssetSource& source) { return Result(); };
+		virtual Asset* Cook(AssetSource& source) { return nullptr; };
 	};
 }
