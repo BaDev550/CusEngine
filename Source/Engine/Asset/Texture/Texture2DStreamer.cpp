@@ -12,6 +12,10 @@
 
 #include <Engine/Asset/Texture/Texture2D.h>
 
+#include <Engine/Renderer/RenderSubsystem.h>
+#include <Runtime/RHI/Buffer/RHIBuffer.h>
+#include <Runtime/RHI/Image/RHIImage.h>
+
 namespace CusEngine {
     Result Texture2DStreamer::Cook(AssetSource& source) {
         if (source.sourcePath.empty()) {
@@ -24,18 +28,22 @@ namespace CusEngine {
         std::vector<u8> compressedData;
         textureBuffer.Stream(rawData, source.sourcePath);
         u8* rawImageData = stbi_load_from_memory(rawData.data(), (rawData.size() * sizeof(u8)), &width, &height, &comp, 4);
-
+        
         CompressImageToBC3(rawImageData, width, height, compressedData);
+
+        stbi_image_free(rawImageData);
 
         AssetHeader header{};
         header.magic = 0x54455854;
+        header.width = width;
+        header.height = height;
         header.id = source.id;
         header.metaSize = sizeof(AssetHeader);
         std::strcpy(header.typeName, source.type.c_str());
         header.dataSize = (compressedData.size() * sizeof(u8));
         header.dataOffset = sizeof(AssetHeader);
 
-        textureBuffer.Write(source.cookedPath, &header, sizeof(AssetHeader), FileWritingMethod::Text);
+        textureBuffer.Write(source.cookedPath, &header, sizeof(AssetHeader), FileWritingMethod::Binary);
         textureBuffer.Write(source.cookedPath, compressedData.data(), header.dataSize, FileWritingMethod::Binary, header.dataOffset);
         Logger::Info("Texture2DCooker", "Texture cooked to loc: {}", std::filesystem::absolute(source.cookedPath).string());
 
@@ -44,25 +52,47 @@ namespace CusEngine {
 
     Asset* Texture2DStreamer::Import(AssetSource& source) {
         FileBuffer textureBuffer;
-        std::vector<u8> data = textureBuffer.Read(source.cookedPath);
+        std::vector<u8> fulldata = textureBuffer.Read(source.cookedPath);
 
         u32 magic;
-        std::memcpy(&magic, data.data(), sizeof(u32));
+        std::memcpy(&magic, fulldata.data(), sizeof(u32));
         if (magic != 0x54455854) {
             Logger::Error("Texture2DImporter", "Not a valid texture asset");
             return nullptr;
         }
 
         AssetHeader header;
-        std::memcpy(&header, data.data(), sizeof(AssetHeader));
+        std::memcpy(&header, fulldata.data(), sizeof(AssetHeader));
+        std::vector<u8> imageData(fulldata.begin() + sizeof(AssetHeader), fulldata.end());
 
-        Logger::Info("Texture2DImporter", "Imported Texture info: \n type:{}\n datasize:{}\n dataoffset:{}\n UUID:{}",
+        Logger::Info("Texture2DImporter", "Imported Texture info: \n type:{}\n datasize:{}\n dataoffset:{}\n UUID:{}\n imageDataSize:{}\n imageWidth:{}\n imageHeight:{}",
             header.typeName,
             header.dataSize,
             header.dataOffset,
-            header.id.Str());
+            header.id.Str(),
+            imageData.size(),
+            header.width,
+            header.height);
 
-        Texture2D* texture = Mem::Allocator::Construct<Texture2D>();
+        Texture2D* texture = Mem::Allocator::Construct<Texture2D>(header.width, header.height);
+        {
+            auto* renderSubsystem = Engine::Get()->GetSubsystem<RenderSubsystem>();
+            auto* rhi_context = renderSubsystem->GetContext();
+            auto* rhi_commands = renderSubsystem->GetCommands();
+
+            rhi_commands->Submit([=]() {
+                RHI::BufferDesc desc{};
+                desc.usage = RHI::BufferUsage::TransferSrc;
+                desc.memoryUsage = RHI::MemoryUsage::CPUToGPU;
+                desc.allocationFlags = RHI::AllocationFlagBits::HostAccessSequentialWrite | RHI::AllocationFlagBits::CreateMapped;
+                desc.size = header.dataSize;
+                RHI::Buffer* stagingBuffer = rhi_context->CreateBuffer(desc);
+                stagingBuffer->Write(imageData.data());
+                rhi_commands->Track(stagingBuffer);
+
+                rhi_commands->CopyBufferToImage(stagingBuffer, texture->_image, RHI::ImageLayout::TransferDst, header.width, header.height);
+                });
+        }
 
         return texture;
     }
@@ -76,6 +106,7 @@ namespace CusEngine {
             Logger::Error("Texture2DNVTT", "NVTT failed to set image data");
             return false;
         }
+        surface.swizzle(2, 1, 0, 3);
 
         nvtt::CompressionOptions compOptions;
         compOptions.setFormat(nvtt::Format_BC3);

@@ -10,6 +10,10 @@ namespace CusEngine::RHI {
 		RGBA16,
 		RGBA,
 
+		BC3,
+		BC5,
+		BC7,
+
 		D32_SFLOAT,
 		D16_UNORM,
 		D24_UNORM_S8_UINT
