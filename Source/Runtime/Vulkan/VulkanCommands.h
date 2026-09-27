@@ -56,6 +56,9 @@ namespace CusEngine::RHI {
 		u64 _signalValue = 0;
 		u64 _nextSignalValue = (VulkanContext::MaxFramesInFlight + 1);
 
+		std::vector<Image*> _bindlessImages;
+		//std::vector<Buffer*> _bindlessBuffers; later
+
 		bool _recreateSwapchainNextFrame = false;
 	};
 }

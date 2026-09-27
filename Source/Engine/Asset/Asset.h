@@ -1,4 +1,5 @@
 #pragma once
+#include <Engine/Asset/AssetLoadStat.h>
 #include <Engine/Core/Object.h>
 #include <Engine/Core/UUID.h>
 
@@ -8,7 +9,7 @@ namespace CusEngine {
 #define ASSET_EXTENSION ".casset"
 	struct AssetHeader {
 		u32 magic;
-		u32 width;
+		u32 width; // Remove these
 		u32 height;
 		UUID id;
 		char typeName[256];
@@ -25,13 +26,18 @@ namespace CusEngine {
 		Asset() = default;
 		virtual ~Asset() = default;
 
-		[[nodiscard]] const UUID GetAssetID() const { return _id; }
-		void SetAssetID(UUID id) { _id = id; }
+		[[nodiscard]] const UUID GetAssetID() const { return _assetId; }
+		void SetAssetID(UUID id) { _assetId = id; }
 
-		[[nodiscard]] AssetStreamer* GetAssetStreamer() const { return _streamer; }
-		void SetAssetStreamer(AssetStreamer* streamer) { _streamer = streamer; }
+		[[nodiscard]] AssetStreamer* GetAssetStreamer() const { return _assetStreamer; }
+		void SetAssetStreamer(AssetStreamer* streamer) { _assetStreamer = streamer; }
+
+		[[nodiscard]] AssetState GetAssetState() const { return _assetState; }
+		void SetAssetState(AssetState state) { _assetState = state; }
 	private:
-		UUID _id;
-		AssetStreamer* _streamer;
+		UUID _assetId;		
+		AssetState _assetState = AssetState::InDisk;
+
+		AssetStreamer* _assetStreamer;
 	};
 }

@@ -22,7 +22,7 @@ namespace CusEngine {
 
 			std::filesystem::path sourcePath = path;
 			std::filesystem::path targetPath = std::filesystem::path(path).replace_extension(ASSET_EXTENSION);
-			UUID assetID = UUID(sourcePath.string());
+			UUID assetID = UUID(sourcePath.string()); // TODO(0x): add a time to hashing so it is not exatcly with same named files!! mem leak
 
 			if (AssetInCache(assetID)) {
 				Logger::Info("AssetSubsystem", "Asset in registry loading...");

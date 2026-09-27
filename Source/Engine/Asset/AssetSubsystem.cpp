@@ -6,9 +6,11 @@
 #include <Engine/Core/Memory.h>
 
 #include <Engine/Asset/Texture/Texture2DStreamer.h>
+#include <Engine/Asset/Shader/ShaderStreamer.h>
 #include <Engine/Asset/Asset.h>
 
 #include <Engine/Asset/Texture/Texture2D.h>
+#include <Engine/Asset/Shader/Shader.h>
 
 #include <nlohmann/json.hpp>
 #include <fstream>
@@ -25,10 +27,14 @@ namespace CusEngine {
 		//	_assetCookers.push_back(Mem::Allocator::Construct<Texture2DCooker>());
 		//}
 
-		std::string textureTypeName = Texture2D::StaticClassName().data();
+		std::string textureTypeName = Texture2D::StaticClassName().data(); // FIXME(0x): wtf baran
+		std::string shaderTypeName = Shader::StaticClassName().data();
 
 		_assetStreamerLookupTable[textureTypeName] = _assetStreamers.size();
 		_assetStreamers.push_back(Mem::Allocator::Construct<Texture2DStreamer>());
+
+		_assetStreamerLookupTable[shaderTypeName] = _assetStreamers.size();
+		_assetStreamers.push_back(Mem::Allocator::Construct<ShaderStreamer>());
 
 		LoadRegistry();
 

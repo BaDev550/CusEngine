@@ -1,0 +1,10 @@
+#extension GL_EXT_nonuniform_qualifier : require
+#extension GL_EXT_buffer_reference : require
+
+#define BindlessGlobalSet 0
+#define UniformGlobalSet 1
+
+layout(set = BindlessGlobalSet, binding = 0) uniform texture2D uGlobalTextures2D[];
+layout(set = BindlessGlobalSet, binding = 1) uniform sampler uGlobalSampler;
+
+#define GetBindlessTextureFromID(id) sampler2D(uGlobalTextures2D[nonuniformEXT(id)], uGlobalSampler)

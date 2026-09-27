@@ -75,27 +75,32 @@ namespace CusEngine {
             header.height);
 
         Texture2D* texture = Mem::Allocator::Construct<Texture2D>(header.width, header.height);
-        {
+
+        texture->SetAssetState(AssetState::Loading);
+
+        Engine::Get()->GetSubsystem<RenderSubsystem>()->GetCommands()->Submit([=]() {
             auto* renderSubsystem = Engine::Get()->GetSubsystem<RenderSubsystem>();
             auto* rhi_context = renderSubsystem->GetContext();
             auto* rhi_commands = renderSubsystem->GetCommands();
 
-            rhi_commands->Submit([=]() {
-                RHI::BufferDesc desc{};
-                desc.usage = RHI::BufferUsage::TransferSrc;
-                desc.memoryUsage = RHI::MemoryUsage::CPUToGPU;
-                desc.allocationFlags = RHI::AllocationFlagBits::HostAccessSequentialWrite | RHI::AllocationFlagBits::CreateMapped;
-                desc.size = header.dataSize;
-                RHI::Buffer* stagingBuffer = rhi_context->CreateBuffer(desc);
-                stagingBuffer->Write(imageData.data());
-                rhi_commands->Track(stagingBuffer);
+            RHI::BufferDesc desc{};
+            desc.usage = RHI::BufferUsage::TransferSrc;
+            desc.memoryUsage = RHI::MemoryUsage::CPUToGPU;
+            desc.allocationFlags = RHI::AllocationFlagBits::HostAccessSequentialWrite | RHI::AllocationFlagBits::CreateMapped;
+            desc.size = header.dataSize;
+            RHI::Buffer* stagingBuffer = rhi_context->CreateBuffer(desc);
+            stagingBuffer->Write(imageData.data());
+            rhi_commands->Track(stagingBuffer);
 
-                rhi_commands->TransitionImageLayout(texture->_image, RHI::ImageLayout::TransferDst);
-                rhi_commands->CopyBufferToImage(stagingBuffer, texture->_image, RHI::ImageLayout::TransferDst, header.width, header.height);
-                rhi_commands->TransitionImageLayout(texture->_image, RHI::ImageLayout::ShaderReadOnly);
-                Logger::Info("Texture2DImporter", "Texture loaded to GPU");
-                });
-        }
+            rhi_commands->TransitionImageLayout(texture->_image, RHI::ImageLayout::TransferDst);
+            rhi_commands->CopyBufferToImage(stagingBuffer, texture->_image, RHI::ImageLayout::TransferDst, header.width, header.height);
+            rhi_commands->TransitionImageLayout(texture->_image, RHI::ImageLayout::ShaderReadOnly);
+            texture->SetAssetState(AssetState::Ready);
+
+            Logger::Info("Texture2DImporter", "Texture loaded to GPU");
+            });
+
+        texture->SetAssetState(AssetState::Loaded);
 
         return texture;
     }

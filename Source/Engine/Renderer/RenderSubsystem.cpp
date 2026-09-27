@@ -5,7 +5,9 @@
 #include <imgui.h>
 
 #include <Engine/Asset/AssetSubsystem.h>
+
 #include <Engine/Asset/Texture/Texture2D.h>
+#include <Engine/Asset/Shader/Shader.h>
 
 namespace CusEngine {
 	Result RenderSubsystem::OnCreate(Engine* engine) {
@@ -87,13 +89,19 @@ namespace CusEngine {
 		ImGui::ShowDemoWindow();
 
 		ImGui::Begin("Debug");
+		auto* assetSystem = Engine::Get()->GetSubsystem<AssetSubsystem>();
 
-		if (ImGui::Button("Parse FBX")) {
-			auto* assetSystem = Engine::Get()->GetSubsystem<AssetSubsystem>();
-
+		if (ImGui::Button("Parse Texture")) {
 			Texture2D* textureAsset = assetSystem->Get<Texture2D>("guven-catak.jpg");
 			if (textureAsset) {
 				Logger::Info("RenderSubsystem", "Texture loaded to CPU");
+			}
+		}
+
+		if (ImGui::Button("Parse Shader")) {
+			Shader* shaderAsset = assetSystem->Get<Shader>("base_forward.vert");
+			if (shaderAsset) {
+				Logger::Info("RenderSubsystem", "Shader loaded to CPU");
 			}
 		}
 
