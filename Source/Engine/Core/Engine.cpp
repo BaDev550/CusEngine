@@ -100,13 +100,14 @@ namespace CusEngine {
 		Logger::Assert((sortedList.size() == numSystems), "Engine", "Circular dependency detected in Subsystem initialization!");
 		_pendingInitList = std::move(sortedList);
 
-		for (auto system : _pendingInitList) {
+		for (Subsystem* system : _pendingInitList) {
 			if (Result result = system->OnCreate(this); !result) {
 				Logger::Error(system->GetTypeID().name(), "Failed to Create reson: {}", result.GetMessage());
 			}
 			else {
 				_systemLookupTable[system->GetTypeID()] = _activeSubsystemList.size();
 				_activeSubsystemList.push_back(system);
+				//Mem::Allocator::GetTracker().Record(_activeSubsystemList[_activeSubsystemList.size() - 1], { sizeof(*system), alignof(Subsystem)} );
 			}
 		}
 		_pendingInitList.clear();

@@ -25,7 +25,7 @@ namespace CusEngine::Mem {
 				return block;
 			}
 			else {
-				Logger::Warn("MemoryTracker", "Tried to free untracked memory at adress: {}", ptr);
+				//Logger::Warn("MemoryTracker", "Tried to free untracked memory at adress: {}", ptr);
 				return {};
 			}
 		}
@@ -74,6 +74,8 @@ namespace CusEngine::Mem {
 		static Unique<T> ConstructUnique(Args&&... args) {
 			return std::make_unique<T>(std::forward<Args>(args)...);
 		}
+
+		static MemoryTracker GetTracker() { return _tracker; }
 	private:
 		static inline MemoryTracker _tracker;
 	};

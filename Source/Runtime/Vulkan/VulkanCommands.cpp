@@ -121,10 +121,9 @@ namespace CusEngine::RHI {
 			_recreateSwapchainNextFrame = true;
 		}
 
-		if (!frame.TrackedObjects.empty()) {
-			frame.TrackedObjects.clear();
-		}
-
+		for (auto& fo : frame.TrackedObjects) { Mem::Allocator::Destroy(fo); }
+		frame.TrackedObjects.clear();
+		
 		vkResetCommandPool(vkContext->GetDevice(), frame.CommandPool, 0);
 
 		VkCommandBufferBeginInfo beginInfo{};

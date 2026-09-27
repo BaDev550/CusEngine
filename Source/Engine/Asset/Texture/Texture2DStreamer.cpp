@@ -93,6 +93,7 @@ namespace CusEngine {
                 rhi_commands->TransitionImageLayout(texture->_image, RHI::ImageLayout::TransferDst);
                 rhi_commands->CopyBufferToImage(stagingBuffer, texture->_image, RHI::ImageLayout::TransferDst, header.width, header.height);
                 rhi_commands->TransitionImageLayout(texture->_image, RHI::ImageLayout::ShaderReadOnly);
+                Logger::Info("Texture2DImporter", "Texture loaded to GPU");
                 });
         }
 

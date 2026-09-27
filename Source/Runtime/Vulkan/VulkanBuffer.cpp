@@ -5,6 +5,7 @@
 namespace CusEngine::RHI {
 	VulkanBuffer::VulkanBuffer(const BufferDesc& desc) : _desc(desc) {}
 	VulkanBuffer::~VulkanBuffer() {
+		Logger::Info(GetObjectDebugName(), "Buffer destroyed");
 		if (_buffer != VK_NULL_HANDLE) vmaDestroyBuffer(GetContext<VulkanContext>()->GetAllocator(), _buffer, _allocation);
 	}
 
