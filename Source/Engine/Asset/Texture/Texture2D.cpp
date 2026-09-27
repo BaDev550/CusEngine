@@ -15,10 +15,14 @@ namespace CusEngine {
         desc.format = RHI::Format::BC3; // TEMP
         desc.width = width;
         desc.height = height;
-        desc.layout = RHI::ImageLayout::TransferDst;
+        desc.layout = RHI::ImageLayout::Undefined;
         desc.usage = RHI::ImageUsage::Sampled | RHI::ImageUsage::TransferDst;
         desc.tileMode = RHI::ImageTileMode::Optimal;
         desc.view.type = RHI::ImageViewType::Image2D;
         _image = rhi_context->CreateImage(desc);
+    }
+
+    Texture2D::~Texture2D() {
+        Mem::Allocator::Destroy(_image);
     }
 }

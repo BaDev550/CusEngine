@@ -8,7 +8,8 @@ namespace CusEngine {
 		REFLECT_CLASS();
 	public:
 		Texture2D(int width, int height);
-	
+		~Texture2D();
+
 		RHI::Image* _image = nullptr;
 	};
 }

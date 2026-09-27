@@ -36,7 +36,16 @@ namespace CusEngine {
 	}
 
 	void AssetSubsystem::OnDestroy() {
-	
+		for (const auto& [id, ast] : _assets) {
+			Mem::Allocator::Destroy(ast);
+		}
+		_assets.clear();
+
+		for (const auto& streamer : _assetStreamers) {
+			Mem::Allocator::Destroy(streamer);
+		}
+		_assetStreamers.clear();
+		_assetStreamerLookupTable.clear();
 	}
 
 	Asset* AssetSubsystem::Load(UUID id) {

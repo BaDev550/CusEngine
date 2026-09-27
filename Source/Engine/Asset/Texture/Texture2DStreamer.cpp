@@ -90,7 +90,9 @@ namespace CusEngine {
                 stagingBuffer->Write(imageData.data());
                 rhi_commands->Track(stagingBuffer);
 
+                rhi_commands->TransitionImageLayout(texture->_image, RHI::ImageLayout::TransferDst);
                 rhi_commands->CopyBufferToImage(stagingBuffer, texture->_image, RHI::ImageLayout::TransferDst, header.width, header.height);
+                rhi_commands->TransitionImageLayout(texture->_image, RHI::ImageLayout::ShaderReadOnly);
                 });
         }
 
