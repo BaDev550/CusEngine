@@ -363,6 +363,12 @@ namespace CusEngine::RHI {
 		vkCmdPipelineBarrier(vkCmd, srcStage, dstStage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
 		vkImage->_desc.layout = newLayout;
 	}
+	u32 VulkanContext::RegisterBindlessImage(Image* image) {
+		u32 id = _bindlessImages.size();
+		_bindlessImages.push_back(image);
+		return id;
+	}
+
 #if 0
 	void Vulkan_RenderContext::UpdateTextureDescriptors(const std::vector<Memory::Ref<Texture2D>>& textures) {
 		std::vector<VkDescriptorImageInfo> imageDescriptors;

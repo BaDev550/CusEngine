@@ -26,5 +26,13 @@ namespace CusEngine::RHI {
 		GetContext<VulkanContext>()->SetObjectDebugName(&info);
 	}
 
+	u32 VulkanImage::GetBindlessIndex() noexcept
+	{
+		if (_bindessId == u32_max) {
+			_bindessId = GetContext<VulkanContext>()->RegisterBindlessImage(this);
+		}
+		return _bindessId;
+	}
+
 	[[nodiscard]] VkImageLayout VulkanImage::GetImageLayout() const { return Utils::GetVkImageLayout(_desc.layout); }
 }

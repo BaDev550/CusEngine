@@ -14,7 +14,7 @@ namespace CusEngine::RHI {
 		void CreateCommandPool();
 		void CreateTimelineSemaphore();
 		void CreateRenderFinishedSemaphore();
-
+		
 		virtual std::string_view GetObjectDebugName() const override { return "rhi_object_vulkan_commands"; }
 
 		virtual void BeginFrame() override final;
@@ -55,9 +55,6 @@ namespace CusEngine::RHI {
 		u32 _currentFrameIndex = 0;
 		u64 _signalValue = 0;
 		u64 _nextSignalValue = (VulkanContext::MaxFramesInFlight + 1);
-
-		std::vector<Image*> _bindlessImages;
-		//std::vector<Buffer*> _bindlessBuffers; later
 
 		bool _recreateSwapchainNextFrame = false;
 	};

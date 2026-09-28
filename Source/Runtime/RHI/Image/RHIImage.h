@@ -13,5 +13,6 @@ namespace CusEngine::RHI {
 		virtual const Format GetFormat() const = 0;
 		virtual const u32 GetWidth() const noexcept = 0;
 		virtual const u32 GetHeight() const noexcept = 0;
+		virtual u32 GetBindlessIndex() noexcept = 0;
 	};
 }

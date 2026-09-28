@@ -33,6 +33,7 @@ namespace CusEngine::RHI {
 		void CopyBufferToImage(VkCommandBuffer cmd, VkBuffer buffer, VkImage image, VkImageLayout layout, uint32_t width, uint32_t height); // TODO(0x): move this into commands
 		void CopyBuffer(VkCommandBuffer cmd, size_t size, VkBuffer srcBuffer, VkBuffer dstBuffer);
 		void TransitionImageLayout(VkCommandBuffer  cmd, Image* image, ImageLayout newLayout);
+		u32 RegisterBindlessImage(Image* image);
 
 		[[nodiscard]] VkInstance GetInstance() const { return _instance; }
 		[[nodiscard]] VkDevice GetDevice() const { return _device; }
@@ -66,6 +67,9 @@ namespace CusEngine::RHI {
 		VkAllocationCallbacks _allocationCallbacks;
 
 		VkDescriptorPool _imguiPool;
+
+		std::vector<Image*> _bindlessImages;
+		//std::vector<Buffer*> _bindlessBuffers; later
 
 		std::vector<const char*> _extensions;
 		std::vector<const char*> _layers;
