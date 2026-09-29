@@ -18,6 +18,8 @@ namespace CusEngine::RHI {
 	}
 
 	void VulkanImage::SetObjectDebugName(const char* name) {
+		RHIObject::SetObjectDebugName(name);
+
 		VkDebugUtilsObjectNameInfoEXT info{};
 		info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
 		info.objectType = VK_OBJECT_TYPE_IMAGE;
@@ -26,8 +28,7 @@ namespace CusEngine::RHI {
 		GetContext<VulkanContext>()->SetObjectDebugName(&info);
 	}
 
-	u32 VulkanImage::GetBindlessIndex() noexcept
-	{
+	u32 VulkanImage::GetBindlessIndex() noexcept {
 		if (_bindessId == u32_max) {
 			_bindessId = GetContext<VulkanContext>()->RegisterBindlessImage(this);
 		}

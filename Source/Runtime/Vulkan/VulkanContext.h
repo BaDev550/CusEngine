@@ -2,11 +2,13 @@
 #include <Runtime/RHI/Image/RHIImageLayout.h>
 #include <Runtime/RHI/Context/RHIContext.h>
 #include <Runtime/RHI/Common/RHIFormat.h>
+#include <Runtime/RHI/Image/RHIStaticSampler.h>
 
 #include <vulkan/vulkan.h>
 #include <vma/vk_mem_alloc.h>
 #include <vector>
 #include <mutex>
+#include <unordered_map>
 
 namespace CusEngine::RHI {
 	class VulkanContext final : public Context {
@@ -32,7 +34,7 @@ namespace CusEngine::RHI {
 		void SetObjectDebugName(VkDebugUtilsObjectNameInfoEXT* info);
 		void CopyBufferToImage(VkCommandBuffer cmd, VkBuffer buffer, VkImage image, VkImageLayout layout, uint32_t width, uint32_t height); // TODO(0x): move this into commands
 		void CopyBuffer(VkCommandBuffer cmd, size_t size, VkBuffer srcBuffer, VkBuffer dstBuffer);
-		void TransitionImageLayout(VkCommandBuffer  cmd, Image* image, ImageLayout newLayout);
+		void TransitionImageLayout(VkCommandBuffer cmd, Image* image, ImageLayout newLayout);
 		u32 RegisterBindlessImage(Image* image);
 
 		[[nodiscard]] VkInstance GetInstance() const { return _instance; }
@@ -48,9 +50,13 @@ namespace CusEngine::RHI {
 		void CreateVMA();
 		void CreateSurface();
 		void PickPhysicalDevice();
+		void CreateGlobalSampler();
+		void CreateBindless();
 		void CreateDevice();
 
 		std::vector<const char*> GetRequiredExtensions();
+		VkPhysicalDeviceFeatures GetPhysicalDeviceFeatures(VkPhysicalDevice physicalDevice);
+		VkPhysicalDeviceLimits GetPhysicalDeviceLimits(VkPhysicalDevice physicalDevice);
 		u32 FindGraphicsAndPresentQueueIndex(VkPhysicalDevice physicalDevice);
 	private:
 		VkInstance _instance = VK_NULL_HANDLE;
@@ -66,9 +72,12 @@ namespace CusEngine::RHI {
 		VmaAllocator _allocator;
 		VkAllocationCallbacks _allocationCallbacks;
 
-		VkDescriptorPool _imguiPool;
+		VkDescriptorPool _imguiDescriptorPool;
+		VkDescriptorPool _bindlessDescriptorPool;
+		VkDescriptorSet _bindlessDescriptorSet;
 
 		std::vector<Image*> _bindlessImages;
+		std::unordered_map<StaticSampler, VkSampler> _samplers;
 		//std::vector<Buffer*> _bindlessBuffers; later
 
 		std::vector<const char*> _extensions;

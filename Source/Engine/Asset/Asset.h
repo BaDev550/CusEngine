@@ -9,8 +9,6 @@ namespace CusEngine {
 #define ASSET_EXTENSION ".casset"
 	struct AssetHeader {
 		u32 magic;
-		u32 width; // Remove these
-		u32 height;
 		UUID id;
 		char typeName[256];
 		u64 metaSize = 0;

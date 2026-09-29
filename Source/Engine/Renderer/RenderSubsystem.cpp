@@ -92,7 +92,7 @@ namespace CusEngine {
 		auto* assetSystem = Engine::Get()->GetSubsystem<AssetSubsystem>();
 
 		if (ImGui::Button("Parse Texture")) {
-			Texture2D* textureAsset = assetSystem->Get<Texture2D>("jhon-romero.png");
+			Texture2D* textureAsset = assetSystem->Get<Texture2D>("guven-catak.jpg");
 			if (textureAsset) {
 				Logger::Info("RenderSubsystem", "Texture loaded to CPU");
 			}

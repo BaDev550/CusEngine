@@ -15,6 +15,7 @@
 #include <Engine/Renderer/RenderSubsystem.h>
 #include <Runtime/RHI/Buffer/RHIBuffer.h>
 #include <Runtime/RHI/Image/RHIImage.h>
+#include <Runtime/RHI/Common/RHIUtils.h>
 
 namespace CusEngine {
     Result Texture2DStreamer::Cook(AssetSource& source) {
@@ -33,17 +34,24 @@ namespace CusEngine {
 
         stbi_image_free(rawImageData);
 
+        RHI::ImageDesc imageDesc{};
+        imageDesc.format = RHI::Format::BC3;
+        imageDesc.width = width;
+        imageDesc.height = height;
+        imageDesc.usage = RHI::ImageUsage::Sampled | RHI::ImageUsage::TransferDst;
+        imageDesc.layout = RHI::ImageLayout::Undefined;
+        imageDesc.tileMode = RHI::ImageTileMode::Optimal;
+
         AssetHeader header{};
         header.magic = 0x54455854;
-        header.width = width;
-        header.height = height;
         header.id = source.id;
         header.metaSize = sizeof(AssetHeader);
         std::strcpy(header.typeName, source.type.c_str());
         header.dataSize = (compressedData.size() * sizeof(u8));
-        header.dataOffset = sizeof(AssetHeader);
+        header.dataOffset = (sizeof(AssetHeader) + sizeof(RHI::ImageDesc));
 
         textureBuffer.Write(source.cookedPath, &header, sizeof(AssetHeader), FileWritingMethod::Binary);
+        textureBuffer.Write(source.cookedPath, &imageDesc, sizeof(RHI::ImageDesc), FileWritingMethod::Binary, sizeof(AssetHeader));
         textureBuffer.Write(source.cookedPath, compressedData.data(), header.dataSize, FileWritingMethod::Binary, header.dataOffset);
         Logger::Info("Texture2DCooker", "Texture cooked to loc: {}", std::filesystem::absolute(source.cookedPath).string());
 
@@ -63,18 +71,23 @@ namespace CusEngine {
 
         AssetHeader header;
         std::memcpy(&header, fulldata.data(), sizeof(AssetHeader));
-        std::vector<u8> imageData(fulldata.begin() + sizeof(AssetHeader), fulldata.end());
 
-        Logger::Info("Texture2DImporter", "Imported Texture info: \n type:{}\n datasize:{}\n dataoffset:{}\n UUID:{}\n imageDataSize:{}\n imageWidth:{}\n imageHeight:{}",
+        RHI::ImageDesc imageDesc{};
+        std::memcpy(&imageDesc, (fulldata.data() + sizeof(AssetHeader)), sizeof(RHI::ImageDesc));
+        
+        std::vector<u8> imageData((fulldata.begin() + header.dataOffset), fulldata.end());
+
+        Logger::Info("Texture2DImporter", "Imported Texture info: \n type:{}\n datasize:{}\n dataoffset:{}\n UUID:{}\n imageDataSize:{}\n imageWidth:{}\n imageHeight:{}\n imageFormat:{}",
             header.typeName,
             header.dataSize,
             header.dataOffset,
             header.id.Str(),
             imageData.size(),
-            header.width,
-            header.height);
+            imageDesc.width,
+            imageDesc.height,
+            RHI::Utils::FormatToString(imageDesc.format));
 
-        Texture2D* texture = Mem::Allocator::Construct<Texture2D>(header.width, header.height);
+        Texture2D* texture = Mem::Allocator::Construct<Texture2D>(imageDesc);
 
         texture->SetAssetState(AssetState::Loading);
 
@@ -93,7 +106,7 @@ namespace CusEngine {
             rhi_commands->Track(stagingBuffer);
 
             rhi_commands->TransitionImageLayout(texture->_image, RHI::ImageLayout::TransferDst);
-            rhi_commands->CopyBufferToImage(stagingBuffer, texture->_image, RHI::ImageLayout::TransferDst, header.width, header.height);
+            rhi_commands->CopyBufferToImage(stagingBuffer, texture->_image, RHI::ImageLayout::TransferDst, imageDesc.width, imageDesc.height);
             rhi_commands->TransitionImageLayout(texture->_image, RHI::ImageLayout::ShaderReadOnly);
             texture->SetAssetState(AssetState::Ready);
 

@@ -23,6 +23,7 @@ namespace CusEngine::RHI {
 			case Format::D32_SFLOAT: return "D32 SFloat";
 			case Format::D24_UNORM_S8_UINT: return "D24 Unorm S8 UInt";
 			case Format::D16_UNORM: return "D16 Unorm";
+			case Format::BC3: return "BC3";
 			default: return "Unknown format";
 			}
 		}

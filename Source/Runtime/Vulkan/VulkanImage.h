@@ -13,7 +13,6 @@ namespace CusEngine::RHI {
 		virtual ~VulkanImage();
 
 		virtual void SetObjectDebugName(const char* name) override final;
-		virtual std::string_view GetObjectDebugName() const override final { return "rhi_object_vulkan_image"; }
 		virtual const ImageDesc* GetDesc() const override final { return &_desc; }
 		virtual const Format GetFormat() const override final { return _desc.format; };
 		virtual const u32 GetWidth() const noexcept override final { return _desc.width; }

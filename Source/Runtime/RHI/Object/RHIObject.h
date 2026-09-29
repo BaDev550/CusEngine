@@ -8,12 +8,14 @@ namespace CusEngine::RHI {
 	class RHIObject {
 	public:
 		virtual ~RHIObject() = default;
-		virtual void SetObjectDebugName(const char* name) { }
-		virtual std::string_view GetObjectDebugName() const { return "rhi_object_unknown"; }
+		virtual void SetObjectDebugName(const char* name) { _debugName = name; }
 
-		template<class T = Context>
-		T* GetContext() { return static_cast<T*>(_context); }
+		std::string_view GetObjectDebugName() const { return _debugName; }
+	protected:
+		template<class T = Context> requires std::is_base_of_v<Context, T>
+		inline T* GetContext() { return static_cast<T*>(_context); }
 
 		Context* _context = nullptr;
+		std::string_view _debugName;
 	};
 }

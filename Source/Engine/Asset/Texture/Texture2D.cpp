@@ -6,19 +6,10 @@
 #include <Runtime/RHI/Context/RHIContext.h>
 
 namespace CusEngine {
-    Texture2D::Texture2D(int width, int height) {
+    Texture2D::Texture2D(const RHI::ImageDesc& desc) {
         auto* renderSubsystem = Engine::Get()->GetSubsystem<RenderSubsystem>();
         auto* rhi_context = renderSubsystem->GetContext();
-        auto* rhi_commands = renderSubsystem->GetCommands();
-
-        RHI::ImageDesc desc{};
-        desc.format = RHI::Format::BC3; // TEMP
-        desc.width = width;
-        desc.height = height;
-        desc.layout = RHI::ImageLayout::Undefined;
-        desc.usage = RHI::ImageUsage::Sampled | RHI::ImageUsage::TransferDst;
-        desc.tileMode = RHI::ImageTileMode::Optimal;
-        desc.view.type = RHI::ImageViewType::Image2D;
+        
         _image = rhi_context->CreateImage(desc);
     }
 

@@ -76,6 +76,7 @@ namespace CusEngine::RHI {
 			PickPhysicalDevice();
 			CreateDevice();
 			CreateVMA();
+			CreateGlobalSampler();
 		}
 		catch (const std::runtime_error& err) {
 			Logger::Assert(false, "rhi_object_vulkan_context", "{}", err.what());
@@ -106,7 +107,7 @@ namespace CusEngine::RHI {
 		pool_info.poolSizeCount = std::size(pool_sizes);
 		pool_info.pPoolSizes = pool_sizes;
 
-		vkCreateDescriptorPool(_device, &pool_info, nullptr, &_imguiPool); // add check
+		vkCreateDescriptorPool(_device, &pool_info, nullptr, &_imguiDescriptorPool); // add check
 
 		ImGui::CreateContext();
 		ImGui_ImplGlfw_InitForVulkan(_desc.windowHandle, true);
@@ -117,7 +118,7 @@ namespace CusEngine::RHI {
 		init_info.PhysicalDevice = _physicalDevice;
 		init_info.Device = _device;
 		init_info.Queue = _graphicsAndPresentQueue;
-		init_info.DescriptorPool = _imguiPool;
+		init_info.DescriptorPool = _imguiDescriptorPool;
 		init_info.MinImageCount = 3;
 		init_info.ImageCount = 3;
 		init_info.UseDynamicRendering = true;
@@ -143,7 +144,7 @@ namespace CusEngine::RHI {
 	void VulkanContext::DestroyImGui() {
 		ImGui_ImplVulkan_Shutdown();
 		ImGui_ImplGlfw_Shutdown();
-		vkDestroyDescriptorPool(_device, _imguiPool, nullptr);
+		vkDestroyDescriptorPool(_device, _imguiDescriptorPool, nullptr);
 		ImGui::DestroyContext();
 	}
 	
@@ -204,6 +205,11 @@ namespace CusEngine::RHI {
 	Image* VulkanContext::CreateImage(const ImageDesc& desc)
 	{
 		VulkanImage* image = Mem::Allocator::Construct<VulkanImage>(desc);
+		auto it = _samplers.find(desc.sampler);
+		if (it == _samplers.end()) {
+			Logger::Fatal("VulkanContext", "Requested image sampler is not in samplers list");
+			return nullptr;
+		}
 
 		image->_context = this;
 
@@ -223,6 +229,7 @@ namespace CusEngine::RHI {
 		imageInfo.tiling = vkTiling;
 		imageInfo.usage = vKUsage;
 		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+
 		VmaAllocationCreateInfo allocInfo{};
 		allocInfo.flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT;
 		allocInfo.usage = VMA_MEMORY_USAGE_AUTO;
@@ -363,6 +370,7 @@ namespace CusEngine::RHI {
 		vkCmdPipelineBarrier(vkCmd, srcStage, dstStage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
 		vkImage->_desc.layout = newLayout;
 	}
+
 	u32 VulkanContext::RegisterBindlessImage(Image* image) {
 		u32 id = _bindlessImages.size();
 		_bindlessImages.push_back(image);
@@ -479,6 +487,50 @@ namespace CusEngine::RHI {
 		Logger::Info("rhi_object_vulkan_context", "Driver version: {}.{}.{}", VK_VERSION_MAJOR(properties.driverVersion), VK_VERSION_MINOR(properties.driverVersion), VK_VERSION_PATCH(properties.driverVersion));
 	}
 
+	void VulkanContext::CreateGlobalSampler() {
+		auto makeSampler = [&](VkFilter filter, VkSamplerAddressMode addresMode, VkSamplerMipmapMode mipMode, bool compEnable, bool anisotrpyEnable) {
+			VkSampler resultSampler = nullptr;
+			VkSamplerCreateInfo samplerInfo{};
+			samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+			samplerInfo.magFilter = filter;
+			samplerInfo.minFilter = filter;
+			samplerInfo.addressModeU = addresMode;
+			samplerInfo.addressModeV = addresMode;
+			samplerInfo.addressModeW = addresMode;
+			samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+			samplerInfo.anisotropyEnable = anisotrpyEnable;
+			samplerInfo.maxAnisotropy = 16.0f;
+			samplerInfo.unnormalizedCoordinates = VK_FALSE;
+			samplerInfo.compareEnable = compEnable;
+			samplerInfo.mipmapMode = mipMode;
+
+			Logger::Assert((vkCreateSampler(_device, &samplerInfo, nullptr, &resultSampler) == VK_SUCCESS), "VulkanContext", "Failed to create sampler");
+			return resultSampler;
+			};
+
+		_samplers[StaticSampler::NearestRepeat] = makeSampler(VK_FILTER_NEAREST, VK_SAMPLER_ADDRESS_MODE_REPEAT, VK_SAMPLER_MIPMAP_MODE_NEAREST, false, false);
+		
+	}
+
+	void VulkanContext::CreateBindless() {
+		VkDescriptorPoolSize size[] = {
+			{ VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000 },
+			{ VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000 },
+			{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000 }
+		};
+
+		VkDescriptorPoolCreateInfo info{};
+		info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+		info.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+		info.maxSets = 1000;
+		info.poolSizeCount = std::size(size);
+		info.pPoolSizes = size;
+		
+		vkCreateDescriptorPool(_device, &info, nullptr, &_bindlessDescriptorPool);
+
+		Logger::Info("rhi_object_vulkan_context", "Bindless descriptor pool is created");
+	}
+
 	void VulkanContext::CreateDevice() {
 		_graphicsAndPresentQueueIndex = FindGraphicsAndPresentQueueIndex(_physicalDevice);
 		float queuePriority = 1.0f;
@@ -547,6 +599,18 @@ namespace CusEngine::RHI {
 		}
 
 		return extensions;
+	}
+
+	VkPhysicalDeviceFeatures VulkanContext::GetPhysicalDeviceFeatures(VkPhysicalDevice physicalDevice) {
+		VkPhysicalDeviceFeatures features{};
+		vkGetPhysicalDeviceFeatures(physicalDevice, &features);
+		return features;
+	}
+
+	VkPhysicalDeviceLimits VulkanContext::GetPhysicalDeviceLimits(VkPhysicalDevice physicalDevice) {
+		VkPhysicalDeviceProperties prop{};
+		vkGetPhysicalDeviceProperties(physicalDevice, &prop);
+		return prop.limits;
 	}
 
 	u32 VulkanContext::FindGraphicsAndPresentQueueIndex(VkPhysicalDevice physicalDevice) {

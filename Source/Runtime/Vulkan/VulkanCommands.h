@@ -15,8 +15,6 @@ namespace CusEngine::RHI {
 		void CreateTimelineSemaphore();
 		void CreateRenderFinishedSemaphore();
 		
-		virtual std::string_view GetObjectDebugName() const override { return "rhi_object_vulkan_commands"; }
-
 		virtual void BeginFrame() override final;
 		virtual void EndFrame() override final;
 		virtual void BeginImGui() override final;
