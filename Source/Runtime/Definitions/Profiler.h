@@ -1,13 +1,11 @@
 #pragma once
 
-#include <Engine/Core/Core.h>
-#include <Engine/Core/UUID.h>
-#include <Engine/Subsystem/Subsystem.h>
+#include <Runtime/Definitions/UUID.h>
 #include <chrono>
 #include <list>
 #include <string_view>
 
-namespace CusEngine {
+namespace Runtime {
 	class Profile final {
 	public:
 		Profile(std::string_view name) : _name(name) { // TODO(0x): make a registry class to register the duration to a name and destroy it :p

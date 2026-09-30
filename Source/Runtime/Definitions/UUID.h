@@ -1,13 +1,13 @@
 #pragma once
-#include <Engine/Core/Core.h>
+#include <Runtime/Definitions/Types.h>
 #include <iostream>
 #include <random>
 #include <sstream>
 
 #include <nlohmann/json.hpp>
 
-namespace CusEngine {
-	struct ENGINE_API UUID {
+namespace Runtime {
+	struct UUID {
 	public:
 		UUID() {
 			std::random_device rd;
@@ -33,9 +33,9 @@ namespace CusEngine {
 
 namespace std {
 	template<>
-	struct hash<CusEngine::UUID> {
-		size_t operator()(const CusEngine::UUID& uuid) const {
-			return hash<u64>()(static_cast<uint64_t>(uuid));
+	struct hash<Runtime::UUID> {
+		size_t operator()(const Runtime::UUID& uuid) const {
+			return hash<u64>()(static_cast<u64>(uuid));
 		}
 	};
 }

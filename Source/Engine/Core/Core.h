@@ -1,5 +1,5 @@
 #pragma once
-#include <Engine/Core/Types.h>
+#include <Runtime/Definitions/Types.h>
 #include <iostream>
 
 #ifdef _WIN32
@@ -9,6 +9,12 @@
 #define ENGINE_API __declspec(dllimport)
 #endif
 #endif
+
+#define ASSET_MAGIC 0x41534554 // ASET
+#define TEXTURE2D_MAGIC 0x
+
+#define ASSET_EXTENSION ".casset"
+#define ASSET_REGISTRY_PATH "cache/assetReg.json"
 
 #define BIT(x) (1 << x)
 #define CORE_DEFINE_ENUM_FLAG_OPERATORS(Enum) \

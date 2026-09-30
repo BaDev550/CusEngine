@@ -1,26 +1,16 @@
 #pragma once
 
-#include <Engine/Core/Types.h>
-#include <Engine/Core/Core.h>
+#include <Runtime/Definitions/Types.h>
+#include <Runtime/Definitions/Result.h>
 #include <iostream>
 #include <vector>
 #include <string_view>
 
-namespace CusEngine {
-	enum class FileWritingMethod {
-		Binary = 0,
-		Text
-	};
-
-	class ENGINE_API FileBuffer final {
+namespace Runtime::IO {
+	class FileBuffer final {
 	public:
-		FileBuffer(std::string_view path);
-		FileBuffer() = default;
-
-		std::vector<u8> Read(std::string_view path = "");
-		bool Write(std::string_view path, void* data, usize size, FileWritingMethod method = FileWritingMethod::Binary, usize offset = 0);
-		void Stream(std::vector<u8>& result, std::string_view path);
-	private:
-		const char* _path = nullptr;
+		static std::vector<u8> ReadBinary(std::string_view path);
+		static Result WriteBinary(std::string_view path, void* data, usize size, usize offset = 0);
+		static Result Map(std::string_view path, std::vector<u8>& result);
 	};
 }

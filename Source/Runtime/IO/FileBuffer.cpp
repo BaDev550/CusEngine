@@ -2,34 +2,27 @@
 #include <chrono>
 #include <fstream>
 #include <sys/stat.h>
-#include <Engine/Core/Logger.h>
-#include <Engine/Core/Profiler.h>
+
+#include <Runtime/Definitions/Logger.h>
+#include <Runtime/Definitions/Profiler.h>
 
 #include <mio/mmap.hpp>
 
-namespace CusEngine {
-	FileBuffer::FileBuffer(std::string_view path) : _path(path.data()) {
-		//_buff = fopen();
-	}
-
-	void FileBuffer::Stream(std::vector<u8>& result, std::string_view path) {
+namespace Runtime::IO {
+	Result FileBuffer::Map(std::string_view path, std::vector<u8>& result) {
 		Logger::Info("FileBuffer", "Streaming file: {}", path.data());
 		
-		BEGIN_SCOPE(FileBufferMIOReadTime);
+		BEGIN_SCOPE(FileBufferMemoryBufferReadTime);
 		std::error_code err;
 		mio::mmap_source mmap(path.data());
-		if (err) return;
+		if (err) return Result(err.message());
 
 		result.assign(mmap.begin(), mmap.end());
-		END_SCOPE(FileBufferMIOReadTime);
+		END_SCOPE(FileBufferMemoryBufferReadTime);
 	}
 
-	std::vector<u8> FileBuffer::Read(std::string_view path) {
-		if (_path == nullptr && !path.empty()) _path = path.data();
-		else if (_path != nullptr) { _path = _path; }
-		else { Logger::Warn("FileBuffer", "No valid path provided"); return {}; }
-
-		std::string pathStr(_path);
+	std::vector<u8> FileBuffer::ReadBinary(std::string_view path) {
+		std::string pathStr(path);
 
 		struct stat st;
 		
@@ -37,24 +30,26 @@ namespace CusEngine {
 			usize buffSize = static_cast<usize>(st.st_size);
 			float buffSizeMB = ((float)buffSize / 1024 / 1024);
 
-			if (!buffSize) { Logger::Warn("FileBuffer", "Empty file"); return {}; }
+			if (!buffSize) {
+				Logger::Warn("FileBuffer", "Empty file");
+				return {};
+			}
+
 			Logger::Info("FileBuffer", "Reading buffer: {}", pathStr);
 			Logger::Info("FileBuffer", "size: {:.2f}MB", buffSizeMB);
 
 			std::vector<u8> fileBuffer((buffSize + sizeof(u8) - 1) / sizeof(u8));
-			{
-				BEGIN_SCOPE(FileBufferReadTime);
-				FILE* file = fopen(pathStr.c_str(), "rb");
-				if (file) {
-					fread(&fileBuffer[0], 1, buffSize, file);
-					fclose(file);
-				}
-				else {
-					Logger::Error("FileBuffer", "Failed to read file {}", pathStr);
-					return {};
-				}
-				END_SCOPE(FileBufferReadTime);
+			BEGIN_SCOPE(FileBufferBinaryReadTime);
+			FILE* file = fopen(pathStr.c_str(), "rb");
+			if (file) {
+				fread(&fileBuffer[0], 1, buffSize, file);
+				fclose(file);
 			}
+			else {
+				Logger::Error("FileBuffer", "Failed to read file {}", pathStr);
+				return {};
+			}
+			END_SCOPE(FileBufferReadTime);
 			return fileBuffer;
 		}
 		else {
@@ -64,8 +59,8 @@ namespace CusEngine {
 		return {};
 	}
 
-	bool FileBuffer::Write(std::string_view path, void* data, usize size, FileWritingMethod method, usize offset) {
-		const char* op = (method == FileWritingMethod::Binary) ? (offset > 0) ? "r+b" : "wb" : (offset > 0) ? "r" : "w";
+	Result FileBuffer::WriteBinary(std::string_view path, void* data, usize size, usize offset) {
+		const char* op = (offset > 0) ? "r+b" : "wb";
 		FILE* buff = fopen(path.data(), op);
 		if (buff) {
 			BEGIN_SCOPE(FileBufferWrite);
@@ -73,11 +68,10 @@ namespace CusEngine {
 			fwrite(data, size, 1, buff);
 			fclose(buff);
 			END_SCOPE(FileBufferWrite);
-			return true;
+			return Result();
 		}
 		else {
-			Logger::Error("FileBuffer", "Failed to open buffer");
-			return false;
+			return Result("Failed to open buffer");
 		}
 	}
 }

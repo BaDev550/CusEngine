@@ -1,17 +1,17 @@
 #pragma once
-#include <Engine/Core/Types.h>
+#include <Runtime/Definitions/Types.h>
 #include <string>
 
-namespace CusEngine {
+namespace Runtime {
 	class Result final {
 	public:
 		Result(std::string_view msg = "") : _msg(msg) {}
 		~Result() = default;
 
-		std::string GetMessage() const { return _msg; }
+		std::string GetMessage() const { return _msg.data(); }
 
 		operator bool() const { return _msg.empty(); }
 	private:
-		std::string _msg;
+		std::string_view _msg;
 	};
 }

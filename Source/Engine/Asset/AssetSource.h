@@ -1,13 +1,13 @@
 #pragma once
-#include <Engine/Core/Types.h>
-#include <Engine/Core/UUID.h>
-#include <string>
+#include <Engine/Core/Core.h>
 
+#include <Runtime/Definitions/UUID.h>
 #include <nlohmann/json.hpp>
+#include <string>
 
 namespace CusEngine {
 	struct AssetSource {
-		UUID id;
+		UUID handle;
 		std::string sourcePath;
 		std::string cookedPath;
 		std::string type;

@@ -5,32 +5,24 @@
 #include <memory>
 #include <unordered_map>
 
-namespace CusEngine::Mem {
+namespace Runtime::Mem {
 	struct MemBlock {
 		usize size;
 		usize alignment;
 	};
 
-	class MemoryTracker final { // FIXME(0x): add header to allocated memory for trackign
+	class MemoryTracker final {
 	public:
 		void Record(void* ptr, MemBlock block) {
-			_memoryBlocks[ptr] = block;
+			usize actualSize = sizeof(ptr);
+			usize newSize = actualSize + sizeof(MemBlock);
+
+			std::memcpy(ptr, &block, sizeof(MemBlock));
 		}
 
 		[[nodiscard]] MemBlock Release(void* ptr) {
-			auto it = _memoryBlocks.find(ptr);
-			if (it != _memoryBlocks.end()) {
-				MemBlock block = it->second;
-				_memoryBlocks.erase(it);
-				return block;
-			}
-			else {
-				//Logger::Warn("MemoryTracker", "Tried to free untracked memory at adress: {}", ptr);
-				return {};
-			}
+			MemBlock block;
 		}
-	private:
-		std::unordered_map<void*, MemBlock> _memoryBlocks; // fuck u
 	};
 
 	template<class T>
@@ -39,7 +31,10 @@ namespace CusEngine::Mem {
 	class Allocator final {
 	public:
 		static void* Allocate(usize size, usize align = 16) {
-			void* mem = ::operator new(size, std::align_val_t(align), std::nothrow);
+			MemBlock block;
+			block.alignment = std::align_val_t(align);
+			block.size = size;
+			
 			_tracker.Record(mem, { size, align });
 			return mem;
 		}

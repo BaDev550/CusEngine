@@ -1,13 +1,12 @@
 #pragma once
 
-#include <Engine/Core/Types.h>
-#include <Engine/Core/Core.h>
+#include <Runtime/Definitions/Types.h>
 #include <chrono>
 #include <string>
-#include <string_view>
 #include <print>
+#include <string_view>
 
-namespace CusEngine {
+namespace Runtime {
 	enum class LogLevel : u8 {
 		Info = 0,
 		Warn,
@@ -15,7 +14,7 @@ namespace CusEngine {
 		Fatal
 	};
 
-	class ENGINE_API Logger final {
+	class Logger final {
 	public:
 		template<typename... Args>
 		static void Info(std::string_view catagory, std::format_string<Args...> fmt, Args&&... args) {
