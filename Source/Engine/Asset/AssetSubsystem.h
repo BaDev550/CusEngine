@@ -10,8 +10,6 @@
 namespace CusEngine {
 	class ENGINE_API AssetSubsystem final : public Subsystem {
 	public:
-		constexpr static std::string_view AssetRegistryPath = "asset_reg.bin";
-
 		virtual Runtime::Result OnCreate(Engine* engine) override;
 		virtual void OnDestroy() override;
 		virtual void GetDependencyGraph(DependencyGraph& graph) override;

@@ -123,14 +123,14 @@ namespace CusEngine {
 		}
 		j["assets"] = registry;
 
-		std::ofstream file(AssetRegistryPath.data());
+		std::ofstream file(ASSET_REGISTRY_PATH);
 		if (!file.is_open()) return;
 
 		file << j.dump(4);
 	}
 
 	void AssetSubsystem::LoadRegistry() {
-		std::ifstream file(AssetRegistryPath.data());
+		std::ifstream file(ASSET_REGISTRY_PATH);
 		if (!file.is_open()) {
 			Logger::Warn("AssetSubsystem", "Failed to find registry file");
 			return;

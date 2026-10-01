@@ -47,7 +47,7 @@ namespace CusEngine {
 		compiledData.assign(result.cbegin(), result.cend());
 
 		AssetHeader header{};
-		header.magic = 0x53484452;
+		header.magic = SHADER_MAGIC;
 		header.handle = source.handle;
 		header.metaSize = sizeof(AssetHeader);
 		std::strcpy(header.typeName, source.type.c_str());

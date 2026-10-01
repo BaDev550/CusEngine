@@ -43,7 +43,7 @@ namespace CusEngine {
         imageDesc.tileMode = Runtime::RHI::ImageTileMode::Optimal;
 
         AssetHeader header{};
-        header.magic = 0x54455854;
+        header.magic = TEXTURE2D_MAGIC;
         header.handle = source.handle;
         header.metaSize = sizeof(AssetHeader);
         std::strcpy(header.typeName, source.type.c_str());
@@ -64,7 +64,7 @@ namespace CusEngine {
 
         u32 magic;
         std::memcpy(&magic, fulldata.data(), sizeof(u32));
-        if (magic != 0x54455854) {
+        if (magic != TEXTURE2D_MAGIC) {
             Logger::Error("Texture2DImporter", "Not a valid texture asset");
             return nullptr;
         }

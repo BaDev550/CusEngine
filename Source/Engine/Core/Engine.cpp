@@ -3,7 +3,8 @@
 
 #include <queue>
 
-#include <Runtime/IO/FileBuffer.h>
+#include <Engine/Asset/AssetSubsystem.h>
+#include <Engine/Asset/Texture/Texture2D.h>
 
 namespace CusEngine {
 	Engine* Engine::_instance = nullptr;
@@ -20,6 +21,9 @@ namespace CusEngine {
 		Logger::Info("Engine", "Engine running...");
 
 		SortAndInitializeSystems();
+
+		auto* assetSystem = GetSubsystem<AssetSubsystem>();
+		assetSystem->Get<Texture2D>("guven-catak.jpg");
 
 		while (_running) {
 
