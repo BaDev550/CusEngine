@@ -1,7 +1,7 @@
 #pragma once
 #include <Engine/Core/Core.h>
 
-namespace CusEngine::RHI {
+namespace Runtime::RHI {
 	enum class BufferUsage : u8 {
 		None = 0,
 		Uniform = BIT(0),

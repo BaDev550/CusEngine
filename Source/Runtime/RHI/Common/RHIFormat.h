@@ -1,7 +1,7 @@
 #pragma once
 #include <Engine/Core/Core.h>
 
-namespace CusEngine::RHI {
+namespace Runtime::RHI {
 	enum class Format : u8 {
 		Undefined = 0,
 		RG8,

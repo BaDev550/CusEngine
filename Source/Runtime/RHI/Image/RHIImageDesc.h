@@ -8,7 +8,7 @@
 #include <Runtime/RHI/Image/RHIImageView.h>
 #include <Runtime/RHI/Image/RHIStaticSampler.h>
 
-namespace CusEngine::RHI {
+namespace Runtime::RHI {
 	struct ImageDesc {
 		u32 width = 0;
 		u32 height = 0;

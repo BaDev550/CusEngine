@@ -1,16 +1,24 @@
 #pragma once
-#include <Engine/Core/Logger.h>
+#include <Runtime/Definitions/Logger.h>
 #include <string_view>
 
-namespace CusEngine::RHI {
+namespace Runtime::RHI {
 	class Context;
 
-	class Object {
+	class NonCopyableObject {
+	protected:
+		NonCopyableObject() = default;
+		~NonCopyableObject() = default;
+		NonCopyableObject(const NonCopyableObject&) = delete;
+		NonCopyableObject& operator=(const NonCopyableObject&) = delete;
+		NonCopyableObject(NonCopyableObject&&) = delete;
+		NonCopyableObject& operator=(NonCopyableObject&&) = delete;
+	};
+
+	class Object : public NonCopyableObject {
 	public:
 		Object(Context* context) : _context(context) {}
 		virtual ~Object() = default;
-		Object(const Object&) = delete;
-		Object& operator=(const Object&) = delete;
 
 		virtual void SetObjectDebugName(const char* name) { _debugName = name; }
 		std::string_view GetObjectDebugName() const { return _debugName; }

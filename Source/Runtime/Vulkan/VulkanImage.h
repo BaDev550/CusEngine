@@ -6,10 +6,10 @@
 #include <vulkan/vulkan.h>
 #include <vk_mem_alloc.h>
 
-namespace CusEngine::RHI {
+namespace Runtime::RHI {
 	class VulkanImage final : public Image {
 	public:
-		VulkanImage(const ImageDesc& desc);
+		VulkanImage(Context* context, const ImageDesc& desc);
 		virtual ~VulkanImage();
 
 		virtual void SetObjectDebugName(const char* name) override final;

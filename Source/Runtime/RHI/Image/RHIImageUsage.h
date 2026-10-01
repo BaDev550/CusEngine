@@ -1,7 +1,7 @@
 #pragma once
 #include <Engine/Core/Core.h>
 
-namespace CusEngine::RHI {
+namespace Runtime::RHI {
 	enum class ImageUsage : u8 {
 		None = 0,
 		Sampled = BIT(0),

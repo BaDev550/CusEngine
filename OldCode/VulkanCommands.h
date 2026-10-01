@@ -5,7 +5,7 @@
 #include <Runtime/Vulkan/VulkanContext.h>
 #include <Runtime/Vulkan/VulkanSwapchain.h>
 
-namespace CusEngine::RHI {
+namespace Runtime::RHI {
 	class VulkanCommands : public Commands {
 	public:
 		VulkanCommands(const CommandsDesc& desc);

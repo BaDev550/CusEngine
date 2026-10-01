@@ -9,7 +9,7 @@
 
 #include <Runtime/RHI/Common/RHIFormat.h>
 
-namespace CusEngine::RHI {
+namespace Runtime::RHI {
 	namespace Utils {
 		[[nodiscard]] __forceinline const char* FormatToString(Format format) noexcept {
 			switch (format)

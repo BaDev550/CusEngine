@@ -31,19 +31,27 @@ namespace Runtime::Mem {
 	class Allocator final {
 	public:
 		static void* Allocate(usize size, usize align = 16) {
-			MemBlock block;
-			block.alignment = std::align_val_t(align);
-			block.size = size;
+			const usize alignMask = align < alignof(std::max_align_t) ? std::max(align, alignof(MemBlock)) - 1 : 0;
+			const usize totalSize = size + (sizeof(MemBlock) + alignMask);
 			
-			_tracker.Record(mem, { size, align });
-			return mem;
+			void* mem = ::operator new(totalSize, std::align_val_t{ alignMask }, std::nothrow);
+			if (!mem) { return nullptr; }
+
+			void* userPtr = static_cast<c8*>(mem) + sizeof(MemBlock);
+
+			MemBlock* header = static_cast<MemBlock*>(userPtr) - 1;
+			header->size = size;
+			header->alignment = align;
+
+			return userPtr;
 		}
 
 		static void Free(void* ptr) {
 			if (!ptr) return;
 
-			MemBlock block = _tracker.Release(ptr);
-			::operator delete(ptr, std::align_val_t(block.alignment));
+			MemBlock* header = static_cast<MemBlock*>(ptr) - 1;
+			
+			::operator delete(ptr, std::align_val_t(header->alignment));
 		}
 
 		template<typename T, typename... Args>

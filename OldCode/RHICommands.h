@@ -7,13 +7,13 @@
 #include <Runtime/RHI/Image/RHIImageLayout.h>
 #include <Runtime/RHI/Command/RHICommandsDesc.h>
 
-namespace CusEngine::RHI {
+namespace Runtime::RHI {
 	class Image;
 	class Buffer;
 	
 	using CommandFunc = std::function<void()>;
 
-	class ENGINE_API Commands : public RHIObject {
+	class ENGINE_API Commands : public Object {
 	public:
 		Commands() = default;
 		virtual ~Commands() = default;

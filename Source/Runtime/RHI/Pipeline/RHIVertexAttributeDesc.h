@@ -2,7 +2,7 @@
 #include <Engine/Core/Core.h>
 #include <Runtime/RHI/Common/RHIFormat.h>
 
-namespace CusEngine::RHI {
+namespace Runtime::RHI {
 	struct VertexInputAttributeDesc {
 		std::vector<Format> inputs;
 

@@ -1,7 +1,7 @@
 #pragma once
 #include <Engine/Core/Core.h>
 
-namespace CusEngine::RHI {
+namespace Runtime::RHI {
 	class Swapchain;
 
 	struct CommandsDesc {

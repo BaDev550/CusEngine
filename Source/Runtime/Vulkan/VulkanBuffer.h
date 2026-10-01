@@ -6,10 +6,10 @@
 #include <vulkan/vulkan.h>
 #include <vma/vk_mem_alloc.h>
 
-namespace CusEngine::RHI {
+namespace Runtime::RHI {
 	class VulkanBuffer final : public Buffer {
 	public:
-		VulkanBuffer(const BufferDesc& desc);
+		VulkanBuffer(Context* context, const BufferDesc& desc);
 		virtual ~VulkanBuffer();
 
 		virtual void Write(const void* data, usize size = SIZE_MAX, usize offset = SIZE_MAX) override final;

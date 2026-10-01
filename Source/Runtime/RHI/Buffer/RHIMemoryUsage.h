@@ -1,7 +1,7 @@
 #pragma once
 #include <Engine/Core/Core.h>
 
-namespace CusEngine::RHI {
+namespace Runtime::RHI {
 	enum class MemoryUsage : u8 {
 		Auto,
 		GPU,

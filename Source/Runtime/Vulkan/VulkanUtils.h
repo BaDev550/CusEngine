@@ -3,11 +3,13 @@
 #include <Runtime/RHI/Common/RHIFormat.h>
 #include <Runtime/RHI/Image/RHIImageView.h>
 #include <Runtime/RHI/Common/RHIUtils.h>
+#include <Runtime/RHI/Queue/RHIQueueDesc.h>
+#include <Runtime/RHI/Command/RHICommandBufferDesc.h>
 
 #include <vulkan/vulkan.h>
 #include <vma/vk_mem_alloc.h>
 
-namespace CusEngine::RHI::Utils {
+namespace Runtime::RHI::Utils {
 	constexpr [[nodiscard]] VkFormat GetVkFormat(Format format) noexcept {
 		switch (format)
 		{
@@ -109,6 +111,29 @@ namespace CusEngine::RHI::Utils {
 		case ImageViewType::Image3D: return VK_IMAGE_VIEW_TYPE_3D;
 		default:
 			break;
+		}
+	}
+
+	constexpr [[nodiscard]] VkQueueFlags GetVkQueueFlags(QueueType type) noexcept {
+		switch (type)
+		{
+		case QueueType::Graphics: return VK_QUEUE_GRAPHICS_BIT;
+		case QueueType::Compute: return VK_QUEUE_COMPUTE_BIT;
+		case QueueType::Transfer: return VK_QUEUE_TRANSFER_BIT;
+		default:
+			Logger::Error("Vulkan RHI Utils", "Unknown queue type");
+			return 0;
+		}
+	}
+
+	constexpr [[nodiscard]] VkCommandBufferLevel GetVkCommandBufferLevel(CommandBufferType type) noexcept {
+		switch (type)
+		{
+		case CommandBufferType::Primary: return VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+		case CommandBufferType::Secondary: return VK_COMMAND_BUFFER_LEVEL_SECONDARY;
+		default:
+			Logger::Error("Vulkan RHI Utils", "Unknown command buffer type");
+			return VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 		}
 	}
 }

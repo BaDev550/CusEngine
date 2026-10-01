@@ -1,9 +1,9 @@
 #include <Runtime/Vulkan/VulkanSwapchain.h>
 #include <Runtime/Vulkan/VulkanContext.h>
-#include <Engine/Core/Memory.h>
+#include <Runtime/Memory/Memory.h>
 
-namespace CusEngine::RHI {
-	VulkanSwapchain::VulkanSwapchain(const SwapchainDesc& desc) : _desc(desc) { }
+namespace Runtime::RHI {
+	VulkanSwapchain::VulkanSwapchain(Context* context, const SwapchainDesc& desc) : Swapchain(context), _desc(desc) { }
 	VulkanSwapchain::~VulkanSwapchain() {
 		Destroy();
 	}
@@ -96,7 +96,7 @@ namespace CusEngine::RHI {
 				depthImgViewCreateInfo.subresourceRange.baseMipLevel = 0;
 				depthImgViewCreateInfo.subresourceRange.layerCount = 1;
 				depthImgViewCreateInfo.subresourceRange.baseArrayLayer = 0;
-				Logger::Assert((vkCreateImageView(GetContext<VulkanContext>()->GetDevice(), &depthImgViewCreateInfo, nullptr, &vkDepthImageView) == VK_SUCCESS), GetObjectDebugName(), "Failed to create image view");
+				Logger::Assert((vkCreateImageView(GetOwningRHIContext<VulkanContext>()->GetDevice(), &depthImgViewCreateInfo, nullptr, &vkDepthImageView) == VK_SUCCESS), GetObjectDebugName(), "Failed to create image view");
 
 				depthAttachment->_imageView = vkDepthImageView;
 				depthAttachment->SetObjectDebugName("rhi_vulkan_swapchain_depth_attachment");

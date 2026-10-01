@@ -10,7 +10,7 @@
 #include <mutex>
 #include <unordered_map>
 
-namespace CusEngine::RHI {
+namespace Runtime::RHI {
 	class VulkanContext final : public Context {
 	public:
 		constexpr static u32 MaxFramesInFlight = 2;
@@ -25,11 +25,12 @@ namespace CusEngine::RHI {
 		virtual void WaitDeviceIdle() override;
 		virtual void Shutdown() final override;
 
-		virtual Commands* CreateCommands(const CommandsDesc& desc) override;
 		virtual Buffer* CreateBuffer(const BufferDesc& desc) override;
 		virtual Image* CreateImage(const ImageDesc& desc) override;
 		virtual Swapchain* CreateSwapchain(const SwapchainDesc& desc) override;
-		virtual ContextDesc* GetDesc() override;
+		virtual CommandPool* CreateCommandPool(const CommandPoolDesc& desc) override;
+		virtual Queue* CreateQueue(const QueueDesc& desc) override;
+		virtual Fence* CreateFence(const FenceDesc& desc) override;
 
 		void SetObjectDebugName(VkDebugUtilsObjectNameInfoEXT* info);
 		void CopyBufferToImage(VkCommandBuffer cmd, VkBuffer buffer, VkImage image, VkImageLayout layout, uint32_t width, uint32_t height); // TODO(0x): move this into commands
@@ -58,6 +59,7 @@ namespace CusEngine::RHI {
 		VkPhysicalDeviceFeatures GetPhysicalDeviceFeatures(VkPhysicalDevice physicalDevice);
 		VkPhysicalDeviceLimits GetPhysicalDeviceLimits(VkPhysicalDevice physicalDevice);
 		u32 FindGraphicsAndPresentQueueIndex(VkPhysicalDevice physicalDevice);
+		u32 FindQueueFamilyIndex(VkPhysicalDevice physicalDevice, VkQueueFlags queueFlags);
 	private:
 		VkInstance _instance = VK_NULL_HANDLE;
 		VkPhysicalDevice _physicalDevice = VK_NULL_HANDLE;
@@ -77,8 +79,8 @@ namespace CusEngine::RHI {
 		VkDescriptorSet _bindlessDescriptorSet;
 
 		std::vector<Image*> _bindlessImages;
+		std::vector<Buffer*> _bindlessBuffers;
 		std::unordered_map<StaticSampler, VkSampler> _samplers;
-		//std::vector<Buffer*> _bindlessBuffers; later
 
 		std::vector<const char*> _extensions;
 		std::vector<const char*> _layers;

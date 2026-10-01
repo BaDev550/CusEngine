@@ -7,11 +7,12 @@
 
 #include <glm/glm.hpp>
 
-namespace CusEngine::RHI {
+namespace Runtime::RHI {
 	class Image;
 
-	class Swapchain : public RHIObject {
+	class Swapchain : public Object {
 	public:
+		using Object::Object;
 		virtual ~Swapchain() = default;
 
 		virtual void Recreate(const SwapchainDesc& desc) = 0;

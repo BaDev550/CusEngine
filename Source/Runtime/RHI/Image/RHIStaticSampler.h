@@ -2,7 +2,7 @@
 
 #include <Engine/Core/Core.h>
 
-namespace CusEngine::RHI {
+namespace Runtime::RHI {
 	enum class StaticSampler : u8 {
 		PointClamp,
 		PointWrap,

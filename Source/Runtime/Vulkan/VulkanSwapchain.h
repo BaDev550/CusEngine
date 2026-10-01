@@ -6,13 +6,11 @@
 #include <Runtime/Vulkan/VulkanUtils.h>
 #include <Runtime/Vulkan/VulkanImage.h>
 
-namespace CusEngine::RHI {
+namespace Runtime::RHI {
 	class VulkanSwapchain final : public Swapchain {
 	public:
-		VulkanSwapchain(const SwapchainDesc& desc);
+		VulkanSwapchain(Context* context, const SwapchainDesc& desc);
 		virtual ~VulkanSwapchain();
-
-		virtual std::string_view GetObjectDebugName() const override { return "rhi_object_vulkan_swapchain"; }
 
 		virtual void Recreate(const SwapchainDesc& desc) override;
 		virtual void Recreate(u32 width, u32 height) override;

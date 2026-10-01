@@ -3,7 +3,7 @@
 #include <Runtime/RHI/Buffer/RHIBufferUsage.h>
 #include <Runtime/RHI/Buffer/RHIMemoryUsage.h>
 
-namespace CusEngine::RHI {
+namespace Runtime::RHI {
 	struct BufferDesc {
 		usize size = 0;
 		BufferUsage usage = BufferUsage::None;

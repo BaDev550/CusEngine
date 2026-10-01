@@ -3,7 +3,7 @@
 
 struct GLFWwindow;
 
-namespace CusEngine::RHI {
+namespace Runtime::RHI {
 	struct ContextDesc {
 		struct Features {
 			bool dynamicRendering = false;

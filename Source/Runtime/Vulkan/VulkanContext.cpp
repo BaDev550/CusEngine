@@ -1,10 +1,12 @@
 #include "VulkanContext.h"
 
-#include <Engine/Core/Logger.h>
-#include <Engine/Core/Memory.h>
+#include <Runtime/Definitions/Logger.h>
+#include <Runtime/Memory/Memory.h>
 
 #include <Runtime/Vulkan/VulkanSwapchain.h>
-#include <Runtime/Vulkan/VulkanCommands.h>
+#include <Runtime/Vulkan/VulkanFence.h>
+#include <Runtime/Vulkan/VulkanQueue.h>
+#include <Runtime/Vulkan/VulkanCommandPool.h>
 #include <Runtime/Vulkan/VulkanBuffer.h>
 
 #include <GLFW/glfw3.h>
@@ -17,7 +19,7 @@
 #define VMA_IMPLEMENTATION
 #include <vma/vk_mem_alloc.h>
 
-namespace CusEngine::RHI {
+namespace Runtime::RHI {
 #define ENABLE_FEATURE_IF_SUPPORTED(supported, feature) \
 	Logger::Info("rhi_object_vulkan_context", "{}: [{}, {}]", #supported, feature ? "Supported" : "Not supported", _desc.features.supported ? "Enabled" : "Disabled"); \
 	if (_desc.features.supported && !feature) { throw std::runtime_error(#supported " is not supported"); } \
@@ -157,21 +159,9 @@ namespace CusEngine::RHI {
 		if (_instance) vkDestroyInstance(_instance, nullptr);
 	}
 
-	Commands* VulkanContext::CreateCommands(const CommandsDesc& desc)
-	{
-		VulkanCommands* vkCommands = Mem::Allocator::Construct<VulkanCommands>(desc);
-		vkCommands->_context = this;
-		vkCommands->CreateCommandPool();
-		vkCommands->CreateTimelineSemaphore();
-		vkCommands->CreateRenderFinishedSemaphore();
-		return vkCommands;
-	}
-
 	Buffer* VulkanContext::CreateBuffer(const BufferDesc& desc)
 	{
-		VulkanBuffer* buffer = Mem::Allocator::Construct<VulkanBuffer>(desc);
-
-		buffer->_context = this;
+		VulkanBuffer* buffer = Mem::Allocator::Construct<VulkanBuffer>(this, desc);
 
 		VkBufferUsageFlags usage = Utils::GetVkBufferUsage(desc.usage);
 		VmaMemoryUsage memoryUsage = Utils::GetVkMemoryUsage(desc.memoryUsage);
@@ -204,14 +194,12 @@ namespace CusEngine::RHI {
 
 	Image* VulkanContext::CreateImage(const ImageDesc& desc)
 	{
-		VulkanImage* image = Mem::Allocator::Construct<VulkanImage>(desc);
+		VulkanImage* image = Mem::Allocator::Construct<VulkanImage>(this, desc);
 		auto it = _samplers.find(desc.sampler);
 		if (it == _samplers.end()) {
 			Logger::Fatal("VulkanContext", "Requested image sampler is not in samplers list");
 			return nullptr;
 		}
-
-		image->_context = this;
 
 		VkFormat vkFormat = Utils::GetVkFormat(desc.format); // mybe change this
 		VkImageTiling vkTiling = Utils::GetVkImageTiling(desc.tileMode);
@@ -257,12 +245,50 @@ namespace CusEngine::RHI {
 		return image;
 	}
 
-	Swapchain* VulkanContext::CreateSwapchain(const SwapchainDesc& desc)
-	{
+	Swapchain* VulkanContext::CreateSwapchain(const SwapchainDesc& desc) {
 		VulkanSwapchain* vkSwapchain = Mem::Allocator::Construct<VulkanSwapchain>(desc);
 		vkSwapchain->_context = this;
 		vkSwapchain->Recreate(vkSwapchain->GetDesc());
 		return vkSwapchain;
+	}
+
+	CommandPool* VulkanContext::CreateCommandPool(const CommandPoolDesc& desc) {
+
+	}
+
+	Queue* VulkanContext::CreateQueue(const QueueDesc& desc) {
+		VulkanQueue* queue = Mem::Allocator::Construct<VulkanQueue>(this, desc.type);
+		
+		u32 queueFamilyIndex = FindQueueFamilyIndex(_physicalDevice, Utils::GetVkQueueFlags(desc.type));
+		queue->_queueFamilyIndex = queueFamilyIndex;
+		vkGetDeviceQueue(_device, queueFamilyIndex, 0, &queue->_queue);
+
+		return queue;
+	}
+
+	Fence* VulkanContext::CreateFence(const FenceDesc& desc) {
+		VulkanFence* fence = Mem::Allocator::Construct<VulkanFence>(this, desc);
+		
+		if (desc.type == SemaphoreType::Timeline) {
+			VkSemaphoreTypeCreateInfo tlsemaphoreTypeInfo{};
+			tlsemaphoreTypeInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_TYPE_CREATE_INFO;
+			tlsemaphoreTypeInfo.semaphoreType = VK_SEMAPHORE_TYPE_TIMELINE;
+			tlsemaphoreTypeInfo.initialValue = VulkanContext::MaxFramesInFlight;
+
+			VkSemaphoreCreateInfo tlsemaphoreCreateInfo{};
+			tlsemaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+			tlsemaphoreCreateInfo.pNext = &tlsemaphoreTypeInfo;
+
+			Logger::Assert((vkCreateSemaphore(_device, &tlsemaphoreCreateInfo, nullptr, &fence->_semaphore) == VK_SUCCESS), "VulkanContext", "Failed to create timeline semaphore!");
+		}
+		else if (desc.type == SemaphoreType::Binary) {
+			VkSemaphoreCreateInfo createInfo{};
+			createInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+			
+			Logger::Assert((vkCreateSemaphore(_device, &createInfo, nullptr, &fence->_semaphore) == VK_SUCCESS), "VulkanContext", "Failed to create render finished binary semaphore!");
+		}
+
+		return fence;
 	}
 
 	ContextDesc* VulkanContext::GetDesc() { return &_desc; }
@@ -614,6 +640,10 @@ namespace CusEngine::RHI {
 	}
 
 	u32 VulkanContext::FindGraphicsAndPresentQueueIndex(VkPhysicalDevice physicalDevice) {
+		return FindQueueFamilyIndex(physicalDevice, VK_QUEUE_GRAPHICS_BIT);
+	}
+
+	u32 VulkanContext::FindQueueFamilyIndex(VkPhysicalDevice physicalDevice, VkQueueFlags queueFlags) {
 		uint32_t queueCount = 0;
 		vkGetPhysicalDeviceQueueFamilyProperties2(physicalDevice, &queueCount, nullptr);
 		std::vector<VkQueueFamilyProperties2> queueFamilies(queueCount, { .sType = VK_STRUCTURE_TYPE_QUEUE_FAMILY_PROPERTIES_2 });
@@ -624,7 +654,7 @@ namespace CusEngine::RHI {
 			vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, i, _surface, &presentSupport);
 
 			const auto& qProps = queueFamilies[i];
-			if ((qProps.queueFamilyProperties.queueFlags & VK_QUEUE_GRAPHICS_BIT) && presentSupport) {
+			if ((qProps.queueFamilyProperties.queueFlags & queueFlags) && presentSupport) {
 				return i;
 			}
 		}

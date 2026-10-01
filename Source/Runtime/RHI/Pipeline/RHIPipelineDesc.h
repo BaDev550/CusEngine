@@ -5,7 +5,7 @@
 #include <Runtime/RHI/Shader/ShaderDesc.h>
 #include <vector>
 
-namespace CusEngine::RHI {
+namespace Runtime::RHI {
 	struct PipelineDesc {
 		ShaderDesc* vertexShader = nullptr;
 		ShaderDesc* fragmentShader = nullptr;

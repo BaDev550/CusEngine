@@ -9,7 +9,7 @@
 #include <imgui_impl_vulkan.h>
 #include <imgui_impl_glfw.h>
 
-namespace CusEngine::RHI {
+namespace Runtime::RHI {
 	VulkanCommands::VulkanCommands(const CommandsDesc& desc) : _desc(desc) {
 
 	}
@@ -38,6 +38,7 @@ namespace CusEngine::RHI {
 			for (FrameData& fd : _frames) {
 				VkCommandPoolCreateInfo poolCreateInfo{};
 				poolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+				poolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 				poolCreateInfo.queueFamilyIndex = vkContext->GetGraphicsAndPresentQueueIndex();
 				Logger::Assert((vkCreateCommandPool(vkContext->GetDevice(), &poolCreateInfo, nullptr, &fd.CommandPool) == VK_SUCCESS), GetObjectDebugName(), "Failed to create frame command pool");
 

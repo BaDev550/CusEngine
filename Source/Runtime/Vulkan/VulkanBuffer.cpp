@@ -2,11 +2,11 @@
 #include <Runtime/Vulkan/VulkanUtils.h>
 #include <Runtime/Vulkan/VulkanContext.h>
 
-namespace CusEngine::RHI {
-	VulkanBuffer::VulkanBuffer(const BufferDesc& desc) : _desc(desc) {}
+namespace Runtime::RHI {
+	VulkanBuffer::VulkanBuffer(Context* context, const BufferDesc& desc) : Buffer(context), _desc(desc) {}
 	VulkanBuffer::~VulkanBuffer() {
 		Logger::Info(GetObjectDebugName(), "Buffer destroyed");
-		if (_buffer != VK_NULL_HANDLE) vmaDestroyBuffer(GetContext<VulkanContext>()->GetAllocator(), _buffer, _allocation);
+		if (_buffer != VK_NULL_HANDLE) vmaDestroyBuffer(GetOwningRHIContext<VulkanContext>()->GetAllocator(), _buffer, _allocation);
 	}
 
 	void VulkanBuffer::Write(const void* data, usize size, usize offset) {
@@ -25,7 +25,7 @@ namespace CusEngine::RHI {
 			bdaInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
 			bdaInfo.buffer = _buffer;
 
-			_gpuAddress = vkGetBufferDeviceAddress(GetContext<VulkanContext>()->GetDevice(), &bdaInfo);
+			_gpuAddress = vkGetBufferDeviceAddress(GetOwningRHIContext<VulkanContext>()->GetDevice(), &bdaInfo);
 			return _gpuAddress;
 		}
 		else if (_gpuAddress != 0) {
