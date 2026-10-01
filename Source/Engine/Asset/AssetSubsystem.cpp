@@ -3,7 +3,7 @@
 #include <Engine/Reflection/ReflectionSubsystem.h>
 #include <Engine/Subsystem/PluginLoaderSubsystem.h>
 #include <Runtime/IO/FileBuffer.h>
-#include <Engine/Core/Memory.h>
+#include <Runtime/Memory/Memory.h>
 
 #include <Engine/Asset/Texture/Texture2DStreamer.h>
 #include <Engine/Asset/Shader/ShaderStreamer.h>
@@ -16,7 +16,7 @@
 #include <fstream>
 
 namespace CusEngine {
-	Result AssetSubsystem::OnCreate(Engine* engine)
+	Runtime::Result AssetSubsystem::OnCreate(Engine* engine)
 	{
 		Subsystem::OnCreate(engine);
 
@@ -24,37 +24,37 @@ namespace CusEngine {
 
 		//for (auto [id, classType] : reflectSystem->GetClasses()) {
 		//	_assetCookerLookupTable[id] = _assetCookers.size();
-		//	_assetCookers.push_back(Mem::Allocator::Construct<Texture2DCooker>());
+		//	_assetCookers.push_back(Runtime::Mem::Allocator::Construct<Texture2DCooker>());
 		//}
 
 		std::string textureTypeName = Texture2D::StaticClassName().data(); // FIXME(0x): wtf baran
 		std::string shaderTypeName = Shader::StaticClassName().data();
 
 		_assetStreamerLookupTable[textureTypeName] = _assetStreamers.size();
-		_assetStreamers.push_back(Mem::Allocator::Construct<Texture2DStreamer>());
+		_assetStreamers.push_back(Runtime::Mem::Allocator::Construct<Texture2DStreamer>());
 
 		_assetStreamerLookupTable[shaderTypeName] = _assetStreamers.size();
-		_assetStreamers.push_back(Mem::Allocator::Construct<ShaderStreamer>());
+		_assetStreamers.push_back(Runtime::Mem::Allocator::Construct<ShaderStreamer>());
 
 		LoadRegistry();
 
-		return Result();
+		return Runtime::Result();
 	}
 
 	void AssetSubsystem::OnDestroy() {
 		for (const auto& [id, ast] : _assets) {
-			Mem::Allocator::Destroy(ast);
+			Runtime::Mem::Allocator::Destroy(ast);
 		}
 		_assets.clear();
 
 		for (const auto& streamer : _assetStreamers) {
-			Mem::Allocator::Destroy(streamer);
+			Runtime::Mem::Allocator::Destroy(streamer);
 		}
 		_assetStreamers.clear();
 		_assetStreamerLookupTable.clear();
 	}
 
-	Asset* AssetSubsystem::Load(UUID id) {
+	Asset* AssetSubsystem::Load(Runtime::UUID id) {
 		Logger::Info("AssetSubystem", "Reading asset file");
 
 		AssetSource cachedSource = _cachedAssetSources.find(id)->second;
@@ -63,9 +63,9 @@ namespace CusEngine {
 			Asset* ast = streamer->Import(cachedSource);
 			if (ast) {
 				ast->SetAssetStreamer(streamer);
-				ast->SetAssetID(id);
+				ast->SetAssetHandle(id);
 
-				_assets[ast->GetAssetID()] = ast;
+				_assets[ast->GetAssetHandle()] = ast;
 
 				Logger::Info("AssetSubsystem", "Asset loaded");
 
@@ -77,11 +77,11 @@ namespace CusEngine {
 		}
 	}
 
-	void AssetSubsystem::Unload(UUID id) {
+	void AssetSubsystem::Unload(Runtime::UUID id) {
 
 	}
 
-	bool AssetSubsystem::AssetLoaded(UUID id) {
+	bool AssetSubsystem::AssetLoaded(Runtime::UUID id) {
 		if (_assets.find(id) == _assets.end()) {
 			Logger::Warn("AssetSubsystem", "Asset {} is not loaded", id.Str());
 			return false;
@@ -89,7 +89,7 @@ namespace CusEngine {
 		return true;
 	}
 
-	bool AssetSubsystem::AssetInCache(UUID id) {
+	bool AssetSubsystem::AssetInCache(Runtime::UUID id) {
 		if (_cachedAssetSources.find(id) == _cachedAssetSources.end()) {
 			Logger::Warn("AssetSubsystem", "Asset {} is not in cache", id.Str());
 			return false;
@@ -146,8 +146,8 @@ namespace CusEngine {
 
 				_cachedAssetSources.clear();
 				for (auto& source : sources) {
-					Logger::Info("AssetSubsystem", "Asset cached: \n id: {}\n type: {}\n source path: {}\n cooked path: {}", source.id.Str(), source.type, source.sourcePath, source.cookedPath);
-					_cachedAssetSources[source.id] = std::move(source);
+					Logger::Info("AssetSubsystem", "Asset cached: \n id: {}\n type: {}\n source path: {}\n cooked path: {}", source.handle.Str(), source.type, source.sourcePath, source.cookedPath);
+					_cachedAssetSources[source.handle] = std::move(source);
 				}
 			}
 			else {

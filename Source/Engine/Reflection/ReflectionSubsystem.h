@@ -1,13 +1,13 @@
 #pragma once
 #include <Engine/Core/Core.h>
-#include <Engine/Core/Logger.h>
+#include <Runtime/Definitions/Logger.h>
 #include <Engine/Subsystem/Subsystem.h>
 #include <Engine/Reflection/TypeDescriptor.h>
 
 namespace CusEngine::Reflect {
     class ENGINE_API ReflectionSubsystem : public Subsystem {
     public:
-        virtual Result OnCreate(Engine* engine) override;
+        virtual Runtime::Result OnCreate(Engine* engine) override;
 
         virtual void GetDependencyGraph(DependencyGraph& graph) override;
 

@@ -24,7 +24,7 @@ namespace CusEngine {
 
 	class Texture2DStreamer final : public AssetStreamer {
 	public:
-		virtual Result Cook(AssetSource& source) override;
+		virtual Runtime::Result Cook(AssetSource& source) override;
         virtual Asset* Import(AssetSource& source) override;
 	private:
 		bool CompressImageToBC3(u8* rawData, u32 width, u32 height, std::vector<u8>& compressedImage);

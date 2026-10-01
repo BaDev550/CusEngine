@@ -5,6 +5,7 @@
 #include <Engine/Renderer/RenderSubsystem.h>
 
 using namespace CusEngine;
+using namespace Runtime;
 
 class TestSubsystem final : public Subsystem {
 public:

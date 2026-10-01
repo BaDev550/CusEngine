@@ -1,10 +1,6 @@
 #pragma once
-#include <Engine/Core/Types.h>
+#include <Runtime/Definitions/Types.h>
 #include <string>
-
-#include <Runtime/RHI/Context/RHIContext.h>
-#include <Runtime/RHI/Swapchain/RHISwapchain.h>
-#include <Runtime/RHI/Command/RHICommands.h>
 
 struct GLFWwindow;
 namespace CusEngine {

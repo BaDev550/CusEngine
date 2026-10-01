@@ -1,5 +1,5 @@
 #include <Engine/Core/Engine.h>
-#include <Engine/Core/Logger.h>
+#include <Runtime/Definitions/Logger.h>
 
 #include <queue>
 
@@ -32,7 +32,7 @@ namespace CusEngine {
 			Subsystem* system = *it;
 			if (system) {
 				system->OnDestroy();
-				Mem::Allocator::Destroy(system);
+				Runtime::Mem::Allocator::Destroy(system);
 			}
 		}
 	}
@@ -101,13 +101,13 @@ namespace CusEngine {
 		_pendingInitList = std::move(sortedList);
 
 		for (Subsystem* system : _pendingInitList) {
-			if (Result result = system->OnCreate(this); !result) {
+			if (Runtime::Result result = system->OnCreate(this); !result) {
 				Logger::Error(system->GetTypeID().name(), "Failed to Create reson: {}", result.GetMessage());
 			}
 			else {
 				_systemLookupTable[system->GetTypeID()] = _activeSubsystemList.size();
 				_activeSubsystemList.push_back(system);
-				//Mem::Allocator::GetTracker().Record(_activeSubsystemList[_activeSubsystemList.size() - 1], { sizeof(*system), alignof(Subsystem)} );
+				//Runtime::Mem::Allocator::GetTracker().Record(_activeSubsystemList[_activeSubsystemList.size() - 1], { sizeof(*system), alignof(Subsystem)} );
 			}
 		}
 		_pendingInitList.clear();

@@ -6,10 +6,10 @@ namespace CusEngine {
 	class ENGINE_API Shader final : public Asset {
 		REFLECT_CLASS()
 	public:
-		Shader(const RHI::ShaderDesc& desc) : _desc(desc) {};
+		Shader(const Runtime::RHI::ShaderDesc& desc) : _desc(desc) {};
 
-		[[nodiscard]] RHI::ShaderDesc GetDesc() const { return _desc; }
+		[[nodiscard]] Runtime::RHI::ShaderDesc GetDesc() const { return _desc; }
 	private:
-		RHI::ShaderDesc _desc;
+		Runtime::RHI::ShaderDesc _desc;
 	};
 }

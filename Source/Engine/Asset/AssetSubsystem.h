@@ -12,7 +12,7 @@ namespace CusEngine {
 	public:
 		constexpr static std::string_view AssetRegistryPath = "asset_reg.bin";
 
-		virtual Result OnCreate(Engine* engine) override;
+		virtual Runtime::Result OnCreate(Engine* engine) override;
 		virtual void OnDestroy() override;
 		virtual void GetDependencyGraph(DependencyGraph& graph) override;
 
@@ -22,7 +22,7 @@ namespace CusEngine {
 
 			std::filesystem::path sourcePath = path;
 			std::filesystem::path targetPath = std::filesystem::path(path).replace_extension(ASSET_EXTENSION);
-			UUID assetID = UUID(sourcePath.string()); // TODO(0x): add a time to hashing so it is not exatcly with same named files!! mem leak
+			Runtime::UUID assetID = Runtime::UUID(sourcePath.string()); // TODO(0x): add a time to hashing so it is not exatcly with same named files!! mem leak
 
 			if (AssetInCache(assetID)) {
 				Logger::Info("AssetSubsystem", "Asset in registry loading...");
@@ -33,16 +33,16 @@ namespace CusEngine {
 
 				if (streamer) {
 					AssetSource source;
-					source.id = assetID;
+					source.handle = assetID;
 					source.type = assetType;
 					source.sourcePath = sourcePath.string();
 					source.cookedPath = targetPath.string();
 
-					Result result = streamer->Cook(source);
+					Runtime::Result result = streamer->Cook(source);
 					if (result) {
-						_cachedAssetSources[source.id] = source;
+						_cachedAssetSources[source.handle] = source;
 
-						AssetT* ast = static_cast<AssetT*>(Load(source.id));
+						AssetT* ast = static_cast<AssetT*>(Load(source.handle));
 
 						SaveRegistry();
 						return ast;
@@ -53,20 +53,20 @@ namespace CusEngine {
 			return nullptr;
 		}
 	private:
-		Asset* Load(UUID id);
-		void Unload(UUID id);
+		Asset* Load(Runtime::UUID id);
+		void Unload(Runtime::UUID id);
 
 		AssetStreamer* GetAssetCookerOfType(const std::string& type);
-		bool AssetInCache(UUID id);
-		bool AssetLoaded(UUID id);
+		bool AssetInCache(Runtime::UUID id);
+		bool AssetLoaded(Runtime::UUID id);
 		void SaveRegistry();
 		void LoadRegistry();
 		
-		std::unordered_map<UUID, AssetSource> _cachedAssetSources;
+		std::unordered_map<Runtime::UUID, AssetSource> _cachedAssetSources;
 
 		std::vector<AssetStreamer*> _assetStreamers;
 		std::unordered_map<std::string, u32> _assetStreamerLookupTable;
 
-		std::unordered_map<UUID, Asset*> _assets;
+		std::unordered_map<Runtime::UUID, Asset*> _assets;
 	};
 }

@@ -1,7 +1,7 @@
 #include "Texture2DStreamer.h"
 
 #include <Engine/Asset/Asset.h>
-#include <Engine/Core/Profiler.h>
+#include <Runtime/Definitions/Profiler.h>
 #include <Runtime/IO/FileBuffer.h>
 #include <filesystem>
 #include <fstream>
@@ -18,49 +18,49 @@
 #include <Runtime/RHI/Common/RHIUtils.h>
 
 namespace CusEngine {
-    Result Texture2DStreamer::Cook(AssetSource& source) {
+    Runtime::Result Texture2DStreamer::Cook(AssetSource& source) {
         if (source.sourcePath.empty()) {
-            return Result("No source file provided!");
+            return Runtime::Result("No source file provided!");
         }
         
-        FileBuffer textureBuffer;
+        Runtime::IO::FileBuffer textureBuffer;
         int width, height, comp;
         std::vector<u8> rawData;
         std::vector<u8> compressedData;
-        textureBuffer.Stream(rawData, source.sourcePath);
+        textureBuffer.Map(source.sourcePath, rawData);
         u8* rawImageData = stbi_load_from_memory(rawData.data(), (rawData.size() * sizeof(u8)), &width, &height, &comp, 4);
         
         CompressImageToBC3(rawImageData, width, height, compressedData);
 
         stbi_image_free(rawImageData);
 
-        RHI::ImageDesc imageDesc{};
-        imageDesc.format = RHI::Format::BC3;
+        Runtime::RHI::ImageDesc imageDesc{};
+        imageDesc.format = Runtime::RHI::Format::BC3;
         imageDesc.width = width;
         imageDesc.height = height;
-        imageDesc.usage = RHI::ImageUsage::Sampled | RHI::ImageUsage::TransferDst;
-        imageDesc.layout = RHI::ImageLayout::Undefined;
-        imageDesc.tileMode = RHI::ImageTileMode::Optimal;
+        imageDesc.usage = Runtime::RHI::ImageUsage::Sampled | Runtime::RHI::ImageUsage::TransferDst;
+        imageDesc.layout = Runtime::RHI::ImageLayout::Undefined;
+        imageDesc.tileMode = Runtime::RHI::ImageTileMode::Optimal;
 
         AssetHeader header{};
         header.magic = 0x54455854;
-        header.id = source.id;
+        header.handle = source.handle;
         header.metaSize = sizeof(AssetHeader);
         std::strcpy(header.typeName, source.type.c_str());
         header.dataSize = (compressedData.size() * sizeof(u8));
-        header.dataOffset = (sizeof(AssetHeader) + sizeof(RHI::ImageDesc));
+        header.dataOffset = (sizeof(AssetHeader) + sizeof(Runtime::RHI::ImageDesc));
 
-        textureBuffer.Write(source.cookedPath, &header, sizeof(AssetHeader), FileWritingMethod::Binary);
-        textureBuffer.Write(source.cookedPath, &imageDesc, sizeof(RHI::ImageDesc), FileWritingMethod::Binary, sizeof(AssetHeader));
-        textureBuffer.Write(source.cookedPath, compressedData.data(), header.dataSize, FileWritingMethod::Binary, header.dataOffset);
+        textureBuffer.WriteBinary(source.cookedPath, &header, sizeof(AssetHeader));
+        textureBuffer.WriteBinary(source.cookedPath, &imageDesc, sizeof(Runtime::RHI::ImageDesc), sizeof(AssetHeader));
+        textureBuffer.WriteBinary(source.cookedPath, compressedData.data(), header.dataSize, header.dataOffset);
         Logger::Info("Texture2DCooker", "Texture cooked to loc: {}", std::filesystem::absolute(source.cookedPath).string());
 
-        return Result();
+        return Runtime::Result();
     }
 
     Asset* Texture2DStreamer::Import(AssetSource& source) {
-        FileBuffer textureBuffer;
-        std::vector<u8> fulldata = textureBuffer.Read(source.cookedPath);
+        Runtime::IO::FileBuffer textureBuffer;
+        std::vector<u8> fulldata = textureBuffer.ReadBinary(source.cookedPath);
 
         u32 magic;
         std::memcpy(&magic, fulldata.data(), sizeof(u32));
@@ -72,25 +72,26 @@ namespace CusEngine {
         AssetHeader header;
         std::memcpy(&header, fulldata.data(), sizeof(AssetHeader));
 
-        RHI::ImageDesc imageDesc{};
-        std::memcpy(&imageDesc, (fulldata.data() + sizeof(AssetHeader)), sizeof(RHI::ImageDesc));
+        Runtime::RHI::ImageDesc imageDesc{};
+        std::memcpy(&imageDesc, (fulldata.data() + sizeof(AssetHeader)), sizeof(Runtime::RHI::ImageDesc));
         
         std::vector<u8> imageData((fulldata.begin() + header.dataOffset), fulldata.end());
 
-        Logger::Info("Texture2DImporter", "Imported Texture info: \n type:{}\n datasize:{}\n dataoffset:{}\n UUID:{}\n imageDataSize:{}\n imageWidth:{}\n imageHeight:{}\n imageFormat:{}",
+        Logger::Info("Texture2DImporter", "Imported Texture info: \n type:{}\n datasize:{}\n dataoffset:{}\n Runtime::UUID:{}\n imageDataSize:{}\n imageWidth:{}\n imageHeight:{}\n imageFormat:{}",
             header.typeName,
             header.dataSize,
             header.dataOffset,
-            header.id.Str(),
+            header.handle.Str(),
             imageData.size(),
             imageDesc.width,
             imageDesc.height,
-            RHI::Utils::FormatToString(imageDesc.format));
+            Runtime::RHI::Utils::FormatToString(imageDesc.format));
 
-        Texture2D* texture = Mem::Allocator::Construct<Texture2D>(imageDesc);
+        Texture2D* texture = Runtime::Mem::Allocator::Construct<Texture2D>(imageDesc);
 
         texture->SetAssetState(AssetState::Loading);
 
+#if 0
         Engine::Get()->GetSubsystem<RenderSubsystem>()->GetCommands()->Submit([=]() {
             auto* renderSubsystem = Engine::Get()->GetSubsystem<RenderSubsystem>();
             auto* rhi_context = renderSubsystem->GetContext();
@@ -112,7 +113,7 @@ namespace CusEngine {
 
             Logger::Info("Texture2DImporter", "Texture loaded to GPU");
             });
-
+#endif
         texture->SetAssetState(AssetState::Loaded);
 
         return texture;
@@ -164,13 +165,13 @@ namespace CusEngine {
             std::memcpy(&magic, data.data(), sizeof(u32));
             if (magic != 0x54455854) {
                 Logger::Error("Texture2DImporter", "Not a valid texture asset");
-                return Result("");
+                return Runtime::Result("");
             }
 
             AssetHeader header;
             std::memcpy(&header, data.data(), sizeof(AssetHeader));
 
-            Logger::Info("Texture2DImporter", "Imported Texture info: \n type:{}\n datasize:{}\n dataoffset:{}\n UUID:{}",
+            Logger::Info("Texture2DImporter", "Imported Texture info: \n type:{}\n datasize:{}\n dataoffset:{}\n Runtime::UUID:{}",
                 header.typeName,
                 header.dataSize,
                 header.dataOffset,
@@ -180,21 +181,21 @@ namespace CusEngine {
             std::fstream stream(targetFile.string(), std::ios_base::binary | std::ios_base::in);
             if (!stream.is_open()) {
                 Logger::Error("Texture2DImporter", "Failed to open file");
-                return Result("");
+                return Runtime::Result("");
             }
 
             u32 magic{};
             stream.read(reinterpret_cast<char*>(&magic), sizeof(u32));
             if (magic != 0x54455854) {
                 Logger::Error("Texture2DImporter", "Not a valid texture asset");
-                return Result("");
+                return Runtime::Result("");
             }
 
             AssetHeader header{};
             stream.seekg(stream.beg);
             stream.read(reinterpret_cast<char*>(&header), sizeof(AssetHeader));
 
-            Logger::Info("Texture2DImporter", "Imported Texture info: \n type:{}\n datasize:{}\n dataoffset:{}\n UUID:{}",
+            Logger::Info("Texture2DImporter", "Imported Texture info: \n type:{}\n datasize:{}\n dataoffset:{}\n Runtime::UUID:{}",
                 header.typeName,
                 header.dataSize,
                 header.dataOffset,
@@ -210,13 +211,13 @@ namespace CusEngine {
             std::memcpy(&magic, data.data(), sizeof(u32));
             if (magic != 0x54455854) {
                 Logger::Error("Texture2DImporter", "Not a valid texture asset");
-                return Result("");
+                return Runtime::Result("");
             }
 
             AssetHeader header;
             std::memcpy(&header, data.data(), sizeof(AssetHeader));
 
-            Logger::Info("Texture2DImporter", "Imported Texture info: \n type:{}\n datasize:{}\n dataoffset:{}\n UUID:{}",
+            Logger::Info("Texture2DImporter", "Imported Texture info: \n type:{}\n datasize:{}\n dataoffset:{}\n Runtime::UUID:{}",
                 header.typeName,
                 header.dataSize,
                 header.dataOffset,
@@ -224,7 +225,7 @@ namespace CusEngine {
 #endif
         }
 
-        return Result();
+        return Runtime::Result();
     }
 #endif
 }

@@ -3,7 +3,7 @@
 #include <Runtime/Vulkan/VulkanContext.h>
 
 namespace Runtime::RHI {
-	VulkanFence::VulkanFence(const FenceDesc& desc) : _desc(desc) { }
+	VulkanFence::VulkanFence(Context* context, const FenceDesc& desc) : Fence(context), _desc(desc) { }
 
 	VulkanFence::~VulkanFence() {
 		if (_semaphore != VK_NULL_HANDLE) { vkDestroySemaphore(GetOwningRHIContext<VulkanContext>()->GetDevice(), _semaphore, nullptr); }

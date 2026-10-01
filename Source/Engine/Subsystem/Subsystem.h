@@ -1,9 +1,9 @@
 #pragma once
 
 #include <Engine/Core/Core.h>
-#include <Engine/Core/Types.h>
-#include <Engine/Core/Logger.h>
-#include <Engine/Core/Result.h>
+#include <Runtime/Definitions/Types.h>
+#include <Runtime/Definitions/Logger.h>
+#include <Runtime/Definitions/Result.h>
 #include <string>
 #include <typeinfo>
 #include <typeindex>
@@ -46,10 +46,10 @@ namespace CusEngine {
 	public:
 		virtual ~Subsystem() = default;
 
-		virtual Result OnCreate(Engine* engine) { 
+		virtual Runtime::Result OnCreate(Engine* engine) { 
 			_engine = engine;
 			Logger::Info(typeid(*this).name(), "Created!");
-			return Result();
+			return Runtime::Result();
 		}
 		virtual void OnUpdate() {}
 		virtual void OnDestroy() {

@@ -5,6 +5,7 @@
 namespace Runtime::RHI {
 	class Fence : public Object {
 	public:
+		using Object::Object;
 		virtual ~Fence() = default;
 
 		virtual void Wait(u64 value) = 0;

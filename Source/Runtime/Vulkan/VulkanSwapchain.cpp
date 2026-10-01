@@ -9,7 +9,7 @@ namespace Runtime::RHI {
 	}
 
 	void VulkanSwapchain::Recreate(const SwapchainDesc& desc) {
-		VulkanContext* vkContext = GetContext<VulkanContext>();
+		VulkanContext* vkContext = GetOwningRHIContext<VulkanContext>();
 
 		_extent.x = desc.width;
 		_extent.y = desc.height;
@@ -51,7 +51,7 @@ namespace Runtime::RHI {
 				attachmentDesc.format = _colorFormat;
 				attachmentDesc.layout = ImageLayout::Undefined;
 				attachmentDesc.usage = ImageUsage::ColorAttachment;
-				VulkanImage* vkColorAttachment = Mem::Allocator::Construct<VulkanImage>(attachmentDesc);
+				VulkanImage* vkColorAttachment = Mem::Allocator::Construct<VulkanImage>(vkContext, attachmentDesc);
 
 				VkImageViewCreateInfo imageViewInfo{};
 				imageViewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -113,7 +113,7 @@ namespace Runtime::RHI {
 	}
 
 	void VulkanSwapchain::Destroy() {
-		VulkanContext* vkContext = GetContext<VulkanContext>();
+		VulkanContext* vkContext = GetOwningRHIContext<VulkanContext>();
 
 		for (auto& image : _colorAttachments) {
 			Mem::Allocator::Destroy(image);

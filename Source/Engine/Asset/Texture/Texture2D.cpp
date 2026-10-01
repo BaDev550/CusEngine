@@ -6,7 +6,7 @@
 #include <Runtime/RHI/Context/RHIContext.h>
 
 namespace CusEngine {
-    Texture2D::Texture2D(const RHI::ImageDesc& desc) {
+    Texture2D::Texture2D(const Runtime::RHI::ImageDesc& desc) {
         auto* renderSubsystem = Engine::Get()->GetSubsystem<RenderSubsystem>();
         auto* rhi_context = renderSubsystem->GetContext();
         
@@ -14,6 +14,6 @@ namespace CusEngine {
     }
 
     Texture2D::~Texture2D() {
-        Mem::Allocator::Destroy(_image);
+        Runtime::Mem::Allocator::Destroy(_image);
     }
 }

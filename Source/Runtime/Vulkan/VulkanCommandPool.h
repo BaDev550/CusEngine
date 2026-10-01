@@ -21,5 +21,7 @@ namespace Runtime::RHI {
 		VkCommandPool _commandPool = VK_NULL_HANDLE;
 
 		std::list<CommandBuffer*> _allocatedCommandBuffers;
+
+		friend class VulkanContext;
 	};
 }

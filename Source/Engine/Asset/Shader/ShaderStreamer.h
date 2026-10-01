@@ -9,7 +9,7 @@ namespace CusEngine {
     public:
         static constexpr std::string_view ShaderCacheFileDir = "ShaderCache";
 
-        virtual Result Cook(AssetSource& source) override;
+        virtual Runtime::Result Cook(AssetSource& source) override;
         virtual Asset* Import(AssetSource& source) override;
     };
 

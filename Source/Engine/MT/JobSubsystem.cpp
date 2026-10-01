@@ -1,4 +1,4 @@
-#include <Engine/Core/Logger.h>
+#include <Runtime/Definitions/Logger.h>
 #include <Engine/MT/JobSubsystem.h>
 #include <Engine/Window/WindowSubsystem.h>
 
@@ -9,7 +9,7 @@
 #endif
 
 namespace CusEngine::MT {
-	Result JobSubsystem::OnCreate(Engine* engine) {
+	Runtime::Result JobSubsystem::OnCreate(Engine* engine) {
 		Subsystem::OnCreate(engine);
 
 		u32 totalCores = std::thread::hardware_concurrency();
@@ -32,7 +32,7 @@ namespace CusEngine::MT {
 			Logger::Info("EfficiencyCore", "Attached to thread");
 		}
 
-		return Result();
+		return Runtime::Result();
 	}
 
 	void JobSubsystem::OnUpdate() {

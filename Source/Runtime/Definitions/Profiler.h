@@ -23,7 +23,7 @@ namespace Runtime {
 	};
 
 #define BEGIN_SCOPE(name) { \
-	Profile auto_scope_##name{ #name };
+	Runtime::Profile auto_scope_##name{ #name };
 
 #define END_SCOPE(name) }
 }

@@ -1,6 +1,6 @@
 #pragma once
-#include <Engine/Core/Types.h>
-#include <Engine/Core/Logger.h>
+#include <Runtime/Definitions/Types.h>
+#include <Runtime/Definitions/Logger.h>
 
 #include <memory>
 #include <unordered_map>
@@ -10,20 +10,24 @@ namespace Runtime::Mem {
 		usize size;
 		usize alignment;
 	};
+	
+	namespace {
+		class MemoryTracker final {
+		public:
+			void Record(void* ptr, MemBlock block) {
+				usize actualSize = sizeof(ptr);
+				usize newSize = actualSize + sizeof(MemBlock);
 
-	class MemoryTracker final {
-	public:
-		void Record(void* ptr, MemBlock block) {
-			usize actualSize = sizeof(ptr);
-			usize newSize = actualSize + sizeof(MemBlock);
+				std::memcpy(ptr, &block, sizeof(MemBlock));
+			}
 
-			std::memcpy(ptr, &block, sizeof(MemBlock));
-		}
+			[[nodiscard]] MemBlock Release(void* ptr) {
+				MemBlock block;
+			}
+		};
 
-		[[nodiscard]] MemBlock Release(void* ptr) {
-			MemBlock block;
-		}
-	};
+		usize AlignUp(usize value, usize align) { return (value + (align - 1)) & ~(align - 1); }
+	}
 
 	template<class T>
 	using Unique = std::unique_ptr<T>;
@@ -31,27 +35,34 @@ namespace Runtime::Mem {
 	class Allocator final {
 	public:
 		static void* Allocate(usize size, usize align = 16) {
-			const usize alignMask = align < alignof(std::max_align_t) ? std::max(align, alignof(MemBlock)) - 1 : 0;
-			const usize totalSize = size + (sizeof(MemBlock) + alignMask);
-			
-			void* mem = ::operator new(totalSize, std::align_val_t{ alignMask }, std::nothrow);
-			if (!mem) { return nullptr; }
+			const usize eff = align < alignof(std::max_align_t) ? alignof(std::max_align_t) : align;
+			const usize headerSize = AlignUp(sizeof(MemBlock), eff);
 
-			void* userPtr = static_cast<c8*>(mem) + sizeof(MemBlock);
+			void* base = ::operator new(headerSize + size, std::align_val_t{ eff }, std::nothrow);
+			if (!base) {
+				Logger::Fatal("Allocator", "Out of memory requesting {} bytes", size);
+				return nullptr;
+			}
 
-			MemBlock* header = static_cast<MemBlock*>(userPtr) - 1;
-			header->size = size;
-			header->alignment = align;
+			void* user = static_cast<c8*>(base) + headerSize;
 
-			return userPtr;
+			MemBlock* pHeader = reinterpret_cast<MemBlock*>(static_cast<c8*>(user) - sizeof(MemBlock));
+			pHeader->size = size;
+			pHeader->alignment = eff;
+
+			return user;
 		}
 
 		static void Free(void* ptr) {
-			if (!ptr) return;
+			if (!ptr)
+				return;
 
-			MemBlock* header = static_cast<MemBlock*>(ptr) - 1;
-			
-			::operator delete(ptr, std::align_val_t(header->alignment));
+			MemBlock* pHeader = reinterpret_cast<MemBlock*>(static_cast<c8*>(ptr) - sizeof(MemBlock));
+			const usize eff = pHeader->alignment;
+			const usize headerSize = AlignUp(sizeof(MemBlock), eff);
+			void* base = static_cast<c8*>(ptr) - headerSize;
+
+			::operator delete(base, std::align_val_t{ eff });
 		}
 
 		template<typename T, typename... Args>

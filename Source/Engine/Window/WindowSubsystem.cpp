@@ -4,7 +4,7 @@
 #include <GLFW/glfw3.h>
 
 namespace CusEngine {
-	Result WindowSubsystem::OnCreate(Engine* engine)
+	Runtime::Result WindowSubsystem::OnCreate(Engine* engine)
 	{
 		Subsystem::OnCreate(engine);
 
@@ -19,10 +19,10 @@ namespace CusEngine {
 		desc.width = 800;
 		desc.height = 800;
 		desc.title = "Engine Debug Window";
-		_window = Mem::Allocator::Construct<Window>(desc);
-		if (!_window) Result("Failed to create window");
+		_window = Runtime::Mem::Allocator::Construct<Window>(desc);
+		if (!_window) Runtime::Result("Failed to create window");
 
-		return Result();
+		return Runtime::Result();
 	}
 
 	void WindowSubsystem::OnUpdate() {
@@ -36,7 +36,7 @@ namespace CusEngine {
 	void WindowSubsystem::OnDestroy() {
 		Subsystem::OnDestroy();
 
-		Mem::Allocator::Destroy(_window);
+		Runtime::Mem::Allocator::Destroy(_window);
 
 		if (_glfwInitialized) {
 			glfwTerminate();

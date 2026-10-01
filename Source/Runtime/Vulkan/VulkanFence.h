@@ -8,7 +8,7 @@
 namespace Runtime::RHI {
 	class VulkanFence : public Fence {
 	public:
-		VulkanFence(const FenceDesc& desc);
+		VulkanFence(Context* context, const FenceDesc& desc);
 		virtual ~VulkanFence();
 
 		virtual void Wait(u64 value) override;

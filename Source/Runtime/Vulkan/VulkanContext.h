@@ -31,6 +31,7 @@ namespace Runtime::RHI {
 		virtual CommandPool* CreateCommandPool(const CommandPoolDesc& desc) override;
 		virtual Queue* CreateQueue(const QueueDesc& desc) override;
 		virtual Fence* CreateFence(const FenceDesc& desc) override;
+		ContextDesc* GetDesc() override;
 
 		void SetObjectDebugName(VkDebugUtilsObjectNameInfoEXT* info);
 		void CopyBufferToImage(VkCommandBuffer cmd, VkBuffer buffer, VkImage image, VkImageLayout layout, uint32_t width, uint32_t height); // TODO(0x): move this into commands

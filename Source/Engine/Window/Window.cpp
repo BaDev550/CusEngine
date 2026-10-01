@@ -1,6 +1,6 @@
 #include <Engine/Window/Window.h>
-#include <Engine/Core/Logger.h>
-#include <Engine/Core/Memory.h>
+#include <Runtime/Definitions/Logger.h>
+#include <Runtime/Memory/Memory.h>
 #include <GLFW/glfw3.h>
 
 namespace CusEngine {

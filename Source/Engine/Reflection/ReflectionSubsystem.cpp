@@ -8,7 +8,7 @@ namespace CusEngine::Reflect {
         return pending;
     }
 
-    Result ReflectionSubsystem::OnCreate(Engine* engine) {
+    Runtime::Result ReflectionSubsystem::OnCreate(Engine* engine) {
         Subsystem::OnCreate(engine);
 
         for (auto& pclass : GetPendingClasses()) {
@@ -16,7 +16,7 @@ namespace CusEngine::Reflect {
             Logger::Info(GetTypeID().name(), "Registered class: {}", pclass.Name);
         }
 
-        return Result();
+        return Runtime::Result();
     }
 
     void ReflectionSubsystem::RegisterClass(const ClassType& typeInfo) {

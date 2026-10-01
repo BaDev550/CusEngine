@@ -13,7 +13,7 @@ namespace CusEngine {
 	public:
 		virtual ~AssetStreamer() = default;
 
-		virtual Result Cook(AssetSource& source) { return Result(); }
+		virtual Runtime::Result Cook(AssetSource& source) { return Runtime::Result(); }
 		virtual Asset* Import(AssetSource& source) { return nullptr; }
 	};
 }

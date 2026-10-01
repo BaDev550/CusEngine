@@ -9,7 +9,7 @@ namespace CusEngine {
 	
 	struct AssetHeader {
 		u32 magic = ASSET_MAGIC;
-		UUID handle = 0;
+		Runtime::UUID handle = 0;
 		c8 typeName[256] = "\0";
 		u64 metaSize = 0;
 		u64 dataOffset = 0;
@@ -22,8 +22,8 @@ namespace CusEngine {
 		Asset() = default;
 		virtual ~Asset() = default;
 
-		[[nodiscard]] const UUID GetAssetHandle() const { return _assetHandle; }
-		void SetAssetHandle(UUID handle) { _assetHandle = handle; }
+		[[nodiscard]] const Runtime::UUID GetAssetHandle() const { return _assetHandle; }
+		void SetAssetHandle(Runtime::UUID handle) { _assetHandle = handle; }
 
 		[[nodiscard]] AssetStreamer* GetAssetStreamer() const { return _assetStreamer; }
 		void SetAssetStreamer(AssetStreamer* streamer) { _assetStreamer = streamer; }
@@ -31,7 +31,7 @@ namespace CusEngine {
 		[[nodiscard]] AssetState GetAssetState() const { return _assetState; }
 		void SetAssetState(AssetState state) { _assetState = state; }
 	private:
-		UUID _assetHandle;
+		Runtime::UUID _assetHandle;
 		AssetState _assetState = AssetState::InDisk;
 
 		AssetStreamer* _assetStreamer;

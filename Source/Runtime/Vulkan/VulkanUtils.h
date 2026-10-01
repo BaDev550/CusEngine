@@ -112,6 +112,7 @@ namespace Runtime::RHI::Utils {
 		default:
 			break;
 		}
+		return VK_IMAGE_VIEW_TYPE_2D;
 	}
 
 	constexpr [[nodiscard]] VkQueueFlags GetVkQueueFlags(QueueType type) noexcept {

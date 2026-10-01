@@ -1,16 +1,16 @@
 #include "ShaderStreamer.h"
 
 #include <Engine/Asset/Asset.h>
-#include <Engine/Core/Profiler.h>
+#include <Runtime/Definitions/Profiler.h>
 #include <Runtime/IO/FileBuffer.h>
 #include <fstream>
 
 #include <Engine/Asset/Shader/Shader.h>
 
 namespace CusEngine {
-	Result ShaderStreamer::Cook(AssetSource& source) { // TEMP!!!!! FIX IT FUCKED UP RHI
+	Runtime::Result ShaderStreamer::Cook(AssetSource& source) { // TEMP!!!!! FIX IT FUCKED UP RHI
 		if (source.sourcePath.empty()) {
-			return Result("No source file provided!");
+			return Runtime::Result("No source file provided!");
 		}
 		std::string afterDot = std::filesystem::path(source.sourcePath).extension().string();
 
@@ -20,14 +20,14 @@ namespace CusEngine {
 		else if (afterDot == ".geo") kind = shaderc_geometry_shader;
 		else if (afterDot == ".comp") kind = shaderc_compute_shader;
 
-		FileBuffer shaderBuffer;
+		Runtime::IO::FileBuffer shaderBuffer;
 		std::vector<u8> rawData;
 		std::vector<u8> compiledData;
-		shaderBuffer.Stream(rawData, source.sourcePath);
+		shaderBuffer.Map(source.sourcePath, rawData);
 		std::string sourceStr(rawData.begin(), rawData.end());
 
 		if (sourceStr.empty()) {
-			return Result("Failed to open file");
+			return Runtime::Result("Failed to open file");
 		}
 
 		Logger::Info("ShaderStreamer", "Compiling shader: {}", source.sourcePath);
@@ -42,23 +42,23 @@ namespace CusEngine {
 		shaderc::CompilationResult result = compiler.CompileGlslToSpv(sourceStr, kind, source.sourcePath.c_str(), options);
 		if (result.GetCompilationStatus() != shaderc_compilation_status_success) {
 			Logger::Error("ShaderStreamer", "{}", result.GetErrorMessage());
-			return Result("Failed to compile shader");
+			return Runtime::Result("Failed to compile shader");
 		}
 		compiledData.assign(result.cbegin(), result.cend());
 
 		AssetHeader header{};
 		header.magic = 0x53484452;
-		header.id = source.id;
+		header.handle = source.handle;
 		header.metaSize = sizeof(AssetHeader);
 		std::strcpy(header.typeName, source.type.c_str());
 		header.dataSize = (compiledData.size() * sizeof(u8));
 		header.dataOffset = sizeof(AssetHeader);
 
-		shaderBuffer.Write(source.cookedPath, &header, sizeof(AssetHeader), FileWritingMethod::Binary);
-		shaderBuffer.Write(source.cookedPath, compiledData.data(), header.dataSize, FileWritingMethod::Binary, header.dataOffset);
+		shaderBuffer.WriteBinary(source.cookedPath, &header, sizeof(AssetHeader));
+		shaderBuffer.WriteBinary(source.cookedPath, compiledData.data(), header.dataSize, header.dataOffset);
 		Logger::Info("ShaderStreamer", "Cooked to loc: {}", std::filesystem::absolute(source.cookedPath).string());
 
-		return Result();
+		return Runtime::Result();
 	}
 
     Asset* ShaderStreamer::Import(AssetSource& source) {

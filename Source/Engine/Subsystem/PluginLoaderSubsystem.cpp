@@ -1,17 +1,17 @@
 #include <Engine/Subsystem/PluginLoaderSubsystem.h>
 #include <Engine/Window/WindowSubsystem.h>
 
-#include <Engine/Core/Logger.h>
+#include <Runtime/Definitions/Logger.h>
 
 #ifdef _WIN32
 #include <windows.h>
 #endif
 
 namespace CusEngine {
-    Result PluginSubsystem::OnCreate(Engine* engine) {
+    Runtime::Result PluginSubsystem::OnCreate(Engine* engine) {
         Subsystem::OnCreate(engine);
 
-        return Result();
+        return Runtime::Result();
     }
 
     void PluginSubsystem::OnUpdate() {}

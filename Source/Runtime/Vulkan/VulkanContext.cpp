@@ -246,18 +246,25 @@ namespace Runtime::RHI {
 	}
 
 	Swapchain* VulkanContext::CreateSwapchain(const SwapchainDesc& desc) {
-		VulkanSwapchain* vkSwapchain = Mem::Allocator::Construct<VulkanSwapchain>(desc);
-		vkSwapchain->_context = this;
+		VulkanSwapchain* vkSwapchain = Mem::Allocator::Construct<VulkanSwapchain>(this, desc);
 		vkSwapchain->Recreate(vkSwapchain->GetDesc());
 		return vkSwapchain;
 	}
 
 	CommandPool* VulkanContext::CreateCommandPool(const CommandPoolDesc& desc) {
+		VulkanCommandPool* pool = Mem::Allocator::Construct<VulkanCommandPool>(this, desc);
 
+		VkCommandPoolCreateInfo poolInfo{};
+		poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+		poolInfo.flags = (desc.usage == CommandPoolUsage::Transient) ? VK_COMMAND_POOL_CREATE_TRANSIENT_BIT : VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+		poolInfo.queueFamilyIndex = _graphicsAndPresentQueueIndex; // FIXME: TEMP
+		vkCreateCommandPool(_device, &poolInfo, nullptr, &pool->_commandPool);
+
+		return pool;
 	}
 
 	Queue* VulkanContext::CreateQueue(const QueueDesc& desc) {
-		VulkanQueue* queue = Mem::Allocator::Construct<VulkanQueue>(this, desc.type);
+		VulkanQueue* queue = Mem::Allocator::Construct<VulkanQueue>(this, desc);
 		
 		u32 queueFamilyIndex = FindQueueFamilyIndex(_physicalDevice, Utils::GetVkQueueFlags(desc.type));
 		queue->_queueFamilyIndex = queueFamilyIndex;
@@ -644,12 +651,12 @@ namespace Runtime::RHI {
 	}
 
 	u32 VulkanContext::FindQueueFamilyIndex(VkPhysicalDevice physicalDevice, VkQueueFlags queueFlags) {
-		uint32_t queueCount = 0;
+		u32 queueCount = 0;
 		vkGetPhysicalDeviceQueueFamilyProperties2(physicalDevice, &queueCount, nullptr);
 		std::vector<VkQueueFamilyProperties2> queueFamilies(queueCount, { .sType = VK_STRUCTURE_TYPE_QUEUE_FAMILY_PROPERTIES_2 });
 		vkGetPhysicalDeviceQueueFamilyProperties2(physicalDevice, &queueCount, queueFamilies.data());
 
-		for (uint32_t i = 0; i < queueFamilies.size(); i++) {
+		for (u32 i = 0; i < queueFamilies.size(); i++) {
 			VkBool32 presentSupport = false;
 			vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, i, _surface, &presentSupport);
 
@@ -658,5 +665,6 @@ namespace Runtime::RHI {
 				return i;
 			}
 		}
+		return 0;
 	}
 }

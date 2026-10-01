@@ -1,5 +1,5 @@
 #pragma once
-#include <Engine/Core/Memory.h>
+#include <Runtime/Memory/Memory.h>
 #include <Engine/Subsystem/Subsystem.h>
 
 #include <unordered_map>
@@ -26,7 +26,7 @@ namespace CusEngine {
 				return;
 			}
 			_systemInitLookupTable[typeindex] = _pendingInitList.size();
-			_pendingInitList.push_back(Mem::Allocator::Construct<T>(std::forward<Args>(args)...));
+			_pendingInitList.push_back(Runtime::Mem::Allocator::Construct<T>(std::forward<Args>(args)...));
 			Logger::Info("EngineSubsystem", "Subsystem {} added to engine.", typeindex.name());
 		}
 
