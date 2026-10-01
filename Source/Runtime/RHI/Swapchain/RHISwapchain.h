@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Engine/Core/Core.h>
+#include <Runtime/Definitions/Result.h>
 #include <Runtime/RHI/Object/RHIObject.h>
 #include <Runtime/RHI/Common/RHIFormat.h>
 #include <Runtime/RHI/Swapchain/RHISwapchainDesc.h>
@@ -9,6 +10,7 @@
 
 namespace Runtime::RHI {
 	class Image;
+	class Fence;
 
 	class Swapchain : public Object {
 	public:
@@ -18,6 +20,7 @@ namespace Runtime::RHI {
 		virtual void Recreate(const SwapchainDesc& desc) = 0;
 		virtual void Recreate(u32 width, u32 height) = 0;
 		virtual void Destroy() = 0;
+		virtual Result AcquireNextImage(u32& imageIndex, Fence* imageAvailableFence) = 0;
 
 		virtual [[nodiscard]] glm::vec2 GetExtent() const = 0;
 		virtual [[nodiscard]] u32 GetImageCount() const = 0;

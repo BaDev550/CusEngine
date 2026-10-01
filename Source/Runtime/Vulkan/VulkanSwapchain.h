@@ -15,6 +15,7 @@ namespace Runtime::RHI {
 		virtual void Recreate(const SwapchainDesc& desc) override;
 		virtual void Recreate(u32 width, u32 height) override;
 		virtual void Destroy() override;
+		virtual Result AcquireNextImage(u32& imageIndex, Fence* imageAvailableFence) override;
 
 		[[nodiscard]] VkSwapchainKHR& GetSwapchain() { return _swapchain; }
 

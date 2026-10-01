@@ -6,9 +6,7 @@
 #include <Runtime/Definitions/Logger.h>
 
 namespace Runtime::RHI {
-	VulkanImage::VulkanImage(Context* context, const ImageDesc& desc) : Image(context), _desc(desc) {
-		Logger::Info(GetObjectDebugName(), "Created {}, {}", desc.width, desc.height);
-	}
+	VulkanImage::VulkanImage(Context* context, const ImageDesc& desc) : Image(context), _desc(desc) { }
 
 	VulkanImage::~VulkanImage() {
 		Logger::Info(GetObjectDebugName(), "Destroyed");

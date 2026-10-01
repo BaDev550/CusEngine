@@ -12,6 +12,8 @@ namespace Runtime::RHI {
 		virtual ~VulkanFence();
 
 		virtual void Wait(u64 value) override;
+		virtual void Signal(u64 value) override { _currentValue = value; }
+		virtual u64 GetCurrentValue() override { return _currentValue; }
 
 		[[nodiscard]] VkFence GetVkFence() const { return _fence; }
 		[[nodiscard]] VkSemaphore GetSemaphore() const { return _semaphore; }
@@ -20,6 +22,7 @@ namespace Runtime::RHI {
 
 		VkFence _fence = VK_NULL_HANDLE;
 		VkSemaphore _semaphore = VK_NULL_HANDLE;
+		u64 _currentValue = 0;
 
 		friend class VulkanContext;
 	};

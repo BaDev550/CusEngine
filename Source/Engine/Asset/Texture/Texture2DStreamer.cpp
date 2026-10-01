@@ -91,29 +91,30 @@ namespace CusEngine {
 
         texture->SetAssetState(AssetState::Loading);
 
-#if 0
-        Engine::Get()->GetSubsystem<RenderSubsystem>()->GetCommands()->Submit([=]() {
-            auto* renderSubsystem = Engine::Get()->GetSubsystem<RenderSubsystem>();
+        auto* renderSubsystem = Engine::Get()->GetSubsystem<RenderSubsystem>();
+
+        renderSubsystem->Submit([=](Runtime::RHI::CommandBuffer* cmd) {
             auto* rhi_context = renderSubsystem->GetContext();
-            auto* rhi_commands = renderSubsystem->GetCommands();
 
-            RHI::BufferDesc desc{};
-            desc.usage = RHI::BufferUsage::TransferSrc;
-            desc.memoryUsage = RHI::MemoryUsage::CPUToGPU;
-            desc.allocationFlags = RHI::AllocationFlagBits::HostAccessSequentialWrite | RHI::AllocationFlagBits::CreateMapped;
-            desc.size = header.dataSize;
-            RHI::Buffer* stagingBuffer = rhi_context->CreateBuffer(desc);
-            stagingBuffer->Write(imageData.data());
-            rhi_commands->Track(stagingBuffer);
+			Runtime::RHI::BufferDesc desc{};
+			desc.usage = Runtime::RHI::BufferUsage::TransferSrc;
+			desc.memoryUsage = Runtime::RHI::MemoryUsage::CPUToGPU;
+			desc.allocationFlags = Runtime::RHI::AllocationFlagBits::HostAccessSequentialWrite | Runtime::RHI::AllocationFlagBits::CreateMapped;
+			desc.size = header.dataSize;
+            Runtime::RHI::Buffer* stagingBuffer = rhi_context->CreateBuffer(desc);
+            stagingBuffer->SetObjectDebugName("ROV_texture2D_staging_buffer");
+			stagingBuffer->Write(imageData.data());
 
-            rhi_commands->TransitionImageLayout(texture->_image, RHI::ImageLayout::TransferDst);
-            rhi_commands->CopyBufferToImage(stagingBuffer, texture->_image, RHI::ImageLayout::TransferDst, imageDesc.width, imageDesc.height);
-            rhi_commands->TransitionImageLayout(texture->_image, RHI::ImageLayout::ShaderReadOnly);
-            texture->SetAssetState(AssetState::Ready);
+            renderSubsystem->Track(stagingBuffer);
 
-            Logger::Info("Texture2DImporter", "Texture loaded to GPU");
+			cmd->TransitionImageLayout(texture->_image, Runtime::RHI::ImageLayout::TransferDst);
+			cmd->CopyBufferToImage(stagingBuffer, texture->_image, Runtime::RHI::ImageLayout::TransferDst, imageDesc.width, imageDesc.height);
+			cmd->TransitionImageLayout(texture->_image, Runtime::RHI::ImageLayout::ShaderReadOnly);
+			texture->SetAssetState(AssetState::Ready);
+
+			Logger::Info("Texture2DImporter", "Texture loaded to GPU");
             });
-#endif
+
         texture->SetAssetState(AssetState::Loaded);
 
         return texture;

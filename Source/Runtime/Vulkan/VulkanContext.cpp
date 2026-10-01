@@ -85,7 +85,9 @@ namespace Runtime::RHI {
 		}
 	}
 
-	VulkanContext::~VulkanContext() {}
+	VulkanContext::~VulkanContext() {
+
+	}
 
 	void VulkanContext::InitializeImGui() {
 		VkDescriptorPoolSize pool_sizes[] = {
@@ -119,7 +121,7 @@ namespace Runtime::RHI {
 		init_info.ApiVersion = VK_API_VERSION_1_3;
 		init_info.PhysicalDevice = _physicalDevice;
 		init_info.Device = _device;
-		init_info.Queue = _graphicsAndPresentQueue;
+		init_info.Queue = _graphicsAndPresentQueue->GetVkQueue();
 		init_info.DescriptorPool = _imguiDescriptorPool;
 		init_info.MinImageCount = 3;
 		init_info.ImageCount = 3;
@@ -137,12 +139,6 @@ namespace Runtime::RHI {
 		ImGui_ImplVulkan_Init(&init_info);
 	}
 
-	void VulkanContext::NewFrameImGui() {
-		ImGui_ImplVulkan_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
-		ImGui::NewFrame();
-	}
-
 	void VulkanContext::DestroyImGui() {
 		ImGui_ImplVulkan_Shutdown();
 		ImGui_ImplGlfw_Shutdown();
@@ -151,10 +147,13 @@ namespace Runtime::RHI {
 	}
 	
 	void VulkanContext::Shutdown() {
+		for (auto& [type, sampler] : _samplers) {
+			vkDestroySampler(_device, sampler, nullptr);
+		}
+
+		if (_graphicsAndPresentQueue) Mem::Allocator::Destroy(_graphicsAndPresentQueue);
 		if (_allocator) vmaDestroyAllocator(_allocator);
-
 		if (_device) vkDestroyDevice(_device, nullptr);
-
 		if (_surface) vkDestroySurfaceKHR(_instance, _surface, nullptr);
 		if (_instance) vkDestroyInstance(_instance, nullptr);
 	}
@@ -189,6 +188,7 @@ namespace Runtime::RHI {
 		buffer->_mappedPtr = info.pMappedData;
 		buffer->_allocationSize = info.size;
 
+		buffer->SetObjectDebugName("ROV_buffer");
 		return buffer;
 	}
 
@@ -242,12 +242,14 @@ namespace Runtime::RHI {
 			vkCreateImageView(_device, &viewInfo, nullptr, &image->_imageView);
 		}
 
+		image->SetObjectDebugName("ROV_image");
 		return image;
 	}
 
 	Swapchain* VulkanContext::CreateSwapchain(const SwapchainDesc& desc) {
 		VulkanSwapchain* vkSwapchain = Mem::Allocator::Construct<VulkanSwapchain>(this, desc);
 		vkSwapchain->Recreate(vkSwapchain->GetDesc());
+		vkSwapchain->SetObjectDebugName("ROV_swapchain");
 		return vkSwapchain;
 	}
 
@@ -257,30 +259,32 @@ namespace Runtime::RHI {
 		VkCommandPoolCreateInfo poolInfo{};
 		poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 		poolInfo.flags = (desc.usage == CommandPoolUsage::Transient) ? VK_COMMAND_POOL_CREATE_TRANSIENT_BIT : VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-		poolInfo.queueFamilyIndex = _graphicsAndPresentQueueIndex; // FIXME: TEMP
+		poolInfo.queueFamilyIndex = desc.queueFamilyIndex;
 		vkCreateCommandPool(_device, &poolInfo, nullptr, &pool->_commandPool);
 
+		pool->SetObjectDebugName("ROV_command_pool");
 		return pool;
 	}
 
 	Queue* VulkanContext::CreateQueue(const QueueDesc& desc) {
 		VulkanQueue* queue = Mem::Allocator::Construct<VulkanQueue>(this, desc);
-		
+
 		u32 queueFamilyIndex = FindQueueFamilyIndex(_physicalDevice, Utils::GetVkQueueFlags(desc.type));
 		queue->_queueFamilyIndex = queueFamilyIndex;
 		vkGetDeviceQueue(_device, queueFamilyIndex, 0, &queue->_queue);
 
+		queue->SetObjectDebugName("ROV_queue");
 		return queue;
 	}
 
 	Fence* VulkanContext::CreateFence(const FenceDesc& desc) {
 		VulkanFence* fence = Mem::Allocator::Construct<VulkanFence>(this, desc);
-		
+
 		if (desc.type == SemaphoreType::Timeline) {
 			VkSemaphoreTypeCreateInfo tlsemaphoreTypeInfo{};
 			tlsemaphoreTypeInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_TYPE_CREATE_INFO;
 			tlsemaphoreTypeInfo.semaphoreType = VK_SEMAPHORE_TYPE_TIMELINE;
-			tlsemaphoreTypeInfo.initialValue = VulkanContext::MaxFramesInFlight;
+			tlsemaphoreTypeInfo.initialValue = desc.initialValue;
 
 			VkSemaphoreCreateInfo tlsemaphoreCreateInfo{};
 			tlsemaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -295,6 +299,7 @@ namespace Runtime::RHI {
 			Logger::Assert((vkCreateSemaphore(_device, &createInfo, nullptr, &fence->_semaphore) == VK_SUCCESS), "VulkanContext", "Failed to create render finished binary semaphore!");
 		}
 
+		fence->SetObjectDebugName("ROV_fence");
 		return fence;
 	}
 
@@ -565,12 +570,13 @@ namespace Runtime::RHI {
 	}
 
 	void VulkanContext::CreateDevice() {
-		_graphicsAndPresentQueueIndex = FindGraphicsAndPresentQueueIndex(_physicalDevice);
+		_graphicsAndPresentQueue = Mem::Allocator::Construct<VulkanQueue>(this, QueueDesc{ QueueType::Graphics });
+		_graphicsAndPresentQueue->_queueFamilyIndex = FindGraphicsAndPresentQueueIndex(_physicalDevice);
 		float queuePriority = 1.0f;
 
 		std::vector<VkDeviceQueueCreateInfo> queueCreateInfos(1);
 		queueCreateInfos[0].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-		queueCreateInfos[0].queueFamilyIndex = _graphicsAndPresentQueueIndex;
+		queueCreateInfos[0].queueFamilyIndex = _graphicsAndPresentQueue->_queueFamilyIndex;
 		queueCreateInfos[0].queueCount = 1;
 		queueCreateInfos[0].pQueuePriorities = &queuePriority;
 
@@ -611,7 +617,7 @@ namespace Runtime::RHI {
 			throw std::runtime_error("Failed to create logical device");
 		}
 
-		vkGetDeviceQueue(_device, _graphicsAndPresentQueueIndex, 0, &_graphicsAndPresentQueue);
+		vkGetDeviceQueue(_device, _graphicsAndPresentQueue->GetQueueFamilyIndex(), 0, &_graphicsAndPresentQueue->_queue);
 		
 		Logger::Info("rhi_object_vulkan_context", "Logical device created");
 	}

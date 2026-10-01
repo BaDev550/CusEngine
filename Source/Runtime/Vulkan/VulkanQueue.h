@@ -12,6 +12,10 @@ namespace Runtime::RHI {
 
 		virtual void Wait() override;
 		virtual void Submit(CommandBuffer* commandBuffer, const std::vector<Fence*>& waitFences, const std::vector<Fence*>& signalFences) override;
+		virtual void Present(Swapchain* swapchain, u32 imageIndex, const std::vector<Fence*>& waitFences) override;
+
+		[[nodiscard]] VkQueue GetVkQueue() const { return _queue; }
+		[[nodiscard]] virtual u32 GetQueueFamilyIndex() const override { return _queueFamilyIndex; }
 	private:
 		QueueDesc _desc;
 

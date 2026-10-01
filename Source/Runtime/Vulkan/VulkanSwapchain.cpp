@@ -1,5 +1,6 @@
 #include <Runtime/Vulkan/VulkanSwapchain.h>
 #include <Runtime/Vulkan/VulkanContext.h>
+#include <Runtime/Vulkan/VulkanFence.h>
 #include <Runtime/Memory/Memory.h>
 
 namespace Runtime::RHI {
@@ -122,5 +123,17 @@ namespace Runtime::RHI {
 		_colorAttachments.clear();
 
 		vkDestroySwapchainKHR(vkContext->GetDevice(), _swapchain, nullptr);
+	}
+
+	Result VulkanSwapchain::AcquireNextImage(u32& imageIndex, Fence* imageAvailableFence = nullptr) {
+		VulkanFence* vkFence = static_cast<VulkanFence*>(imageAvailableFence);
+		VkResult result = vkAcquireNextImageKHR(GetOwningRHIContext<VulkanContext>()->GetDevice(), _swapchain, UINT64_MAX, vkFence->GetSemaphore(), vkFence->GetVkFence(), &imageIndex);
+		if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+			return Result("SwapchainIsOutOfDate");
+		}
+		else if (result == VK_SUBOPTIMAL_KHR) {
+			return Result("FailedToAcquireSwapchainImage");
+		}
+		return Result();
 	}
 }

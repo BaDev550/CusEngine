@@ -3,6 +3,7 @@
 #include <Runtime/RHI/Context/RHIContext.h>
 #include <Runtime/RHI/Common/RHIFormat.h>
 #include <Runtime/RHI/Image/RHIStaticSampler.h>
+#include <Runtime/Vulkan/VulkanQueue.h>
 
 #include <vulkan/vulkan.h>
 #include <vma/vk_mem_alloc.h>
@@ -13,13 +14,10 @@
 namespace Runtime::RHI {
 	class VulkanContext final : public Context {
 	public:
-		constexpr static u32 MaxFramesInFlight = 2;
-
 		VulkanContext(const ContextDesc& desc);
 		virtual ~VulkanContext();
 
 		virtual void InitializeImGui() override;
-		virtual void NewFrameImGui() override;
 		virtual void DestroyImGui() override;
 
 		virtual void WaitDeviceIdle() override;
@@ -31,7 +29,8 @@ namespace Runtime::RHI {
 		virtual CommandPool* CreateCommandPool(const CommandPoolDesc& desc) override;
 		virtual Queue* CreateQueue(const QueueDesc& desc) override;
 		virtual Fence* CreateFence(const FenceDesc& desc) override;
-		ContextDesc* GetDesc() override;
+		virtual ContextDesc* GetDesc() override;
+		virtual Queue* GetGraphicsQueue() { return _graphicsAndPresentQueue; }
 
 		void SetObjectDebugName(VkDebugUtilsObjectNameInfoEXT* info);
 		void CopyBufferToImage(VkCommandBuffer cmd, VkBuffer buffer, VkImage image, VkImageLayout layout, uint32_t width, uint32_t height); // TODO(0x): move this into commands
@@ -41,12 +40,12 @@ namespace Runtime::RHI {
 
 		[[nodiscard]] VkInstance GetInstance() const { return _instance; }
 		[[nodiscard]] VkDevice GetDevice() const { return _device; }
-		[[nodiscard]] u32 GetGraphicsAndPresentQueueIndex() const { return _graphicsAndPresentQueueIndex; }
-		[[nodiscard]] VkQueue GetGraphicsAndPresentQueue() const { return _graphicsAndPresentQueue; }
+		[[nodiscard]] u32 GetGraphicsAndPresentQueueIndex() const { return _graphicsAndPresentQueue->GetQueueFamilyIndex(); }
+		[[nodiscard]] VkQueue GetGraphicsAndPresentQueue() const { return _graphicsAndPresentQueue->GetVkQueue(); }
 		[[nodiscard]] VkPhysicalDevice GetPhysicalDevice() const { return _physicalDevice; }
 		[[nodiscard]] VkSurfaceKHR GetSurface() const { return _surface; }
 		[[nodiscard]] VmaAllocator GetAllocator() const { return _allocator; }
-		[[nodicsard]] VkAllocationCallbacks GetAllocationCallbakcs() const { return _allocationCallbacks; }
+		[[nodiscard]] VkAllocationCallbacks GetAllocationCallbacks() const { return _allocationCallbacks; }
 	protected:
 		void CreateInstance();
 		void CreateVMA();
@@ -69,9 +68,8 @@ namespace Runtime::RHI {
 
 		ContextDesc _desc;
 		
-		VkQueue _graphicsAndPresentQueue = VK_NULL_HANDLE;
-		u32 _graphicsAndPresentQueueIndex = u32_max;
-
+		VulkanQueue* _graphicsAndPresentQueue = nullptr;
+		
 		VmaAllocator _allocator;
 		VkAllocationCallbacks _allocationCallbacks;
 

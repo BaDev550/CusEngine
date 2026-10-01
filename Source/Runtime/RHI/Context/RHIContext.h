@@ -26,7 +26,6 @@ namespace Runtime::RHI {
 		virtual ~Context() = default;
 
 		virtual void InitializeImGui() = 0;
-		virtual void NewFrameImGui() = 0;
 		virtual void DestroyImGui() = 0;
 
 		virtual void WaitDeviceIdle() = 0;
@@ -39,6 +38,7 @@ namespace Runtime::RHI {
 		virtual Queue* CreateQueue(const QueueDesc& desc) = 0;
 		virtual Fence* CreateFence(const FenceDesc& desc) = 0;
 
+		virtual Queue* GetGraphicsQueue() = 0;
 		virtual ContextDesc* GetDesc() = 0;
 	};
 

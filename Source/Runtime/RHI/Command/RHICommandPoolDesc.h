@@ -9,6 +9,7 @@ namespace Runtime::RHI {
 	};
 
 	struct CommandPoolDesc {
+		u32 queueFamilyIndex = 0;
 		CommandPoolUsage usage = CommandPoolUsage::Transient;
 	};
 }
