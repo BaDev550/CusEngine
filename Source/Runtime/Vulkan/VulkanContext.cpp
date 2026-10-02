@@ -8,6 +8,7 @@
 #include <Runtime/Vulkan/VulkanQueue.h>
 #include <Runtime/Vulkan/VulkanCommandPool.h>
 #include <Runtime/Vulkan/VulkanBuffer.h>
+#include <Runtime/Vulkan/VulkanPipeline.h>
 
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
@@ -78,7 +79,9 @@ namespace Runtime::RHI {
 			PickPhysicalDevice();
 			CreateDevice();
 			CreateVMA();
-			CreateGlobalSampler();
+			CreateSamplers();
+			CreateBindless();
+			CreateGlobalDescriptors();
 		}
 		catch (const std::runtime_error& err) {
 			Logger::Assert(false, "rhi_object_vulkan_context", "{}", err.what());
@@ -150,6 +153,13 @@ namespace Runtime::RHI {
 		for (auto& [type, sampler] : _samplers) {
 			vkDestroySampler(_device, sampler, nullptr);
 		}
+
+		vkFreeDescriptorSets(_device, _bindlessDescriptorPool, 1, &_globalSamplerSet);
+		vkFreeDescriptorSets(_device, _bindlessDescriptorPool, 1, &_bindlessDescriptorSet);
+
+		vkDestroyDescriptorSetLayout(_device, _bindlessDescriptorLayout, nullptr);
+		vkDestroyDescriptorSetLayout(_device, _globalSamplerLayout, nullptr);
+		vkDestroyDescriptorPool(_device, _bindlessDescriptorPool, nullptr);
 
 		if (_graphicsAndPresentQueue) Mem::Allocator::Destroy(_graphicsAndPresentQueue);
 		if (_allocator) vmaDestroyAllocator(_allocator);
@@ -303,6 +313,199 @@ namespace Runtime::RHI {
 		return fence;
 	}
 
+	Pipeline* VulkanContext::CreatePipeline(const PipelineDesc& desc) {
+		VulkanPipeline* pipeline = Mem::Allocator::Construct<VulkanPipeline>(this, desc);
+		
+		auto createModule = [&](ShaderDesc* desc) -> VkShaderModule {
+			VkShaderModuleCreateInfo moduleCreateInfo{};
+			moduleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+			moduleCreateInfo.codeSize = desc->size;
+			moduleCreateInfo.pCode = reinterpret_cast<u32*>(desc->code.data());
+
+			VkShaderModule shaderModule;
+			if (vkCreateShaderModule(_device, &moduleCreateInfo, nullptr, &shaderModule) != VK_SUCCESS) {
+				Logger::Error("VulkanContext", "Failed to load shader shader module cannot be created!");
+				return nullptr;
+			}
+			return shaderModule;
+			};
+
+		{
+			std::vector<VkPushConstantRange> pcRanges;
+			pcRanges.reserve(desc.pushConstantRanges.size());
+			for (const auto& pc : desc.pushConstantRanges) {
+				VkPushConstantRange range{};
+				range.size = (pc.size * sizeof(u32));
+				range.offset = pc.offset;
+				range.stageFlags = VK_SHADER_STAGE_ALL;
+				pcRanges.push_back(range);
+			}
+
+			std::vector<VkDescriptorSetLayout> layouts{ _globalSamplerLayout, _bindlessDescriptorLayout };
+			VkPipelineLayoutCreateInfo layoutCreateInfo{};
+			layoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+			layoutCreateInfo.setLayoutCount = static_cast<u32>(layouts.size());
+			layoutCreateInfo.pSetLayouts = layouts.data();
+			layoutCreateInfo.pushConstantRangeCount = static_cast<u32>(pcRanges.size());
+			layoutCreateInfo.pPushConstantRanges = pcRanges.data();
+			vkCreatePipelineLayout(_device, &layoutCreateInfo, nullptr, &pipeline->_layout);
+		}
+
+		{
+			std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
+
+			VkShaderModule vertModule = VK_NULL_HANDLE;
+			if (desc.vertexShader) {
+				vertModule = createModule(desc.vertexShader);
+
+				VkPipelineShaderStageCreateInfo info{};
+				info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+				info.stage = VK_SHADER_STAGE_VERTEX_BIT;
+				info.module = vertModule;
+				info.pName = "main";
+				shaderStages.push_back(info);
+			}
+
+			VkShaderModule fragModule = VK_NULL_HANDLE;
+			if (desc.fragmentShader) {
+				fragModule = createModule(desc.fragmentShader);
+				
+				VkPipelineShaderStageCreateInfo info{};
+				info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+				info.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+				info.module = fragModule;
+				info.pName = "main";
+				shaderStages.push_back(info);
+			}
+
+			VkShaderModule computeModule = VK_NULL_HANDLE;
+			if (desc.computeShader) {
+				computeModule = createModule(desc.computeShader);
+
+				VkPipelineShaderStageCreateInfo info{};
+				info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+				info.stage = VK_SHADER_STAGE_COMPUTE_BIT;
+				info.module = computeModule;
+				info.pName = "main"; // idk
+				shaderStages.push_back(info);
+			}
+
+			usize attribDescCount = desc.inputDesc.attribInputs.size();
+
+			std::vector<VkVertexInputAttributeDescription> attribDescs;
+			attribDescs.reserve(attribDescCount);
+			for (usize i = 0; i < attribDescCount; i++) {
+				const auto& attrib = desc.inputDesc.attribInputs[i];
+
+				VkVertexInputAttributeDescription attribDesc{};
+				attribDesc.binding = i;
+				attribDesc.format = Utils::GetVkFormat(attrib);
+				attribDesc.location = 0;
+				attribDesc.offset = 0;
+				attribDescs.push_back(attribDesc);
+			}
+
+			VkVertexInputBindingDescription bindingDesc;
+			bindingDesc.binding = 0;
+			bindingDesc.stride = desc.inputDesc.stride;
+			bindingDesc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+			VkPipelineVertexInputStateCreateInfo vertInputInfo{};
+			vertInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+			vertInputInfo.vertexAttributeDescriptionCount = static_cast<u32>(attribDescCount);
+			vertInputInfo.pVertexAttributeDescriptions = attribDescs.data();
+			vertInputInfo.vertexBindingDescriptionCount = 1;
+			vertInputInfo.pVertexBindingDescriptions = &bindingDesc;
+
+			VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo{}; // TODO(0x): add wrapers
+			inputAssemblyInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+			inputAssemblyInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+
+			VkPipelineDepthStencilStateCreateInfo depthStencilInfo{};
+			depthStencilInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+			depthStencilInfo.depthTestEnable = desc.depthTest ? VK_TRUE : VK_FALSE;
+			depthStencilInfo.depthWriteEnable = VK_FALSE;
+			depthStencilInfo.depthCompareOp = VK_COMPARE_OP_LESS;
+			depthStencilInfo.stencilTestEnable = VK_FALSE;
+
+			VkPipelineViewportStateCreateInfo viewportInfo{};
+			viewportInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+			viewportInfo.viewportCount = 1;
+			viewportInfo.pViewports = nullptr;
+			viewportInfo.scissorCount = 1;
+			viewportInfo.pScissors = nullptr;
+
+			VkPipelineRasterizationStateCreateInfo rasterInfo{};
+			rasterInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+			rasterInfo.polygonMode = VK_POLYGON_MODE_FILL;
+			rasterInfo.cullMode = VK_CULL_MODE_NONE;
+			rasterInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
+			rasterInfo.lineWidth = 1.0f;
+
+			VkPipelineMultisampleStateCreateInfo multiSampleInfo{};
+			multiSampleInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+			multiSampleInfo.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+
+			VkPipelineColorBlendAttachmentState attachState{};
+			attachState.blendEnable = VK_TRUE;
+			attachState.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+			attachState.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+			attachState.colorBlendOp = VK_BLEND_OP_ADD;
+			attachState.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+			attachState.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+			attachState.alphaBlendOp = VK_BLEND_OP_ADD;
+			attachState.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+
+			VkPipelineColorBlendStateCreateInfo blendInfo{};
+			blendInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+			blendInfo.attachmentCount = 1;
+			blendInfo.pAttachments = &attachState;
+
+			std::vector<VkDynamicState> dynamicState{ VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
+			VkPipelineDynamicStateCreateInfo dynamicStateInfo{};
+			dynamicStateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+			dynamicStateInfo.dynamicStateCount = static_cast<uint32_t>(dynamicState.size());
+			dynamicStateInfo.pDynamicStates = dynamicState.data();
+
+			std::vector<VkFormat> colorFormats;
+			colorFormats.reserve(desc.colorFormats.size());
+			for (const auto& format : desc.colorFormats) {
+				colorFormats.push_back(RHI::Utils::GetVkFormat(format));
+			}
+
+			VkPipelineRenderingCreateInfo renderInfo{};
+			renderInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
+			renderInfo.colorAttachmentCount = static_cast<u32>(colorFormats.size());
+			renderInfo.pColorAttachmentFormats = colorFormats.data();
+			renderInfo.depthAttachmentFormat = Utils::GetVkFormat(desc.depthFormat);
+
+			VkGraphicsPipelineCreateInfo createInfo{};
+			createInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+			createInfo.pNext = &renderInfo;
+			createInfo.stageCount = static_cast<u32>(shaderStages.size());
+			createInfo.pStages = shaderStages.data();
+			createInfo.pVertexInputState = &vertInputInfo;
+			createInfo.pInputAssemblyState = &inputAssemblyInfo;
+			createInfo.pViewportState = &viewportInfo;
+			createInfo.pRasterizationState = &rasterInfo;
+			createInfo.pMultisampleState = &multiSampleInfo;
+			createInfo.pDepthStencilState = &depthStencilInfo;
+			createInfo.pColorBlendState = &blendInfo;
+			createInfo.pDynamicState = &dynamicStateInfo;
+			createInfo.layout = pipeline->_layout;
+			createInfo.renderPass = VK_NULL_HANDLE;
+
+			if (vkCreateGraphicsPipelines(_device, VK_NULL_HANDLE, 1, &createInfo, nullptr, &pipeline->_pipeline) != VK_SUCCESS) {
+				Logger::Error("VulkanContext", "Failed to create pipeline!");
+				return nullptr;
+			}
+			if (vertModule != VK_NULL_HANDLE) vkDestroyShaderModule(_device, vertModule, nullptr);
+			if (fragModule != VK_NULL_HANDLE) vkDestroyShaderModule(_device, fragModule, nullptr);
+			if (computeModule != VK_NULL_HANDLE) vkDestroyShaderModule(_device, computeModule, nullptr);
+		}
+		return pipeline;
+	}
+
 	ContextDesc* VulkanContext::GetDesc() { return &_desc; }
 
 	void VulkanContext::SetObjectDebugName(VkDebugUtilsObjectNameInfoEXT* info) {
@@ -410,9 +613,24 @@ namespace Runtime::RHI {
 	}
 
 	u32 VulkanContext::RegisterBindlessImage(Image* image) {
-		u32 id = _bindlessImages.size();
-		_bindlessImages.push_back(image);
-		return id;
+		u32 index = static_cast<u32>(_bindlessImages.size());
+		VulkanImage* vkImage = static_cast<VulkanImage*>(image);
+
+		VkDescriptorImageInfo imageInfo{};
+		imageInfo.imageView = vkImage->_imageView;
+		imageInfo.imageLayout = Utils::GetVkImageLayout(vkImage->GetDesc()->layout);
+
+		VkWriteDescriptorSet write{};
+		write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		write.dstSet = _bindlessDescriptorSet;
+		write.dstBinding = 0;
+		write.dstArrayElement = index;
+		write.descriptorCount = 1;
+		write.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+		write.pImageInfo = &imageInfo;
+
+		vkUpdateDescriptorSets(_device, 1, &write, 0, nullptr);
+		return index;
 	}
 
 #if 0
@@ -525,7 +743,7 @@ namespace Runtime::RHI {
 		Logger::Info("rhi_object_vulkan_context", "Driver version: {}.{}.{}", VK_VERSION_MAJOR(properties.driverVersion), VK_VERSION_MINOR(properties.driverVersion), VK_VERSION_PATCH(properties.driverVersion));
 	}
 
-	void VulkanContext::CreateGlobalSampler() {
+	void VulkanContext::CreateSamplers() {
 		auto makeSampler = [&](VkFilter filter, VkSamplerAddressMode addresMode, VkSamplerMipmapMode mipMode, bool compEnable, bool anisotrpyEnable) {
 			VkSampler resultSampler = nullptr;
 			VkSamplerCreateInfo samplerInfo{};
@@ -547,26 +765,151 @@ namespace Runtime::RHI {
 			};
 
 		_samplers[StaticSampler::NearestRepeat] = makeSampler(VK_FILTER_NEAREST, VK_SAMPLER_ADDRESS_MODE_REPEAT, VK_SAMPLER_MIPMAP_MODE_NEAREST, false, false);
-		
+	}
+
+	void VulkanContext::CreateGlobalDescriptors()
+	{
+		VkDescriptorSetLayoutBinding samplerBinding{};
+		samplerBinding.binding = 0;
+		samplerBinding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
+		samplerBinding.descriptorCount = 100;
+		samplerBinding.stageFlags = VK_SHADER_STAGE_ALL;
+
+		VkDescriptorBindingFlags samplerBindingFlags = VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT | VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT;
+		VkDescriptorSetLayoutBindingFlagsCreateInfo samplerBindingFlagsInfo{};
+		samplerBindingFlagsInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO;
+		samplerBindingFlagsInfo.bindingCount = 1;
+		samplerBindingFlagsInfo.pBindingFlags = &samplerBindingFlags;
+
+		VkDescriptorSetLayoutCreateInfo samplerLayoutInfo{};
+		samplerLayoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+		samplerLayoutInfo.pNext = &samplerBindingFlagsInfo;
+		samplerLayoutInfo.flags = VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT;
+		samplerLayoutInfo.bindingCount = 1;
+		samplerLayoutInfo.pBindings = &samplerBinding;
+		VkResult result = vkCreateDescriptorSetLayout(
+			_device,
+			&samplerLayoutInfo,
+			nullptr,
+			&_globalSamplerLayout
+		);
+
+		Logger::Assert(result == VK_SUCCESS, "VulkanContext", "Failed to create global sampler layout");
+
+		VkDescriptorSetAllocateInfo samplerAllocInfo{};
+		samplerAllocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+		samplerAllocInfo.descriptorPool = _bindlessDescriptorPool;
+		samplerAllocInfo.descriptorSetCount = 1;
+		samplerAllocInfo.pSetLayouts = &_globalSamplerLayout;
+
+		result = vkAllocateDescriptorSets(
+			_device,
+			&samplerAllocInfo,
+			&_globalSamplerSet
+		);
+
+		Logger::Assert(
+			result == VK_SUCCESS,
+			"VulkanContext",
+			"Failed to allocate sampler descriptor set"
+		);
+
+		std::vector<VkDescriptorImageInfo> samplerInfos;
+		std::vector<VkWriteDescriptorSet> samplerWrites;
+		samplerInfos.reserve(_samplers.size());
+		samplerWrites.reserve(_samplers.size());
+
+		u32 samplerIndex = 0;
+
+		for (const auto& [type, sampler] : _samplers) {
+			VkDescriptorImageInfo info{};
+			info.sampler = sampler;
+
+			samplerInfos.push_back(info);
+
+			VkWriteDescriptorSet write{};
+			write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			write.dstSet = _globalSamplerSet;
+			write.dstBinding = 0;
+			write.dstArrayElement = samplerIndex;
+			write.descriptorCount = 1;
+			write.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
+			write.pImageInfo = &samplerInfos.back();
+
+			samplerWrites.push_back(write);
+
+			++samplerIndex;
+		}
+
+		vkUpdateDescriptorSets(
+			_device,
+			static_cast<u32>(samplerWrites.size()),
+			samplerWrites.data(),
+			0,
+			nullptr
+		);
 	}
 
 	void VulkanContext::CreateBindless() {
 		VkDescriptorPoolSize size[] = {
 			{ VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000 },
-			{ VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000 },
-			{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000 }
+			{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000 },
+			{ VK_DESCRIPTOR_TYPE_SAMPLER, 100 }
 		};
 
-		VkDescriptorPoolCreateInfo info{};
-		info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-		info.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
-		info.maxSets = 1000;
-		info.poolSizeCount = std::size(size);
-		info.pPoolSizes = size;
-		
-		vkCreateDescriptorPool(_device, &info, nullptr, &_bindlessDescriptorPool);
+		VkDescriptorPoolCreateInfo poolInfo{};
+		poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+		poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT | VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+		poolInfo.maxSets = 1000;
+		poolInfo.poolSizeCount = static_cast<u32>(std::size(size));
+		poolInfo.pPoolSizes = size;
 
-		Logger::Info("rhi_object_vulkan_context", "Bindless descriptor pool is created");
+		VkResult result = vkCreateDescriptorPool(_device, &poolInfo, nullptr, &_bindlessDescriptorPool);
+		Logger::Assert(result == VK_SUCCESS, "VulkanContext", "Failed to create bindless descriptor pool");
+
+		VkDescriptorSetLayoutBinding textureBinding{};
+		textureBinding.binding = 0;
+		textureBinding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+		textureBinding.descriptorCount = 1000;
+		textureBinding.stageFlags = VK_SHADER_STAGE_ALL;
+
+		VkDescriptorSetLayoutBinding bufferBinding{};
+		bufferBinding.binding = 1;
+		bufferBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+		bufferBinding.descriptorCount = 1000;
+		bufferBinding.stageFlags = VK_SHADER_STAGE_ALL;
+
+		VkDescriptorSetLayoutBinding bindings[] = { textureBinding, bufferBinding };
+		VkDescriptorBindingFlags bindingFlags[] = {
+			VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT | VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT,
+			VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT | VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT
+		};
+
+		VkDescriptorSetLayoutBindingFlagsCreateInfo bindingFlagsInfo{};
+		bindingFlagsInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO;
+		bindingFlagsInfo.bindingCount = static_cast<u32>(std::size(bindingFlags));
+		bindingFlagsInfo.pBindingFlags = bindingFlags;
+
+		VkDescriptorSetLayoutCreateInfo layoutInfo{};
+		layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+		layoutInfo.pNext = &bindingFlagsInfo;
+		layoutInfo.flags = VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT;
+		layoutInfo.bindingCount = static_cast<u32>(std::size(bindings));
+		layoutInfo.pBindings = bindings;
+
+		result = vkCreateDescriptorSetLayout(_device, &layoutInfo, nullptr, &_bindlessDescriptorLayout);
+		Logger::Assert(result == VK_SUCCESS, "VulkanContext", "Failed to create bindless descriptor set layout");
+
+		VkDescriptorSetAllocateInfo allocInfo{};
+		allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+		allocInfo.descriptorPool = _bindlessDescriptorPool;
+		allocInfo.descriptorSetCount = 1;
+		allocInfo.pSetLayouts = &_bindlessDescriptorLayout;
+
+		result = vkAllocateDescriptorSets(_device, &allocInfo, &_bindlessDescriptorSet);
+		Logger::Assert(result == VK_SUCCESS, "VulkanContext", "Failed to allocate bindless descriptor set");
+
+		Logger::Info("rhi_object_vulkan_context", "Bindless descriptor pool and layouts created successfully");
 	}
 
 	void VulkanContext::CreateDevice() {

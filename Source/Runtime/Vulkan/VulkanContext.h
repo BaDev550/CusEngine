@@ -29,8 +29,9 @@ namespace Runtime::RHI {
 		virtual CommandPool* CreateCommandPool(const CommandPoolDesc& desc) override;
 		virtual Queue* CreateQueue(const QueueDesc& desc) override;
 		virtual Fence* CreateFence(const FenceDesc& desc) override;
-		virtual ContextDesc* GetDesc() override;
+		virtual Pipeline* CreatePipeline(const PipelineDesc& desc) override;
 		virtual Queue* GetGraphicsQueue() { return _graphicsAndPresentQueue; }
+		virtual ContextDesc* GetDesc() override;
 
 		void SetObjectDebugName(VkDebugUtilsObjectNameInfoEXT* info);
 		void CopyBufferToImage(VkCommandBuffer cmd, VkBuffer buffer, VkImage image, VkImageLayout layout, uint32_t width, uint32_t height); // TODO(0x): move this into commands
@@ -46,12 +47,15 @@ namespace Runtime::RHI {
 		[[nodiscard]] VkSurfaceKHR GetSurface() const { return _surface; }
 		[[nodiscard]] VmaAllocator GetAllocator() const { return _allocator; }
 		[[nodiscard]] VkAllocationCallbacks GetAllocationCallbacks() const { return _allocationCallbacks; }
+		[[nodiscard]] VkDescriptorSet GetBindlessDescriptorSet() const { return _bindlessDescriptorSet; }
+		[[nodiscard]] VkDescriptorSet GetGlobalSamplerSet() const { return _globalSamplerSet; }
 	protected:
 		void CreateInstance();
 		void CreateVMA();
 		void CreateSurface();
 		void PickPhysicalDevice();
-		void CreateGlobalSampler();
+		void CreateSamplers();
+		void CreateGlobalDescriptors();
 		void CreateBindless();
 		void CreateDevice();
 
@@ -65,7 +69,6 @@ namespace Runtime::RHI {
 		VkPhysicalDevice _physicalDevice = VK_NULL_HANDLE;
 		VkDevice _device = VK_NULL_HANDLE;
 		VkSurfaceKHR _surface = VK_NULL_HANDLE;
-
 		ContextDesc _desc;
 		
 		VulkanQueue* _graphicsAndPresentQueue = nullptr;
@@ -74,8 +77,13 @@ namespace Runtime::RHI {
 		VkAllocationCallbacks _allocationCallbacks;
 
 		VkDescriptorPool _imguiDescriptorPool;
+
+		VkDescriptorSetLayout _bindlessDescriptorLayout;
 		VkDescriptorPool _bindlessDescriptorPool;
 		VkDescriptorSet _bindlessDescriptorSet;
+
+		VkDescriptorSetLayout _globalSamplerLayout;
+		VkDescriptorSet _globalSamplerSet;
 
 		std::vector<Image*> _bindlessImages;
 		std::vector<Buffer*> _bindlessBuffers;

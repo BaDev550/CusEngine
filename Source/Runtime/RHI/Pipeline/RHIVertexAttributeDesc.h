@@ -1,12 +1,14 @@
 #pragma once
-#include <Engine/Core/Core.h>
+#include <Runtime/Definitions/Types.h>
 #include <Runtime/RHI/Common/RHIFormat.h>
+#include <vector>
 
 namespace Runtime::RHI {
-	struct VertexInputAttributeDesc {
-		std::vector<Format> inputs;
+	struct VertexInputDesc {
+		std::vector<Format> attribInputs;
+		usize stride = 0;
 
-		VertexInputAttributeDesc() = default;
-		VertexInputAttributeDesc(const std::initializer_list<Format>& formatInputs) : inputs(formatInputs) {}
+		VertexInputDesc() = default;
+		VertexInputDesc(const std::initializer_list<Format>& attribInputs) : attribInputs(attribInputs) {}
 	};
 }

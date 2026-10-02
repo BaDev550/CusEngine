@@ -38,6 +38,7 @@ namespace CusEngine {
         imageDesc.format = Runtime::RHI::Format::BC3;
         imageDesc.width = width;
         imageDesc.height = height;
+        imageDesc.view.type = Runtime::RHI::ImageViewType::Image2D;
         imageDesc.usage = Runtime::RHI::ImageUsage::Sampled | Runtime::RHI::ImageUsage::TransferDst;
         imageDesc.layout = Runtime::RHI::ImageLayout::Undefined;
         imageDesc.tileMode = Runtime::RHI::ImageTileMode::Optimal;
@@ -117,7 +118,7 @@ namespace CusEngine {
 
         texture->SetAssetState(AssetState::Loaded);
 
-        return texture;
+        return std::move(texture);
     }
 
     bool Texture2DStreamer::CompressImageToBC3(u8* rawData, u32 width, u32 height, std::vector<u8>& compressedImage) {

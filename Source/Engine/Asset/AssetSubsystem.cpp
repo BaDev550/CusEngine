@@ -1,5 +1,4 @@
 #include "AssetSubsystem.h"
-#include <Engine/Renderer/RenderSubsystem.h>
 #include <Engine/Reflection/ReflectionSubsystem.h>
 #include <Engine/Subsystem/PluginLoaderSubsystem.h>
 #include <Runtime/IO/FileBuffer.h>
@@ -110,7 +109,6 @@ namespace CusEngine {
 
 	void AssetSubsystem::GetDependencyGraph(DependencyGraph& graph) {
 		graph.Require<Reflect::ReflectionSubsystem>(DependencyOrder::After);
-		graph.Require<RenderSubsystem>(DependencyOrder::After);
 		graph.Require<PluginSubsystem>(DependencyOrder::After);
 	}
 

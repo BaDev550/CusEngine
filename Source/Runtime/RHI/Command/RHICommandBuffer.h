@@ -8,6 +8,7 @@ namespace Runtime::RHI {
 	class Queue;
 	class Image;
 	class Buffer;
+	class Pipeline;
 
 	class CommandBuffer : public Object {
 	public:
@@ -26,5 +27,7 @@ namespace Runtime::RHI {
 		virtual void TransitionImageLayout(Image* image, ImageLayout newLayout) = 0;
 		virtual void CopyBuffer(Buffer* srcBuffer, Buffer* dstBuffer, size_t size) = 0;
 		virtual void CopyBufferToImage(Buffer* buffer, Image* image, ImageLayout layout, u32 width, u32 height) = 0;
+
+		virtual void DrawVertex(Pipeline* pipeline, u32 count) = 0;
 	};
 }

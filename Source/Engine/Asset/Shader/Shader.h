@@ -8,7 +8,7 @@ namespace CusEngine {
 	public:
 		Shader(const Runtime::RHI::ShaderDesc& desc) : _desc(desc) {};
 
-		[[nodiscard]] Runtime::RHI::ShaderDesc GetDesc() const { return _desc; }
+		[[nodiscard]] Runtime::RHI::ShaderDesc& GetDesc() { return _desc; }
 	private:
 		Runtime::RHI::ShaderDesc _desc;
 	};

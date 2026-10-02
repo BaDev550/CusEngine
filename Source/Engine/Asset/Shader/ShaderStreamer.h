@@ -12,7 +12,7 @@ namespace CusEngine {
         virtual Runtime::Result Cook(AssetSource& source) override;
         virtual Asset* Import(AssetSource& source) override;
     };
-
+	
 	class FileIncluder : public shaderc::CompileOptions::IncluderInterface {
 	public:
 		shaderc_include_result* GetInclude(const char* requested_source, shaderc_include_type type, const char* requesting_source, size_t include_depth) override;

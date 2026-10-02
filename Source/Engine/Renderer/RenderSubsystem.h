@@ -1,5 +1,6 @@
 #pragma once
 #include <Engine/Subsystem/Subsystem.h>
+#include <Engine/Asset/Shader/Shader.h>
 
 #include <Runtime/RHI/Swapchain/RHISwapchain.h>
 #include <Runtime/RHI/Context/RHIContext.h>
@@ -11,6 +12,7 @@
 #include <Runtime/RHI/Command/RHICommandBuffer.h>
 #include <Runtime/RHI/Sync/RHIFence.h>
 #include <Runtime/RHI/Queue/RHIQueue.h>
+#include <Runtime/RHI/Pipeline/RHIPipeline.h>
 
 namespace CusEngine {
 	using CommandFunc = std::function<void(Runtime::RHI::CommandBuffer* cmd)>;
@@ -59,5 +61,12 @@ namespace CusEngine {
 		u64 _nextSignalValue = (MaxFramesInFlight + 1);
 
 		bool _recreateSwapchainNextFrame = false;
+
+		struct SpritePushConstant {
+			u32 textureID;
+			u32 samplerID;
+		};
+
+		Runtime::RHI::Pipeline* _forwardPassPipeline = nullptr;
 	};
 }

@@ -11,6 +11,7 @@ namespace Runtime::RHI {
 	class CommandPool;
 	class Queue;
 	class Fence;
+	class Pipeline;
 
 	struct ImageDesc;
 	struct BufferDesc;
@@ -19,6 +20,7 @@ namespace Runtime::RHI {
 	struct CommandPoolDesc;
 	struct QueueDesc;
 	struct FenceDesc;
+	struct PipelineDesc;
 
 	class Context {
 	public:
@@ -37,6 +39,7 @@ namespace Runtime::RHI {
 		virtual CommandPool* CreateCommandPool(const CommandPoolDesc& desc) = 0;
 		virtual Queue* CreateQueue(const QueueDesc& desc) = 0;
 		virtual Fence* CreateFence(const FenceDesc& desc) = 0;
+		virtual Pipeline* CreatePipeline(const PipelineDesc& desc) = 0;
 
 		virtual Queue* GetGraphicsQueue() = 0;
 		virtual ContextDesc* GetDesc() = 0;

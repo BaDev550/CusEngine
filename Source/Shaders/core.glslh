@@ -1,10 +1,14 @@
 #extension GL_EXT_nonuniform_qualifier : require
 #extension GL_EXT_buffer_reference : require
 
-#define BindlessGlobalSet 0
-#define UniformGlobalSet 1
+#define UniformGlobalSet 0
+#define BindlessGlobalSet 1
 
 layout(set = BindlessGlobalSet, binding = 0) uniform texture2D uGlobalTextures2D[];
-layout(set = BindlessGlobalSet, binding = 1) uniform sampler uGlobalSampler;
+layout(set = BindlessGlobalSet, binding = 1) readonly buffer GlobalBufferBlock {
+    uint data[];
+} uGlobalBuffers[];
 
-#define GetBindlessTextureFromID(id) sampler2D(uGlobalTextures2D[nonuniformEXT(id)], uGlobalSampler)
+layout(set = UniformGlobalSet, binding = 0) uniform sampler uGlobalSamplers[];
+
+#define GetBindlessTextureFromID(id, samplerId) sampler2D(uGlobalTextures2D[nonuniformEXT(id)], uGlobalSamplers[nonuniformEXT(samplerId)])

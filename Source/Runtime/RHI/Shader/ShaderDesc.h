@@ -3,7 +3,7 @@
 
 namespace Runtime::RHI {
 	struct ShaderDesc {
-		void* code = nullptr;
+		std::vector<u32> code;
 		usize size = 0;
 	};
 }

@@ -23,6 +23,8 @@ namespace Runtime::RHI {
 		virtual void CopyBuffer(Buffer* srcBuffer, Buffer* dstBuffer, size_t size) override;
 		virtual void CopyBufferToImage(Buffer* buffer, Image* image, ImageLayout layout, u32 width, u32 height) override;
 
+		virtual void DrawVertex(Pipeline* pipeline, u32 count) override;
+
 		[[nodiscard]] VkCommandBuffer GetVkCommandBuffer() const { return _commandBuffer; }
 	private:
 		CommandBufferDesc _desc;

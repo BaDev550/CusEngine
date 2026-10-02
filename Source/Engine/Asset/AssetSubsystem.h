@@ -19,7 +19,7 @@ namespace CusEngine {
 			std::string assetType = AssetT::StaticClassName().data();
 
 			std::filesystem::path sourcePath = path;
-			std::filesystem::path targetPath = std::filesystem::path(path).replace_extension(ASSET_EXTENSION);
+			std::filesystem::path targetPath = "cooked" / std::filesystem::path(path).replace_extension(ASSET_EXTENSION);
 			Runtime::UUID assetID = Runtime::UUID(sourcePath.string()); // TODO(0x): add a time to hashing so it is not exatcly with same named files!! mem leak
 
 			if (AssetInCache(assetID)) {

@@ -22,7 +22,7 @@
 
 #define CACHE_DIR "cache/"
 #define ASSET_EXTENSION ".casset"
-#define ASSET_REGISTRY_PATH CACHE_DIR "assetReg.json"
+#define ASSET_REGISTRY_PATH "assetReg.json"
 
 #define BIT(x) (1 << x)
 #define CORE_DEFINE_ENUM_FLAG_OPERATORS(Enum) \

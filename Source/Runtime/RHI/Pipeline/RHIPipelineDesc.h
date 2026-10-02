@@ -3,6 +3,7 @@
 
 #include <Runtime/RHI/Pipeline/RHIVertexAttributeDesc.h>
 #include <Runtime/RHI/Shader/ShaderDesc.h>
+#include <Runtime/RHI/Pipeline/RHIPushConstantRange.h>
 #include <vector>
 
 namespace Runtime::RHI {
@@ -13,7 +14,9 @@ namespace Runtime::RHI {
 
 		bool depthTest = true;
 		bool blending = true;
-		VertexInputAttributeDesc attribDesc;
+		VertexInputDesc inputDesc;
+
+		std::vector<PushConstantRange> pushConstantRanges;
 
 		std::vector<Format> colorFormats;
 		Format depthFormat;
