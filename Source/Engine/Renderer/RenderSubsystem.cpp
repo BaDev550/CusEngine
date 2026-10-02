@@ -92,16 +92,8 @@ namespace CusEngine {
 			_defaultWhiteImage = _context->CreateImage(imageDesc);
 			
 			Submit([=](RHI::CommandBuffer* cmd) {
-				RHI::BufferDesc desc{};
-				desc.usage = RHI::BufferUsage::TransferSrc;
-				desc.memoryUsage = RHI::MemoryUsage::CPUToGPU;
-				desc.allocationFlags = RHI::AllocationFlagBits::HostAccessSequentialWrite | RHI::AllocationFlagBits::CreateMapped;
-				desc.size = sizeof(u32);
-				RHI::Buffer* stagingBuffer = _context->CreateBuffer(desc);
-				stagingBuffer->SetObjectDebugName("ROV_texture2D_staging_buffer");
+				RHI::Buffer* stagingBuffer = CreateStagingBuffer(sizeof(u32));
 				stagingBuffer->Write(&whiteImageData);
-
-				Track(stagingBuffer);
 
 				cmd->TransitionImageLayout(_defaultWhiteImage, RHI::ImageLayout::TransferDst);
 				cmd->CopyBufferToImage(stagingBuffer, _defaultWhiteImage, RHI::ImageLayout::TransferDst, imageDesc.width, imageDesc.height);
@@ -229,6 +221,20 @@ namespace CusEngine {
 
 		fd->commandBuffer->EndDynamicRendering();
 		fd->commandBuffer->TransitionImageLayout(colorAttachmentImage, RHI::ImageLayout::PresentSrc);
+	}
+
+	RHI::Buffer* RenderSubsystem::CreateStagingBuffer(usize dataSizeInBytes)
+	{
+		RHI::BufferDesc desc{};
+		desc.usage = RHI::BufferUsage::TransferSrc;
+		desc.memoryUsage = RHI::MemoryUsage::CPUToGPU;
+		desc.allocationFlags = RHI::AllocationFlagBits::HostAccessSequentialWrite | RHI::AllocationFlagBits::CreateMapped;
+		desc.size = dataSizeInBytes;
+		RHI::Buffer* stagingBuffer = _context->CreateBuffer(desc);
+		stagingBuffer->SetObjectDebugName("RHIObjectStagingBuffer");
+		
+		Track(stagingBuffer);
+		return stagingBuffer;
 	}
 
 	RenderSubsystem::FrameData* RenderSubsystem::GetCurrentFrameData() {

@@ -39,6 +39,8 @@ namespace CusEngine {
 		void EndSwapchainPass();
 
 		u32 GetImageIndex() const { return _imageIndex; }
+		RHI::Buffer* CreateStagingBuffer(usize dataSizeInBytes);
+
 		[[nodiscard]] RHI::Context* GetContext() { return _context; }
 		[[nodiscard]] RHI::Swapchain* GetSwapchain() { return _swapchain; }
 	private:

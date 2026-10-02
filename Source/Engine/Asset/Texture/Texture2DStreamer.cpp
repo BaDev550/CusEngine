@@ -95,25 +95,13 @@ namespace CusEngine {
         auto* renderSubsystem = Engine::Get()->GetSubsystem<RenderSubsystem>();
 
         renderSubsystem->Submit([=](Runtime::RHI::CommandBuffer* cmd) {
-            auto* rhi_context = renderSubsystem->GetContext();
-
-			Runtime::RHI::BufferDesc desc{};
-			desc.usage = Runtime::RHI::BufferUsage::TransferSrc;
-			desc.memoryUsage = Runtime::RHI::MemoryUsage::CPUToGPU;
-			desc.allocationFlags = Runtime::RHI::AllocationFlagBits::HostAccessSequentialWrite | Runtime::RHI::AllocationFlagBits::CreateMapped;
-			desc.size = header.dataSize;
-            Runtime::RHI::Buffer* stagingBuffer = rhi_context->CreateBuffer(desc);
-            stagingBuffer->SetObjectDebugName("ROV_texture2D_staging_buffer");
+			RHI::Buffer* stagingBuffer = renderSubsystem->CreateStagingBuffer(header.dataSize);
 			stagingBuffer->Write(imageData.data());
-
-            renderSubsystem->Track(stagingBuffer);
 
 			cmd->TransitionImageLayout(texture->_image, Runtime::RHI::ImageLayout::TransferDst);
 			cmd->CopyBufferToImage(stagingBuffer, texture->_image, Runtime::RHI::ImageLayout::TransferDst, imageDesc.width, imageDesc.height);
 			cmd->TransitionImageLayout(texture->_image, Runtime::RHI::ImageLayout::ShaderReadOnly);
 			texture->SetAssetState(AssetState::Ready);
-
-			Logger::Info("Texture2DImporter", "Texture loaded to GPU");
             });
 
         texture->SetAssetState(AssetState::Loaded);
