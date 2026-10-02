@@ -21,6 +21,8 @@ namespace CusEngine {
 		[[nodiscard]] const u32 GetWidth() const { return _desc.width; }
 		[[nodiscard]] const u32 GetHeight() const { return _desc.height; }
 	private:
+		static void GLFWResizeEvent(GLFWwindow* window, int width, int height);
+
 		WindowDesc _desc;
 		GLFWwindow* _handle = nullptr;
 	};

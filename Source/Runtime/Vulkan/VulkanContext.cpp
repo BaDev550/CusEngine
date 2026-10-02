@@ -22,7 +22,7 @@
 
 namespace Runtime::RHI {
 #define ENABLE_FEATURE_IF_SUPPORTED(supported, feature) \
-	Logger::Info("rhi_object_vulkan_context", "{}: [{}, {}]", #supported, feature ? "Supported" : "Not supported", _desc.features.supported ? "Enabled" : "Disabled"); \
+	Logger::Info("RHIContextVulkan", "{}: [{}, {}]", #supported, feature ? "Supported" : "Not supported", _desc.features.supported ? "Enabled" : "Disabled"); \
 	if (_desc.features.supported && !feature) { throw std::runtime_error(#supported " is not supported"); } \
 	else { feature = _desc.features.supported; }
 
@@ -32,7 +32,7 @@ namespace Runtime::RHI {
 		const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
 		void* pUserData) {
 
-		Logger::Error("rhi_object_vulkan_context", "%s", pCallbackData->pMessage);
+		Logger::Error("RHIContextVulkan", "%s", pCallbackData->pMessage);
 		return VK_FALSE;
 	}
 
@@ -84,7 +84,7 @@ namespace Runtime::RHI {
 			CreateGlobalDescriptors();
 		}
 		catch (const std::runtime_error& err) {
-			Logger::Assert(false, "rhi_object_vulkan_context", "{}", err.what());
+			Logger::Assert(false, "RHIContextVulkan", "{}", err.what());
 		}
 	}
 
@@ -198,7 +198,7 @@ namespace Runtime::RHI {
 		buffer->_mappedPtr = info.pMappedData;
 		buffer->_allocationSize = info.size;
 
-		buffer->SetObjectDebugName("ROV_buffer");
+		buffer->SetObjectDebugName("RHIObjectBuffer");
 		return buffer;
 	}
 
@@ -208,7 +208,7 @@ namespace Runtime::RHI {
 		VkSampler requestedSampler = _samplers[static_cast<usize>(desc.sampler)];
 
 		if (requestedSampler == VK_NULL_HANDLE) {
-			Logger::Fatal("VulkanContext", "Requested image sampler has not been initialized");
+			Logger::Fatal("RHIContextVulkan", "Requested image sampler has not been initialized");
 			return nullptr;
 		}
 
@@ -253,14 +253,14 @@ namespace Runtime::RHI {
 			vkCreateImageView(_device, &viewInfo, nullptr, &image->_imageView);
 		}
 
-		image->SetObjectDebugName("ROV_image");
+		image->SetObjectDebugName("RHIObjectImage");
 		return image;
 	}
 
 	Swapchain* VulkanContext::CreateSwapchain(const SwapchainDesc& desc) {
 		VulkanSwapchain* vkSwapchain = Mem::Allocator::Construct<VulkanSwapchain>(this, desc);
+		vkSwapchain->SetObjectDebugName("RHIObjectSwapchain");
 		vkSwapchain->Recreate(vkSwapchain->GetDesc());
-		vkSwapchain->SetObjectDebugName("ROV_swapchain");
 		return vkSwapchain;
 	}
 
@@ -273,7 +273,7 @@ namespace Runtime::RHI {
 		poolInfo.queueFamilyIndex = desc.queueFamilyIndex;
 		vkCreateCommandPool(_device, &poolInfo, nullptr, &pool->_commandPool);
 
-		pool->SetObjectDebugName("ROV_command_pool");
+		pool->SetObjectDebugName("RHIObjectCommandPool");
 		return pool;
 	}
 
@@ -284,7 +284,7 @@ namespace Runtime::RHI {
 		queue->_queueFamilyIndex = queueFamilyIndex;
 		vkGetDeviceQueue(_device, queueFamilyIndex, 0, &queue->_queue);
 
-		queue->SetObjectDebugName("ROV_queue");
+		queue->SetObjectDebugName("RHIObjectQueue");
 		return queue;
 	}
 
@@ -301,16 +301,16 @@ namespace Runtime::RHI {
 			tlsemaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 			tlsemaphoreCreateInfo.pNext = &tlsemaphoreTypeInfo;
 
-			Logger::Assert((vkCreateSemaphore(_device, &tlsemaphoreCreateInfo, nullptr, &fence->_semaphore) == VK_SUCCESS), "VulkanContext", "Failed to create timeline semaphore!");
+			Logger::Assert((vkCreateSemaphore(_device, &tlsemaphoreCreateInfo, nullptr, &fence->_semaphore) == VK_SUCCESS), "RHIContextVulkan", "Failed to create timeline semaphore!");
 		}
 		else if (desc.type == SemaphoreType::Binary) {
 			VkSemaphoreCreateInfo createInfo{};
 			createInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 			
-			Logger::Assert((vkCreateSemaphore(_device, &createInfo, nullptr, &fence->_semaphore) == VK_SUCCESS), "VulkanContext", "Failed to create render finished binary semaphore!");
+			Logger::Assert((vkCreateSemaphore(_device, &createInfo, nullptr, &fence->_semaphore) == VK_SUCCESS), "RHIContextVulkan", "Failed to create render finished binary semaphore!");
 		}
 
-		fence->SetObjectDebugName("ROV_fence");
+		fence->SetObjectDebugName("RHIObjectFence");
 		return fence;
 	}
 
@@ -325,7 +325,7 @@ namespace Runtime::RHI {
 
 			VkShaderModule shaderModule;
 			if (vkCreateShaderModule(_device, &moduleCreateInfo, nullptr, &shaderModule) != VK_SUCCESS) {
-				Logger::Error("VulkanContext", "Failed to load shader shader module cannot be created!");
+				Logger::Error("RHIContextVulkan", "Failed to load shader shader module cannot be created!");
 				return nullptr;
 			}
 			return shaderModule;
@@ -497,7 +497,7 @@ namespace Runtime::RHI {
 			createInfo.renderPass = VK_NULL_HANDLE;
 
 			if (vkCreateGraphicsPipelines(_device, VK_NULL_HANDLE, 1, &createInfo, nullptr, &pipeline->_pipeline) != VK_SUCCESS) {
-				Logger::Error("VulkanContext", "Failed to create pipeline!");
+				Logger::Error("RHIContextVulkan", "Failed to create pipeline!");
 				return nullptr;
 			}
 			if (vertModule != VK_NULL_HANDLE) vkDestroyShaderModule(_device, vertModule, nullptr);
@@ -694,7 +694,7 @@ namespace Runtime::RHI {
 		if (vkCreateInstance(&createInfo, nullptr, &_instance) != VK_SUCCESS) {
 			throw std::runtime_error("Failed to create vulkan istance");
 		}
-		Logger::Info("rhi_object_vulkan_context", "Vulkan instance created");
+		Logger::Info("RHIContextVulkan", "Vulkan instance created");
 	}
 
 	void VulkanContext::CreateVMA() {
@@ -739,9 +739,9 @@ namespace Runtime::RHI {
 
 		VkPhysicalDeviceProperties properties;
 		vkGetPhysicalDeviceProperties(_physicalDevice, &properties);
-		Logger::Info("rhi_object_vulkan_context", "Selected GPU: {}", properties.deviceName);
-		Logger::Info("rhi_object_vulkan_context", "Vulkan API version: {}.{}.{}", VK_VERSION_MAJOR(properties.apiVersion), VK_VERSION_MINOR(properties.apiVersion), VK_VERSION_PATCH(properties.apiVersion));
-		Logger::Info("rhi_object_vulkan_context", "Driver version: {}.{}.{}", VK_VERSION_MAJOR(properties.driverVersion), VK_VERSION_MINOR(properties.driverVersion), VK_VERSION_PATCH(properties.driverVersion));
+		Logger::Info("RHIContextVulkan", "Selected GPU: {}", properties.deviceName);
+		Logger::Info("RHIContextVulkan", "Vulkan API version: {}.{}.{}", VK_VERSION_MAJOR(properties.apiVersion), VK_VERSION_MINOR(properties.apiVersion), VK_VERSION_PATCH(properties.apiVersion));
+		Logger::Info("RHIContextVulkan", "Driver version: {}.{}.{}", VK_VERSION_MAJOR(properties.driverVersion), VK_VERSION_MINOR(properties.driverVersion), VK_VERSION_PATCH(properties.driverVersion));
 	}
 
 	void VulkanContext::CreateSamplers() {
@@ -761,7 +761,7 @@ namespace Runtime::RHI {
 			samplerInfo.compareEnable = compEnable;
 			samplerInfo.mipmapMode = mipMode;
 
-			Logger::Assert((vkCreateSampler(_device, &samplerInfo, nullptr, &resultSampler) == VK_SUCCESS), "VulkanContext", "Failed to create sampler");
+			Logger::Assert((vkCreateSampler(_device, &samplerInfo, nullptr, &resultSampler) == VK_SUCCESS), "RHIContextVulkan", "Failed to create sampler");
 			return resultSampler;
 			};
 
@@ -804,7 +804,7 @@ namespace Runtime::RHI {
 			&_globalSamplerLayout
 		);
 
-		Logger::Assert(result == VK_SUCCESS, "VulkanContext", "Failed to create global sampler layout");
+		Logger::Assert(result == VK_SUCCESS, "RHIContextVulkan", "Failed to create global sampler layout");
 
 		VkDescriptorSetAllocateInfo samplerAllocInfo{};
 		samplerAllocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
@@ -820,7 +820,7 @@ namespace Runtime::RHI {
 
 		Logger::Assert(
 			result == VK_SUCCESS,
-			"VulkanContext",
+			"RHIContextVulkan",
 			"Failed to allocate sampler descriptor set"
 		);
 
@@ -875,7 +875,7 @@ namespace Runtime::RHI {
 		poolInfo.pPoolSizes = size;
 
 		VkResult result = vkCreateDescriptorPool(_device, &poolInfo, nullptr, &_bindlessDescriptorPool);
-		Logger::Assert(result == VK_SUCCESS, "VulkanContext", "Failed to create bindless descriptor pool");
+		Logger::Assert(result == VK_SUCCESS, "RHIContextVulkan", "Failed to create bindless descriptor pool");
 
 		VkDescriptorSetLayoutBinding textureBinding{};
 		textureBinding.binding = 0;
@@ -908,7 +908,7 @@ namespace Runtime::RHI {
 		layoutInfo.pBindings = bindings;
 
 		result = vkCreateDescriptorSetLayout(_device, &layoutInfo, nullptr, &_bindlessDescriptorLayout);
-		Logger::Assert(result == VK_SUCCESS, "VulkanContext", "Failed to create bindless descriptor set layout");
+		Logger::Assert(result == VK_SUCCESS, "RHIContextVulkan", "Failed to create bindless descriptor set layout");
 
 		VkDescriptorSetAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
@@ -917,9 +917,9 @@ namespace Runtime::RHI {
 		allocInfo.pSetLayouts = &_bindlessDescriptorLayout;
 
 		result = vkAllocateDescriptorSets(_device, &allocInfo, &_bindlessDescriptorSet);
-		Logger::Assert(result == VK_SUCCESS, "VulkanContext", "Failed to allocate bindless descriptor set");
+		Logger::Assert(result == VK_SUCCESS, "RHIContextVulkan", "Failed to allocate bindless descriptor set");
 
-		Logger::Info("rhi_object_vulkan_context", "Bindless descriptor pool and layouts created successfully");
+		Logger::Info("RHIContextVulkan", "Bindless descriptor pool and layouts created successfully");
 	}
 
 	void VulkanContext::CreateDevice() {
@@ -972,7 +972,7 @@ namespace Runtime::RHI {
 
 		vkGetDeviceQueue(_device, _graphicsAndPresentQueue->GetQueueFamilyIndex(), 0, &_graphicsAndPresentQueue->_queue);
 		
-		Logger::Info("rhi_object_vulkan_context", "Logical device created");
+		Logger::Info("RHIContextVulkan", "Logical device created");
 	}
 
 	void VulkanContext::CreateSurface() {

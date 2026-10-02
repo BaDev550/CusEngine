@@ -18,8 +18,7 @@ namespace Runtime::RHI {
 		if (surfaceCaps.currentExtent.width != 0xFFFFFFFF) {
 			_extent.x = surfaceCaps.currentExtent.width;
 			_extent.y = surfaceCaps.currentExtent.height;
-		}
-		else {
+		} else {
 			_extent.x = std::clamp(desc.width, surfaceCaps.minImageExtent.width, surfaceCaps.maxImageExtent.width);
 			_extent.y = std::clamp(desc.height, surfaceCaps.minImageExtent.height, surfaceCaps.maxImageExtent.height);
 		}
@@ -42,7 +41,7 @@ namespace Runtime::RHI {
 		createInfo.preTransform = surfaceCaps.currentTransform;
 		createInfo.presentMode = _desc.vsync ? VK_PRESENT_MODE_FIFO_KHR : VK_PRESENT_MODE_IMMEDIATE_KHR;
 		Logger::Assert((vkCreateSwapchainKHR(vkContext->GetDevice(), &createInfo, nullptr, &_swapchain) == VK_SUCCESS), GetObjectDebugName(), "Failed to create swapchain");
-		Logger::Info(GetObjectDebugName(), "Swapchain created!");
+		Logger::Info(GetObjectDebugName(), "Swapchain created: width:{}, height:{}", desc.width, desc.height);
 
 		{
 			std::vector<VkImage> vkImages;
