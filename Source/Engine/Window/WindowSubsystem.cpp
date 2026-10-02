@@ -11,7 +11,7 @@ namespace CusEngine {
 		if (!_glfwInitialized) {
 			Logger::Assert(glfwInit(), "GLFW", "Failed to initialize GLFW context");
 			glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-			glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+			glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 			_glfwInitialized = true;
 		}
 

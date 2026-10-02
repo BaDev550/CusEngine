@@ -12,13 +12,13 @@
 #include <imgui.h>
 
 namespace CusEngine {
-	Runtime::Result RenderSubsystem::OnCreate(Engine* engine) {
+	Result RenderSubsystem::OnCreate(Engine* engine) {
 		Subsystem::OnCreate(engine);
 
 		auto window = engine->GetSubsystem<WindowSubsystem>()->GetWindow();
-		if (!window) { return Runtime::Result("Failed to find window"); }
+		if (!window) { return Result("Failed to find window"); }
 
-		Runtime::RHI::ContextDesc contextDesc{};
+		RHI::ContextDesc contextDesc{};
 #ifdef _DEBUG
 		contextDesc.enableValidationLayer = true;
 #endif
@@ -32,54 +32,87 @@ namespace CusEngine {
 		contextDesc.features.samplerAnisotropy = true;
 		contextDesc.windowHandle = window->GetHandle();
 
-		Runtime::RHI::SwapchainDesc swapchainDesc{};
+		RHI::SwapchainDesc swapchainDesc{};
 		swapchainDesc.width = window->GetWidth();
 		swapchainDesc.height = window->GetHeight();
 		swapchainDesc.vsync = false;
 
 		BEGIN_SCOPE(RHIInitilization)
-		_context = Runtime::RHI::CreateContext(contextDesc);
-		if (!_context) return Runtime::Result("Failed to create context");
+		_context = RHI::CreateContext(contextDesc);
+		if (!_context) 
+			return Result("Failed to create context");
 		_context->InitializeImGui();
 
 		_swapchain = _context->CreateSwapchain(swapchainDesc);
 
 		{
 			for (auto& fd : _frames) {
-				Runtime::RHI::CommandPoolDesc cmdPoolDesc{};
+				RHI::CommandPoolDesc cmdPoolDesc{};
 				cmdPoolDesc.queueFamilyIndex = _context->GetGraphicsQueue()->GetQueueFamilyIndex();
-				cmdPoolDesc.usage = Runtime::RHI::CommandPoolUsage::Resettable;
+				cmdPoolDesc.usage = RHI::CommandPoolUsage::Resettable;
 				fd.commandPool = _context->CreateCommandPool(cmdPoolDesc);
 
-				Runtime::RHI::CommandBufferDesc cmdBufferDesc{};
-				cmdBufferDesc.type = Runtime::RHI::CommandBufferType::Primary;
+				RHI::CommandBufferDesc cmdBufferDesc{};
+				cmdBufferDesc.type = RHI::CommandBufferType::Primary;
 				fd.commandBuffer = fd.commandPool->AllocateCommandBuffer(cmdBufferDesc);
 
-				Runtime::RHI::FenceDesc fenceDesc{};
-				fenceDesc.type = Runtime::RHI::SemaphoreType::Binary;
+				RHI::FenceDesc fenceDesc{};
+				fenceDesc.type = RHI::SemaphoreType::Binary;
 				fd.imageAvailableFence = _context->CreateFence(fenceDesc);
 			}
 		}
 
 		{
-			Runtime::RHI::FenceDesc fenceDesc{};
+			RHI::FenceDesc fenceDesc{};
 			fenceDesc.initialValue = MaxFramesInFlight;
-			fenceDesc.type = Runtime::RHI::SemaphoreType::Timeline;
+			fenceDesc.type = RHI::SemaphoreType::Timeline;
 			_timelineFence = _context->CreateFence(fenceDesc);
 		}
 
 		{
 			_renderFinishedFences.reserve(_swapchain->GetImageCount());
 			for (usize i = 0; i < _swapchain->GetImageCount(); i++) {
-				Runtime::RHI::FenceDesc fenceDesc{};
-				fenceDesc.type = Runtime::RHI::SemaphoreType::Binary;
+				RHI::FenceDesc fenceDesc{};
+				fenceDesc.type = RHI::SemaphoreType::Binary;
 				_renderFinishedFences.push_back(_context->CreateFence(fenceDesc));
 			}
 		}
 
+		{
+			RHI::ImageDesc imageDesc{};
+			imageDesc.width = 1;
+			imageDesc.height = 1;
+			imageDesc.format = RHI::Format::RGBA8;
+			imageDesc.usage = RHI::ImageUsage::Sampled | RHI::ImageUsage::TransferDst;
+			imageDesc.view.type = RHI::ImageViewType::Image2D;
+			imageDesc.tileMode = RHI::ImageTileMode::Optimal;
+			imageDesc.sampler = RHI::StaticSampler::NearestClamp;
+			u32 whiteImageData = COLOR_WHITE;
+
+			_defaultWhiteImage = _context->CreateImage(imageDesc);
+			
+			Submit([=](RHI::CommandBuffer* cmd) {
+				RHI::BufferDesc desc{};
+				desc.usage = RHI::BufferUsage::TransferSrc;
+				desc.memoryUsage = RHI::MemoryUsage::CPUToGPU;
+				desc.allocationFlags = RHI::AllocationFlagBits::HostAccessSequentialWrite | RHI::AllocationFlagBits::CreateMapped;
+				desc.size = sizeof(u32);
+				RHI::Buffer* stagingBuffer = _context->CreateBuffer(desc);
+				stagingBuffer->SetObjectDebugName("ROV_texture2D_staging_buffer");
+				stagingBuffer->Write(&whiteImageData);
+
+				Track(stagingBuffer);
+
+				cmd->TransitionImageLayout(_defaultWhiteImage, RHI::ImageLayout::TransferDst);
+				cmd->CopyBufferToImage(stagingBuffer, _defaultWhiteImage, RHI::ImageLayout::TransferDst, imageDesc.width, imageDesc.height);
+				cmd->TransitionImageLayout(_defaultWhiteImage, RHI::ImageLayout::ShaderReadOnly);
+				_defaultWhiteImage->GetBindlessIndex();
+				});
+		}
+
 		END_SCOPE(RHIInitilization)
 		
-		return Runtime::Result();
+		return Result();
 	}
 
 	void RenderSubsystem::OnUpdate() { }
@@ -89,18 +122,20 @@ namespace CusEngine {
 
 		_context->WaitDeviceIdle();
 
-		for (auto& fence : _renderFinishedFences) { Runtime::Mem::Allocator::Destroy<Runtime::RHI::Fence>(fence); }
+		Mem::Allocator::Destroy<RHI::Image>(_defaultWhiteImage);
+
+		for (auto& fence : _renderFinishedFences) { Mem::Allocator::Destroy<RHI::Fence>(fence); }
 		for (auto& frame : _frames) {
-			Runtime::Mem::Allocator::Destroy<Runtime::RHI::CommandBuffer>(frame.commandBuffer);
-			Runtime::Mem::Allocator::Destroy<Runtime::RHI::CommandPool>(frame.commandPool);
-			Runtime::Mem::Allocator::Destroy<Runtime::RHI::Fence>(frame.imageAvailableFence);
+			Mem::Allocator::Destroy<RHI::CommandBuffer>(frame.commandBuffer);
+			Mem::Allocator::Destroy<RHI::CommandPool>(frame.commandPool);
+			Mem::Allocator::Destroy<RHI::Fence>(frame.imageAvailableFence);
 		}
 
-		Runtime::Mem::Allocator::Destroy<Runtime::RHI::Fence>(_timelineFence);
-		Runtime::Mem::Allocator::Destroy<Runtime::RHI::Swapchain>(_swapchain);
+		Mem::Allocator::Destroy<RHI::Fence>(_timelineFence);
+		Mem::Allocator::Destroy<RHI::Swapchain>(_swapchain);
 		_context->DestroyImGui();
 		_context->Shutdown();
-		Runtime::Mem::Allocator::Destroy<Runtime::RHI::Context>(_context);
+		Mem::Allocator::Destroy<RHI::Context>(_context);
 	}
 
 	void RenderSubsystem::GetDependencyGraph(DependencyGraph & graph) {
@@ -123,7 +158,7 @@ namespace CusEngine {
 
 		_timelineFence->Wait(waitValue);
 
-		Runtime::Result result = _swapchain->AcquireNextImage(_imageIndex, frame.imageAvailableFence);
+		Result result = _swapchain->AcquireNextImage(_imageIndex, frame.imageAvailableFence);
 		if (result.GetMessage() == "SwapchainIsOutOfDate") {
 			_recreateSwapchainNextFrame = true;
 			BeginFrame();
@@ -133,7 +168,7 @@ namespace CusEngine {
 			_recreateSwapchainNextFrame = true;
 		}
 
-		for (auto& fo : frame.trackedObjects) { Runtime::Mem::Allocator::Destroy(fo); }
+		for (auto& fo : frame.trackedObjects) { Mem::Allocator::Destroy(fo); }
 		frame.trackedObjects.clear();
 
 		frame.commandPool->Reset();
@@ -148,7 +183,7 @@ namespace CusEngine {
 		if (!_frameRecording) return;
 
 		FrameData* frame = GetCurrentFrameData();
-		Runtime::RHI::Queue* graphicsQueue = _context->GetGraphicsQueue();
+		RHI::Queue* graphicsQueue = _context->GetGraphicsQueue();
 
 		frame->commandBuffer->End();
 
@@ -165,19 +200,20 @@ namespace CusEngine {
 	}
 
 	void RenderSubsystem::Submit(CommandFunc func) { _commandQueue.push_back(func); }
-	void RenderSubsystem::Track(Runtime::RHI::Object* object) { GetCurrentFrameData()->trackedObjects.push_back(object); }
+
+	void RenderSubsystem::Track(RHI::Object* object) { GetCurrentFrameData()->trackedObjects.push_back(object); }
 
 	void RenderSubsystem::BeginSwapchainPass() {
 		FrameData* fd = GetCurrentFrameData();
 
-		Runtime::RHI::Image* colorAttachmentImage = _swapchain->GetColorAttachments()[_imageIndex];
-		Runtime::RHI::Image* depthAttachmentImage = _swapchain->GetDepthAttachment();
+		RHI::Image* colorAttachmentImage = _swapchain->GetColorAttachments()[_imageIndex];
+		RHI::Image* depthAttachmentImage = _swapchain->GetDepthAttachment();
 
-		Runtime::RHI::ColorAttachment colorAttachment{};
+		RHI::ColorAttachment colorAttachment{};
 		colorAttachment.image = colorAttachmentImage;
 		colorAttachment.clearColor = glm::vec4(0.1f, 0.1f, 0.1f, 1.0f);
 
-		Runtime::RHI::RenderingSubmitInfo info{};
+		RHI::RenderingSubmitInfo info{};
 		info.colorAttachments = { colorAttachment };
 		info.depthAttachment = depthAttachmentImage;
 		info.extent = _swapchain->GetExtent();
@@ -189,10 +225,10 @@ namespace CusEngine {
 	{
 		FrameData* fd = GetCurrentFrameData();
 
-		Runtime::RHI::Image* colorAttachmentImage = _swapchain->GetColorAttachments()[_imageIndex];
+		RHI::Image* colorAttachmentImage = _swapchain->GetColorAttachments()[_imageIndex];
 
 		fd->commandBuffer->EndDynamicRendering();
-		fd->commandBuffer->TransitionImageLayout(colorAttachmentImage, Runtime::RHI::ImageLayout::PresentSrc);
+		fd->commandBuffer->TransitionImageLayout(colorAttachmentImage, RHI::ImageLayout::PresentSrc);
 	}
 
 	RenderSubsystem::FrameData* RenderSubsystem::GetCurrentFrameData() {

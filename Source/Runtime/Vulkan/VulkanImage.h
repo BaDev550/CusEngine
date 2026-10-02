@@ -32,6 +32,7 @@ namespace Runtime::RHI {
 		VmaAllocation _allocation = VK_NULL_HANDLE;
 		u32 _bindessId = u32_max;
 		u32 _samplerId = u32_max;
+		ImageLayout _layout = ImageLayout::Undefined;
 
 		friend class VulkanContext;
 		friend class VulkanSwapchain;

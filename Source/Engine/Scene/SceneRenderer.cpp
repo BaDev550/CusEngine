@@ -1,6 +1,7 @@
 #include "SceneRenderer.h"
 
 #include <Engine/Asset/AssetSubsystem.h>
+#include <Engine/Window/WindowSubsystem.h>
 #include <Engine/Asset/Texture/Texture2D.h>
 
 #include <imgui.h>
@@ -38,10 +39,13 @@ namespace CusEngine {
 
 	void SceneRendererSubsystem::OnUpdate() {
 		auto renderSystem = _engine->GetSubsystem<RenderSubsystem>();
+		auto context = renderSystem->GetContext();
+		auto swapchain = renderSystem->GetSwapchain();
 
 		renderSystem->BeginFrame();
 
 		Runtime::RHI::CommandBuffer* cmd = renderSystem->GetCurrentFrameData()->commandBuffer;
+
 		cmd->BeginImGui();
 		ImGui::NewFrame();
 

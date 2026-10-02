@@ -41,7 +41,6 @@ namespace CusEngine {
         imageDesc.sampler = Runtime::RHI::StaticSampler::NearestClamp;
         imageDesc.view.type = Runtime::RHI::ImageViewType::Image2D;
         imageDesc.usage = Runtime::RHI::ImageUsage::Sampled | Runtime::RHI::ImageUsage::TransferDst;
-        imageDesc.layout = Runtime::RHI::ImageLayout::Undefined;
         imageDesc.tileMode = Runtime::RHI::ImageTileMode::Optimal;
 
         AssetHeader header{};

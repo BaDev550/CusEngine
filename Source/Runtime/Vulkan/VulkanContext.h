@@ -39,6 +39,7 @@ namespace Runtime::RHI {
 		void CopyBuffer(VkCommandBuffer cmd, size_t size, VkBuffer srcBuffer, VkBuffer dstBuffer);
 		void TransitionImageLayout(VkCommandBuffer cmd, Image* image, ImageLayout newLayout);
 		u32 RegisterBindlessImage(Image* image);
+		void UnregisterBindlessImage(Image* image);
 		u32 GetSamplerId(StaticSampler sampler);
 
 		[[nodiscard]] VkInstance GetInstance() const { return _instance; }

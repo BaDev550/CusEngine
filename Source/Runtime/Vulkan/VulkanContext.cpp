@@ -541,10 +541,11 @@ namespace Runtime::RHI {
 	}
 
 	void VulkanContext::TransitionImageLayout(VkCommandBuffer cmd, Image* image, ImageLayout newLayout) {
-		if (image->GetDesc()->layout == newLayout) return;
-
 		VulkanImage* vkImage = static_cast<VulkanImage*>(image);
-		VkImageLayout vkOldLayout = Utils::GetVkImageLayout(image->GetDesc()->layout);
+
+		if (vkImage->_layout == newLayout) return;
+
+		VkImageLayout vkOldLayout = Utils::GetVkImageLayout(vkImage->_layout);
 		VkImageLayout vkNewLayout = Utils::GetVkImageLayout(newLayout);
 		VkCommandBuffer vkCmd = reinterpret_cast<VkCommandBuffer>(cmd);
 
@@ -610,7 +611,7 @@ namespace Runtime::RHI {
 			return;
 		}
 		vkCmdPipelineBarrier(vkCmd, srcStage, dstStage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
-		vkImage->_desc.layout = newLayout;
+		vkImage->_layout = newLayout;
 	}
 
 	u32 VulkanContext::RegisterBindlessImage(Image* image) {
@@ -619,7 +620,7 @@ namespace Runtime::RHI {
 
 		VkDescriptorImageInfo imageInfo{};
 		imageInfo.imageView = vkImage->_imageView;
-		imageInfo.imageLayout = Utils::GetVkImageLayout(vkImage->GetDesc()->layout);
+		imageInfo.imageLayout = Utils::GetVkImageLayout(vkImage->_layout);
 
 		VkWriteDescriptorSet write{};
 		write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -631,7 +632,29 @@ namespace Runtime::RHI {
 		write.pImageInfo = &imageInfo;
 
 		vkUpdateDescriptorSets(_device, 1, &write, 0, nullptr);
+		_bindlessImages.push_back(image);
 		return index;
+	}
+
+	void VulkanContext::UnregisterBindlessImage(Image* image)
+	{
+		VulkanImage* vkImage = static_cast<VulkanImage*>(image);
+		VulkanImage* defaultVkImage = static_cast<VulkanImage*>(_bindlessImages[0]);
+
+		VkDescriptorImageInfo imageInfo{};
+		imageInfo.imageView = defaultVkImage->_imageView;
+		imageInfo.imageLayout = Utils::GetVkImageLayout(defaultVkImage->_layout);
+
+		VkWriteDescriptorSet write{};
+		write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		write.dstSet = _bindlessDescriptorSet;
+		write.dstBinding = 0;
+		write.dstArrayElement = image->GetBindlessIndex();
+		write.descriptorCount = 1;
+		write.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+		write.pImageInfo = &imageInfo;
+
+		vkUpdateDescriptorSets(_device, 1, &write, 0, nullptr);
 	}
 
 	u32 VulkanContext::GetSamplerId(StaticSampler sampler) {

@@ -2,6 +2,7 @@
 #include <Runtime/Vulkan/VulkanContext.h>
 #include <Runtime/Vulkan/VulkanFence.h>
 #include <Runtime/Memory/Memory.h>
+#include <algorithm>
 
 namespace Runtime::RHI {
 	VulkanSwapchain::VulkanSwapchain(Context* context, const SwapchainDesc& desc) : Swapchain(context), _desc(desc) { }
@@ -11,11 +12,19 @@ namespace Runtime::RHI {
 
 	void VulkanSwapchain::Recreate(const SwapchainDesc& desc) {
 		VulkanContext* vkContext = GetOwningRHIContext<VulkanContext>();
-
-		_extent.x = desc.width;
-		_extent.y = desc.height;
 		VkSurfaceCapabilitiesKHR surfaceCaps{};
 		Logger::Assert((vkGetPhysicalDeviceSurfaceCapabilitiesKHR(vkContext->GetPhysicalDevice(), vkContext->GetSurface(), &surfaceCaps) == VK_SUCCESS), GetObjectDebugName(), "Failed to get surface caps");
+
+		if (surfaceCaps.currentExtent.width != 0xFFFFFFFF) {
+			_extent.x = surfaceCaps.currentExtent.width;
+			_extent.y = surfaceCaps.currentExtent.height;
+		}
+		else {
+			_extent.x = std::clamp(desc.width, surfaceCaps.minImageExtent.width, surfaceCaps.maxImageExtent.width);
+			_extent.y = std::clamp(desc.height, surfaceCaps.minImageExtent.height, surfaceCaps.maxImageExtent.height);
+		}
+
+		if (_extent.x == 0 || _extent.y == 0) { return; }
 
 		uint32_t requestedImageCount = std::max(2u, surfaceCaps.minImageCount);
 		if (surfaceCaps.maxImageCount > 0) requestedImageCount = std::min(requestedImageCount, surfaceCaps.maxImageCount);
@@ -50,7 +59,6 @@ namespace Runtime::RHI {
 				attachmentDesc.width = _extent.x;
 				attachmentDesc.height = _extent.y;
 				attachmentDesc.format = _colorFormat;
-				attachmentDesc.layout = ImageLayout::Undefined;
 				attachmentDesc.usage = ImageUsage::ColorAttachment;
 				VulkanImage* vkColorAttachment = Mem::Allocator::Construct<VulkanImage>(vkContext, attachmentDesc);
 
@@ -80,7 +88,6 @@ namespace Runtime::RHI {
 				depthAttachmentDesc.width = _extent.x;
 				depthAttachmentDesc.height = _extent.y;
 				depthAttachmentDesc.format = _depthFormat;
-				depthAttachmentDesc.layout = ImageLayout::Undefined;
 				depthAttachmentDesc.usage = ImageUsage::DepthStencilAttachment;
 
 				VulkanImage* depthAttachment = static_cast<VulkanImage*>(_context->CreateImage(depthAttachmentDesc));

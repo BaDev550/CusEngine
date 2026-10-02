@@ -11,6 +11,8 @@ namespace CusEngine {
 
 		virtual void GetDependencyGraph(DependencyGraph& graph) override;
 	private:
+		bool _recreateSwapchainNextFrame = false;
+
 		struct SpritePushConstant {
 			u32 textureID;
 			u32 samplerID;

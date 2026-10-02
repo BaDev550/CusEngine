@@ -17,6 +17,5 @@ namespace Runtime::RHI {
 		Format format = Format::Undefined;
 		ImageUsage usage = ImageUsage::None;
 		ImageTileMode tileMode = ImageTileMode::Repeat;
-		ImageLayout layout = ImageLayout::Undefined;
 	};
 }

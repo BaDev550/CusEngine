@@ -5,7 +5,9 @@
 namespace Runtime::RHI {
 	VulkanBuffer::VulkanBuffer(Context* context, const BufferDesc& desc) : Buffer(context), _desc(desc) {}
 	VulkanBuffer::~VulkanBuffer() {
-		Logger::Info(GetObjectDebugName(), "Buffer destroyed");
+#ifdef RHI_OBJECT_DECONSTRUCT_DEBUG
+		Logger::Info(GetObjectDebugName(), "Destroyed");
+#endif
 		if (_buffer != VK_NULL_HANDLE) vmaDestroyBuffer(GetOwningRHIContext<VulkanContext>()->GetAllocator(), _buffer, _allocation);
 	}
 

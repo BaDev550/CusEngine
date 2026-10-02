@@ -14,14 +14,17 @@
 #include <Runtime/RHI/Queue/RHIQueue.h>
 
 namespace CusEngine {
-	using CommandFunc = std::function<void(Runtime::RHI::CommandBuffer* cmd)>;
+	using namespace Runtime;
+
+	using CommandFunc = std::function<void(RHI::CommandBuffer* cmd)>;
+
 	class Texture2D;
 
 	class ENGINE_API RenderSubsystem final : public Subsystem {
 	public:
 		constexpr static u32 MaxFramesInFlight = 2;
 
-		virtual Runtime::Result OnCreate(Engine* engine) override;
+		virtual Result OnCreate(Engine* engine) override;
 		virtual void OnUpdate() override;
 		virtual void OnDestroy() override;
 
@@ -30,27 +33,29 @@ namespace CusEngine {
 		void BeginFrame();
 		void EndFrame();
 		void Submit(CommandFunc func);
-		void Track(Runtime::RHI::Object* object);
+		void Track(RHI::Object* object);
 
 		void BeginSwapchainPass();
 		void EndSwapchainPass();
 
-		[[nodiscard]] Runtime::RHI::Context* GetContext() { return _context; }
-		[[nodiscard]] Runtime::RHI::Swapchain* GetSwapchain() { return _swapchain; }
+		u32 GetImageIndex() const { return _imageIndex; }
+		[[nodiscard]] RHI::Context* GetContext() { return _context; }
+		[[nodiscard]] RHI::Swapchain* GetSwapchain() { return _swapchain; }
 	private:
-		Runtime::RHI::Context* _context = nullptr;
-		Runtime::RHI::Swapchain* _swapchain = nullptr;
+		RHI::Context* _context = nullptr;
+		RHI::Swapchain* _swapchain = nullptr;
 
 		struct FrameData {
-			Runtime::RHI::CommandPool* commandPool = nullptr;
-			Runtime::RHI::CommandBuffer* commandBuffer = nullptr;
-			Runtime::RHI::Fence* imageAvailableFence = nullptr;
-			std::vector<Runtime::RHI::Object*> trackedObjects; // TODO(0x): find a better way to track objects mybe cmd
+			RHI::CommandPool* commandPool = nullptr;
+			RHI::CommandBuffer* commandBuffer = nullptr;
+			RHI::Fence* imageAvailableFence = nullptr;
+
+			std::vector<RHI::Object*> trackedObjects;
 		} _frames[MaxFramesInFlight];
 
 		std::vector<CommandFunc> _commandQueue;
-		std::vector<Runtime::RHI::Fence*> _renderFinishedFences;
-		Runtime::RHI::Fence* _timelineFence = nullptr;
+		std::vector<RHI::Fence*> _renderFinishedFences;
+		RHI::Fence* _timelineFence = nullptr;
 
 		bool _frameRecording = false;
 		u32 _imageIndex = 0;
@@ -59,6 +64,8 @@ namespace CusEngine {
 		u64 _nextSignalValue = (MaxFramesInFlight + 1);
 
 		bool _recreateSwapchainNextFrame = false;
+
+		RHI::Image* _defaultWhiteImage = nullptr;
 	public:
 		[[nodiscard]] FrameData* GetCurrentFrameData();
 	};
