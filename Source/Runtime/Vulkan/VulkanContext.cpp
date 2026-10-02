@@ -116,7 +116,8 @@ namespace Runtime::RHI {
 
 		vkCreateDescriptorPool(_device, &pool_info, nullptr, &_imguiDescriptorPool); // add check
 
-		ImGui::CreateContext();
+		auto context = ImGui::CreateContext();
+		ImGui::SetCurrentContext(context);
 		ImGui_ImplGlfw_InitForVulkan(_desc.windowHandle, true);
 
 		ImGui_ImplVulkan_InitInfo init_info = {};
@@ -541,10 +542,11 @@ namespace Runtime::RHI {
 	}
 
 	void VulkanContext::TransitionImageLayout(VkCommandBuffer cmd, Image* image, ImageLayout newLayout) {
-		if (image->GetDesc()->layout == newLayout) return;
-
 		VulkanImage* vkImage = static_cast<VulkanImage*>(image);
-		VkImageLayout vkOldLayout = Utils::GetVkImageLayout(image->GetDesc()->layout);
+
+		if (vkImage->_layout == newLayout) return;
+
+		VkImageLayout vkOldLayout = Utils::GetVkImageLayout(vkImage->_layout);
 		VkImageLayout vkNewLayout = Utils::GetVkImageLayout(newLayout);
 		VkCommandBuffer vkCmd = reinterpret_cast<VkCommandBuffer>(cmd);
 
@@ -574,6 +576,12 @@ namespace Runtime::RHI {
 			barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 			srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
 			dstStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		}
+		else if (vkOldLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL && vkNewLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
+			barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+			barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+			srcStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+			dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
 		}
 		else if (vkOldLayout == VK_IMAGE_LAYOUT_UNDEFINED && vkNewLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) {
 			barrier.srcAccessMask = 0;
@@ -610,7 +618,7 @@ namespace Runtime::RHI {
 			return;
 		}
 		vkCmdPipelineBarrier(vkCmd, srcStage, dstStage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
-		vkImage->_desc.layout = newLayout;
+		vkImage->_layout = newLayout;
 	}
 
 	u32 VulkanContext::RegisterBindlessImage(Image* image) {
@@ -619,7 +627,7 @@ namespace Runtime::RHI {
 
 		VkDescriptorImageInfo imageInfo{};
 		imageInfo.imageView = vkImage->_imageView;
-		imageInfo.imageLayout = Utils::GetVkImageLayout(vkImage->GetDesc()->layout);
+		imageInfo.imageLayout = Utils::GetVkImageLayout(vkImage->_layout);
 
 		VkWriteDescriptorSet write{};
 		write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -631,7 +639,29 @@ namespace Runtime::RHI {
 		write.pImageInfo = &imageInfo;
 
 		vkUpdateDescriptorSets(_device, 1, &write, 0, nullptr);
+		_bindlessImages.push_back(image);
 		return index;
+	}
+
+	void VulkanContext::UnregisterBindlessImage(Image* image) {
+		VulkanImage* fallbackVkImage = static_cast<VulkanImage*>(_bindlessImages[0]);
+		VkDescriptorImageInfo imageInfo{};
+		imageInfo.imageView = fallbackVkImage->_imageView;
+		imageInfo.imageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+
+		VkWriteDescriptorSet write{};
+		write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		write.dstSet = _bindlessDescriptorSet;
+		write.dstBinding = 0;
+		write.dstArrayElement = image->GetBindlessIndex();
+		write.descriptorCount = 1;
+		write.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+		write.pImageInfo = &imageInfo;
+
+		vkUpdateDescriptorSets(_device, 1, &write, 0, nullptr);
+
+		auto it = std::find(_bindlessImages.begin(), _bindlessImages.end(), image);
+		_bindlessImages.erase(it);
 	}
 
 	u32 VulkanContext::GetSamplerId(StaticSampler sampler) {
@@ -930,7 +960,7 @@ namespace Runtime::RHI {
 		ENABLE_FEATURE_IF_SUPPORTED(runtimeDescriptorArray, supportedFeatures12.runtimeDescriptorArray);
 		ENABLE_FEATURE_IF_SUPPORTED(robustBufferAccess, supportedFeatures.features.robustBufferAccess);
 		ENABLE_FEATURE_IF_SUPPORTED(samplerAnisotropy, supportedFeatures.features.samplerAnisotropy);
-
+		
 		const std::vector<const char*> deviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 		VkDeviceCreateInfo createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;

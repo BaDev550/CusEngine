@@ -11,6 +11,7 @@ namespace Runtime::RHI {
 	VulkanImage::~VulkanImage() {
 		Logger::Info(GetObjectDebugName(), "Destroyed");
 
+		if (_bindessId != u32_max) { GetOwningRHIContext<VulkanContext>()->UnregisterBindlessImage(this); }
 		if (_imageView != VK_NULL_HANDLE) vkDestroyImageView(GetOwningRHIContext<VulkanContext>()->GetDevice(), _imageView, nullptr);
 		if (_allocation != VK_NULL_HANDLE) vmaDestroyImage(GetOwningRHIContext<VulkanContext>()->GetAllocator(), _image, _allocation);
 	}
@@ -40,5 +41,5 @@ namespace Runtime::RHI {
 		return _samplerId;
 	}
 
-	[[nodiscard]] VkImageLayout VulkanImage::GetImageLayout() const { return Utils::GetVkImageLayout(_desc.layout); }
+	[[nodiscard]] VkImageLayout VulkanImage::GetImageLayout() const { return Utils::GetVkImageLayout(_layout); }
 }

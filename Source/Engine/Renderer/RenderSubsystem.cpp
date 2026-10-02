@@ -9,8 +9,6 @@
 #include <Runtime/RHI/Sync/RHIFenceDesc.h>
 #include <Runtime/RHI/Queue/RHIQueue.h>
 
-#include <imgui.h>
-
 namespace CusEngine {
 	Runtime::Result RenderSubsystem::OnCreate(Engine* engine) {
 		Subsystem::OnCreate(engine);
@@ -78,6 +76,38 @@ namespace CusEngine {
 		}
 
 		END_SCOPE(RHIInitilization)
+
+		{
+			Runtime::RHI::ImageDesc imgDesc{};
+			imgDesc.width = 1;
+			imgDesc.height = 1;
+			imgDesc.format = Runtime::RHI::Format::RGBA8;
+			imgDesc.usage = Runtime::RHI::ImageUsage::Sampled | Runtime::RHI::ImageUsage::TransferDst;
+			imgDesc.view.type = Runtime::RHI::ImageViewType::Image2D;
+			imgDesc.tileMode = Runtime::RHI::ImageTileMode::Optimal;
+			Runtime::RHI::Image* img = _context->CreateImage(imgDesc);
+
+			u32 imageData = COLOR_WHITE;
+
+			Submit([img, imgDesc, imageData, this](Runtime::RHI::CommandBuffer* cmd) {
+				Runtime::RHI::BufferDesc desc{};
+				desc.usage = Runtime::RHI::BufferUsage::TransferSrc;
+				desc.memoryUsage = Runtime::RHI::MemoryUsage::CPUToGPU;
+				desc.allocationFlags = Runtime::RHI::AllocationFlagBits::HostAccessSequentialWrite | Runtime::RHI::AllocationFlagBits::CreateMapped;
+				desc.size = sizeof(u32);
+
+				Runtime::RHI::Buffer* stagingBuffer = _context->CreateBuffer(desc);
+				stagingBuffer->SetObjectDebugName("ROV_texture2D_staging_buffer");
+				stagingBuffer->Write(&imageData);
+
+				Track(stagingBuffer);
+
+				cmd->TransitionImageLayout(img, Runtime::RHI::ImageLayout::TransferDst);
+				cmd->CopyBufferToImage(stagingBuffer, img, Runtime::RHI::ImageLayout::TransferDst, imgDesc.width, imgDesc.height);
+				cmd->TransitionImageLayout(img, Runtime::RHI::ImageLayout::ShaderReadOnly);
+				img->GetBindlessIndex();
+				});
+		}
 		
 		return Runtime::Result();
 	}
@@ -164,8 +194,25 @@ namespace CusEngine {
 		graphicsQueue->Present(_swapchain, _imageIndex, { _renderFinishedFences[_imageIndex] });
 	}
 
-	void RenderSubsystem::Submit(CommandFunc func) { _commandQueue.push_back(func); }
+	void RenderSubsystem::Submit(CommandFunc func) { _commandQueue.push_back(std::move(func)); }
+	void RenderSubsystem::DrawImGui(ImGuiFunc func) { _imguiCommandsQueue.push_back(std::move(func)); }
+
 	void RenderSubsystem::Track(Runtime::RHI::Object* object) { GetCurrentFrameData()->trackedObjects.push_back(object); }
+
+	void RenderSubsystem::BeginImGuiPass() {
+		Runtime::RHI::CommandBuffer* cmd = GetCurrentFrameData()->commandBuffer;
+		cmd->BeginImGui();
+		ImGui::NewFrame();
+
+		for (auto& func : _imguiCommandsQueue) { func(); }
+		_imguiCommandsQueue.clear();
+	}
+
+	void RenderSubsystem::EndImGuiPass() {
+		Runtime::RHI::CommandBuffer* cmd = GetCurrentFrameData()->commandBuffer;
+		ImGui::Render();
+		cmd->RenderImGui();
+	}
 
 	void RenderSubsystem::BeginSwapchainPass() {
 		FrameData* fd = GetCurrentFrameData();
@@ -194,6 +241,8 @@ namespace CusEngine {
 		fd->commandBuffer->EndDynamicRendering();
 		fd->commandBuffer->TransitionImageLayout(colorAttachmentImage, Runtime::RHI::ImageLayout::PresentSrc);
 	}
+
+	ImGuiContext* RenderSubsystem::GetImGuiContext() { return ImGui::GetCurrentContext(); }
 
 	RenderSubsystem::FrameData* RenderSubsystem::GetCurrentFrameData() {
 		Logger::Assert(_frameRecording, "RenderSubsystem", "No active frame");

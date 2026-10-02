@@ -7,13 +7,20 @@
 
 namespace CusEngine {
     Texture2D::Texture2D(const Runtime::RHI::ImageDesc& desc) {
-        auto* renderSubsystem = Engine::Get()->GetSubsystem<RenderSubsystem>();
-        auto* rhi_context = renderSubsystem->GetContext();
-        
-        _image = rhi_context->CreateImage(desc);
+        CreateImage(desc);
     }
 
     Texture2D::~Texture2D() {
         Runtime::Mem::Allocator::Destroy(_image);
     }
+
+	void Texture2D::CreateImage(const Runtime::RHI::ImageDesc& desc)
+	{
+        if (!_image) {
+			auto* renderSubsystem = Engine::Get()->GetSubsystem<RenderSubsystem>();
+			auto* rhi_context = renderSubsystem->GetContext();
+
+			_image = rhi_context->CreateImage(desc);
+        }
+	}
 }

@@ -10,6 +10,8 @@ namespace CusEngine {
 		Texture2D(const Runtime::RHI::ImageDesc& desc);
 		~Texture2D();
 
+		void CreateImage(const Runtime::RHI::ImageDesc& desc);
+
 		Runtime::RHI::Image* _image = nullptr;
 	};
 }

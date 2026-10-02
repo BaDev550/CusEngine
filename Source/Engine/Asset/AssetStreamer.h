@@ -14,6 +14,7 @@ namespace CusEngine {
 		virtual ~AssetStreamer() = default;
 
 		virtual Runtime::Result Cook(AssetSource& source) { return Runtime::Result(); }
+		virtual Runtime::Result Reimport(Asset* asset) { return Runtime::Result(); }
 		virtual Asset* Import(AssetSource& source) { return nullptr; }
 	};
 }

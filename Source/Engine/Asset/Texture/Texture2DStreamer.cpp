@@ -1,6 +1,7 @@
 #include "Texture2DStreamer.h"
 
 #include <Engine/Asset/Asset.h>
+#include <Engine/Asset/AssetSubsystem.h>
 #include <Runtime/Definitions/Profiler.h>
 #include <Runtime/IO/FileBuffer.h>
 #include <filesystem>
@@ -41,7 +42,6 @@ namespace CusEngine {
         imageDesc.sampler = Runtime::RHI::StaticSampler::NearestClamp;
         imageDesc.view.type = Runtime::RHI::ImageViewType::Image2D;
         imageDesc.usage = Runtime::RHI::ImageUsage::Sampled | Runtime::RHI::ImageUsage::TransferDst;
-        imageDesc.layout = Runtime::RHI::ImageLayout::Undefined;
         imageDesc.tileMode = Runtime::RHI::ImageTileMode::Optimal;
 
         AssetHeader header{};
@@ -60,7 +60,69 @@ namespace CusEngine {
         return Runtime::Result();
     }
 
-    Asset* Texture2DStreamer::Import(AssetSource& source) {
+	Runtime::Result Texture2DStreamer::Reimport(Asset* asset) {
+		if (!asset) return Runtime::Result();
+
+		Texture2D* texture = static_cast<Texture2D*>(asset);
+
+		auto* assetSubsystem = Engine::Get()->GetSubsystem<AssetSubsystem>();
+		AssetSource source = assetSubsystem->GetAssetSource(texture->GetAssetHandle());
+
+		Runtime::IO::FileBuffer textureBuffer;
+		textureBuffer.WriteBinary(source.cookedPath, texture->_image->GetDesc(), sizeof(Runtime::RHI::ImageDesc), sizeof(AssetHeader));
+
+		std::vector<u8> fulldata = textureBuffer.ReadBinary(source.cookedPath);
+
+		u32 magic;
+		std::memcpy(&magic, fulldata.data(), sizeof(u32));
+		if (magic != TEXTURE2D_MAGIC) {
+			Logger::Error("Texture2DImporter", "Not a valid texture asset");
+			return Runtime::Result();
+		}
+
+		AssetHeader header;
+		std::memcpy(&header, fulldata.data(), sizeof(AssetHeader));
+
+		Runtime::RHI::ImageDesc imageDesc{};
+		std::memcpy(&imageDesc, (fulldata.data() + sizeof(AssetHeader)), sizeof(Runtime::RHI::ImageDesc));
+
+		std::vector<u8> imageData((fulldata.begin() + header.dataOffset), fulldata.end());
+
+        Runtime::Mem::Allocator::Destroy(texture->_image);
+        texture->CreateImage(imageDesc);
+
+		texture->SetAssetState(AssetState::Loading);
+
+		auto* renderSubsystem = Engine::Get()->GetSubsystem<RenderSubsystem>();
+		renderSubsystem->Submit([texture, imageData, imageDesc, header, renderSubsystem](Runtime::RHI::CommandBuffer* cmd) {
+			auto* rhi_context = renderSubsystem->GetContext();
+
+			Runtime::RHI::BufferDesc desc{};
+			desc.usage = Runtime::RHI::BufferUsage::TransferSrc;
+			desc.memoryUsage = Runtime::RHI::MemoryUsage::CPUToGPU;
+			desc.allocationFlags = Runtime::RHI::AllocationFlagBits::HostAccessSequentialWrite | Runtime::RHI::AllocationFlagBits::CreateMapped;
+			desc.size = header.dataSize;
+
+			Runtime::RHI::Buffer* stagingBuffer = rhi_context->CreateBuffer(desc);
+			stagingBuffer->SetObjectDebugName("ROV_texture2D_staging_buffer");
+			stagingBuffer->Write(imageData.data());
+
+			renderSubsystem->Track(stagingBuffer);
+
+			cmd->TransitionImageLayout(texture->_image, Runtime::RHI::ImageLayout::TransferDst);
+			cmd->CopyBufferToImage(stagingBuffer, texture->_image, Runtime::RHI::ImageLayout::TransferDst, imageDesc.width, imageDesc.height);
+			cmd->TransitionImageLayout(texture->_image, Runtime::RHI::ImageLayout::ShaderReadOnly);
+
+			texture->SetAssetState(AssetState::Ready);
+			Logger::Info("Texture2DImporter", "Texture reloaded to GPU");
+			});
+
+		texture->SetAssetState(AssetState::Loaded);
+
+		return Runtime::Result();
+	}
+
+	Asset* Texture2DStreamer::Import(AssetSource& source) {
         Runtime::IO::FileBuffer textureBuffer;
         std::vector<u8> fulldata = textureBuffer.ReadBinary(source.cookedPath);
 

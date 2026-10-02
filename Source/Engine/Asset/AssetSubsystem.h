@@ -18,9 +18,13 @@ namespace CusEngine {
 		AssetT* Get(const std::string& path) {
 			std::string assetType = AssetT::StaticClassName().data();
 
-			std::filesystem::path sourcePath = path;
-			std::filesystem::path targetPath = "cooked" / std::filesystem::path(path).replace_extension(ASSET_EXTENSION);
-			Runtime::UUID assetID = Runtime::UUID(sourcePath.string()); // TODO(0x): add a time to hashing so it is not exatcly with same named files!! mem leak
+			std::filesystem::path sourcePath = std::filesystem::absolute(path);
+			std::filesystem::path targetPath = std::filesystem::absolute("cooked" / std::filesystem::path(path).replace_extension(ASSET_EXTENSION));
+			Runtime::UUID assetID = Runtime::UUID(targetPath.string()); // TODO(0x): add a time to hashing so it is not exatcly with same named files!! mem leak
+
+			if (AssetLoaded(assetID)) {
+				return static_cast<AssetT*>(_assets[assetID]);
+			}
 
 			if (AssetInCache(assetID)) {
 				Logger::Info("AssetSubsystem", "Asset in registry loading...");
@@ -50,10 +54,13 @@ namespace CusEngine {
 			}
 			return nullptr;
 		}
-	private:
+
 		Asset* Load(Runtime::UUID id);
+		void Reimport(Runtime::UUID id);
 		void Unload(Runtime::UUID id);
 
+		[[nodiscard]] AssetSource GetAssetSource(Runtime::UUID handle) { return _cachedAssetSources[handle]; }
+	private:
 		AssetStreamer* GetAssetCookerOfType(const std::string& type);
 		bool AssetInCache(Runtime::UUID id);
 		bool AssetLoaded(Runtime::UUID id);

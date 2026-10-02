@@ -1,4 +1,4 @@
-#include "SceneRenderer.h"
+#include "SceneRenderer2D.h"
 
 #include <Engine/Asset/AssetSubsystem.h>
 #include <Engine/Asset/Texture/Texture2D.h>
@@ -6,7 +6,7 @@
 #include <imgui.h>
 
 namespace CusEngine {
-	Runtime::Result SceneRendererSubsystem::OnCreate(Engine* engine) {
+	Runtime::Result SceneRenderer2DSubsystem::OnCreate(Engine* engine) {
 		Subsystem::OnCreate(engine);
 
 		auto assetSystem = engine->GetSubsystem<AssetSubsystem>();
@@ -36,16 +36,13 @@ namespace CusEngine {
 		return Runtime::Result();
 	}
 
-	void SceneRendererSubsystem::OnUpdate() {
+	void SceneRenderer2DSubsystem::OnUpdate() {
 		auto renderSystem = _engine->GetSubsystem<RenderSubsystem>();
 
 		renderSystem->BeginFrame();
 
 		Runtime::RHI::CommandBuffer* cmd = renderSystem->GetCurrentFrameData()->commandBuffer;
-		cmd->BeginImGui();
-		ImGui::NewFrame();
-
-		ImGui::ShowDemoWindow();
+		renderSystem->BeginImGuiPass();
 
 		renderSystem->BeginSwapchainPass();
 
@@ -59,14 +56,12 @@ namespace CusEngine {
 			cmd->DrawVertex(_forwardPassPipeline, 6);
 		}
 
-		ImGui::Render();
-		cmd->RenderImGui();
-
+		renderSystem->EndImGuiPass();
 		renderSystem->EndSwapchainPass();
 		renderSystem->EndFrame();
 	}
 
-	void SceneRendererSubsystem::OnDestroy() {
+	void SceneRenderer2DSubsystem::OnDestroy() {
 		Subsystem::OnDestroy();
 
 		auto renderSystem = _engine->GetSubsystem<RenderSubsystem>();
@@ -75,7 +70,7 @@ namespace CusEngine {
 		Runtime::Mem::Allocator::Destroy<Runtime::RHI::Pipeline>(_forwardPassPipeline);
 	}
 
-	void SceneRendererSubsystem::GetDependencyGraph(DependencyGraph & graph) {
+	void SceneRenderer2DSubsystem::GetDependencyGraph(DependencyGraph & graph) {
 		graph.Require<AssetSubsystem>(DependencyOrder::After);
 		graph.Require<RenderSubsystem>(DependencyOrder::After);
 	}

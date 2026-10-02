@@ -3,7 +3,7 @@
 #include <Engine/Renderer/RenderSubsystem.h>
 
 namespace CusEngine {
-	class ENGINE_API SceneRendererSubsystem final : public Subsystem {
+	class ENGINE_API SceneRenderer2DSubsystem final : public Subsystem {
 	public:
 		virtual Runtime::Result OnCreate(Engine* engine) override;
 		virtual void OnUpdate() override;

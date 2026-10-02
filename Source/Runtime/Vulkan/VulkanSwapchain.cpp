@@ -50,7 +50,6 @@ namespace Runtime::RHI {
 				attachmentDesc.width = _extent.x;
 				attachmentDesc.height = _extent.y;
 				attachmentDesc.format = _colorFormat;
-				attachmentDesc.layout = ImageLayout::Undefined;
 				attachmentDesc.usage = ImageUsage::ColorAttachment;
 				VulkanImage* vkColorAttachment = Mem::Allocator::Construct<VulkanImage>(vkContext, attachmentDesc);
 
@@ -80,7 +79,6 @@ namespace Runtime::RHI {
 				depthAttachmentDesc.width = _extent.x;
 				depthAttachmentDesc.height = _extent.y;
 				depthAttachmentDesc.format = _depthFormat;
-				depthAttachmentDesc.layout = ImageLayout::Undefined;
 				depthAttachmentDesc.usage = ImageUsage::DepthStencilAttachment;
 
 				VulkanImage* depthAttachment = static_cast<VulkanImage*>(_context->CreateImage(depthAttachmentDesc));

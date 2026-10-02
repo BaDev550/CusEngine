@@ -8,14 +8,11 @@
 #include <Engine/MT/JobSubsystem.h>
 #include <Engine/Asset/AssetSubsystem.h>
 
-#include <Runtime/IO/FileBuffer.h>
-
-#include "TestSystem.h"
+#include "LevelEditorSystem.h"
 
 int main() {
 	{
 		CusEngine::Engine engine{};
-		engine.AddSubsystem<TestSubsystem>();
 		engine.AddSubsystem<CusEngine::Reflect::ReflectionSubsystem>();
 		engine.AddSubsystem<CusEngine::MT::JobSubsystem>();
 		engine.AddSubsystem<CusEngine::PluginSubsystem>();
@@ -23,6 +20,7 @@ int main() {
 		engine.AddSubsystem<CusEngine::RenderSubsystem>();
 		engine.AddSubsystem<CusEngine::WindowSubsystem>(); 
 		engine.AddSubsystem<CusEngine::SceneRenderer2DSubsystem>();
+		engine.AddSubsystem<LevelEditorSubsystem>();
 		engine.Run();
 	}
 	return 0;

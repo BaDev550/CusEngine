@@ -13,7 +13,8 @@ namespace Runtime::RHI {
 		virtual ~VulkanImage();
 
 		virtual void SetObjectDebugName(const char* name) override final;
-		virtual const ImageDesc* GetDesc() const override final { return &_desc; }
+		virtual void SetDesc(const ImageDesc& desc) override { _desc = desc; }
+		virtual ImageDesc* GetDesc() override final { return &_desc; }
 		virtual const Format GetFormat() const override final { return _desc.format; };
 		virtual const u32 GetWidth() const noexcept override final { return _desc.width; }
 		virtual const u32 GetHeight() const noexcept override final { return _desc.height; }
@@ -32,6 +33,7 @@ namespace Runtime::RHI {
 		VmaAllocation _allocation = VK_NULL_HANDLE;
 		u32 _bindessId = u32_max;
 		u32 _samplerId = u32_max;
+		ImageLayout _layout = ImageLayout::Undefined;
 
 		friend class VulkanContext;
 		friend class VulkanSwapchain;

@@ -78,6 +78,12 @@ namespace CusEngine {
 		}
 	}
 
+	void AssetSubsystem::Reimport(Runtime::UUID id) {
+		if (auto it = _assets.find(id); it != _assets.end()) {
+			it->second->GetAssetStreamer()->Reimport(it->second);
+		}
+	}
+
 	void AssetSubsystem::Unload(Runtime::UUID id) {
 
 	}

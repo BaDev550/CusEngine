@@ -9,7 +9,8 @@ namespace Runtime::RHI {
 		using Object::Object;
 		virtual ~Image() = default;
 
-		virtual const ImageDesc* GetDesc() const = 0;
+		virtual void SetDesc(const ImageDesc& desc) = 0;
+		virtual ImageDesc* GetDesc() = 0;
 		virtual const Format GetFormat() const = 0;
 		virtual const u32 GetWidth() const noexcept = 0;
 		virtual const u32 GetHeight() const noexcept = 0;

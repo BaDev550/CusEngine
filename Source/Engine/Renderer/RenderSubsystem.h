@@ -13,8 +13,11 @@
 #include <Runtime/RHI/Sync/RHIFence.h>
 #include <Runtime/RHI/Queue/RHIQueue.h>
 
+#include <imgui.h>
+
 namespace CusEngine {
 	using CommandFunc = std::function<void(Runtime::RHI::CommandBuffer* cmd)>;
+	using ImGuiFunc = std::function<void()>;
 	class Texture2D;
 
 	class ENGINE_API RenderSubsystem final : public Subsystem {
@@ -30,11 +33,15 @@ namespace CusEngine {
 		void BeginFrame();
 		void EndFrame();
 		void Submit(CommandFunc func);
+		void DrawImGui(ImGuiFunc func);
 		void Track(Runtime::RHI::Object* object);
 
+		void BeginImGuiPass();
+		void EndImGuiPass();
 		void BeginSwapchainPass();
 		void EndSwapchainPass();
 
+		[[nodiscard]] ImGuiContext* GetImGuiContext();
 		[[nodiscard]] Runtime::RHI::Context* GetContext() { return _context; }
 		[[nodiscard]] Runtime::RHI::Swapchain* GetSwapchain() { return _swapchain; }
 	private:
@@ -48,6 +55,7 @@ namespace CusEngine {
 			std::vector<Runtime::RHI::Object*> trackedObjects; // TODO(0x): find a better way to track objects mybe cmd
 		} _frames[MaxFramesInFlight];
 
+		std::vector<ImGuiFunc> _imguiCommandsQueue;
 		std::vector<CommandFunc> _commandQueue;
 		std::vector<Runtime::RHI::Fence*> _renderFinishedFences;
 		Runtime::RHI::Fence* _timelineFence = nullptr;
