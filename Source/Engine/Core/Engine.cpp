@@ -24,8 +24,6 @@ namespace CusEngine {
 		SortAndInitializeSystems();
 
 		auto* assetSystem = GetSubsystem<AssetSubsystem>();
-		Texture2D* txt = assetSystem->Get<Texture2D>("guven-catak.jpg");
-		txt->_image->GetBindlessIndex();
 
 		while (_running) {
 

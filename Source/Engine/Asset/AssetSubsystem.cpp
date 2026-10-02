@@ -41,8 +41,10 @@ namespace CusEngine {
 	}
 
 	void AssetSubsystem::OnDestroy() {
+		Subsystem::OnDestroy();
+
 		for (const auto& [id, ast] : _assets) {
-			Runtime::Mem::Allocator::Destroy(ast);
+			if (ast) Runtime::Mem::Allocator::Destroy(ast);
 		}
 		_assets.clear();
 

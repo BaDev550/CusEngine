@@ -150,7 +150,7 @@ namespace Runtime::RHI {
 	}
 	
 	void VulkanContext::Shutdown() {
-		for (auto& [type, sampler] : _samplers) {
+		for (auto& sampler : _samplers) {
 			vkDestroySampler(_device, sampler, nullptr);
 		}
 
@@ -205,9 +205,10 @@ namespace Runtime::RHI {
 	Image* VulkanContext::CreateImage(const ImageDesc& desc)
 	{
 		VulkanImage* image = Mem::Allocator::Construct<VulkanImage>(this, desc);
-		auto it = _samplers.find(desc.sampler);
-		if (it == _samplers.end()) {
-			Logger::Fatal("VulkanContext", "Requested image sampler is not in samplers list");
+		VkSampler requestedSampler = _samplers[static_cast<usize>(desc.sampler)];
+
+		if (requestedSampler == VK_NULL_HANDLE) {
+			Logger::Fatal("VulkanContext", "Requested image sampler has not been initialized");
 			return nullptr;
 		}
 
@@ -633,36 +634,13 @@ namespace Runtime::RHI {
 		return index;
 	}
 
-#if 0
-	void Vulkan_RenderContext::UpdateTextureDescriptors(const std::vector<Memory::Ref<Texture2D>>& textures) {
-		std::vector<VkDescriptorImageInfo> imageDescriptors;
-		imageDescriptors.reserve(textures.size());
-		for (const auto& texture : textures) {
-			Vulkan_Image* vkImage = static_cast<Vulkan_Image*>(texture->GetImage().Get());
-
-			VkDescriptorImageInfo info{};
-			info.imageView = vkImage->GetVkImageView();
-			info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-			info.sampler = reinterpret_cast<VkSampler>(_samplers[vkImage->GetSamplerId()]);
-			imageDescriptors.push_back(info);
-		}
-		VkWriteDescriptorSet descSetWrite{};
-		descSetWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		descSetWrite.dstSet = _globalDescSet;
-		descSetWrite.dstBinding = 0;
-		descSetWrite.dstArrayElement = 0;
-		descSetWrite.descriptorCount = static_cast<u32>(imageDescriptors.size());
-		descSetWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		descSetWrite.pImageInfo = imageDescriptors.data();
-
-		vkUpdateDescriptorSets(_device, 1, &descSetWrite, 0, nullptr);
+	u32 VulkanContext::GetSamplerId(StaticSampler sampler) {
+		return static_cast<u32>(sampler);
 	}
 
-	u32 Vulkan_RenderContext::AddSampler(uptr sampler) {
-		_samplers.push_back(reinterpret_cast<VkSampler>(sampler));
-		return _samplers.size();
+	VkSampler VulkanContext::GetSampler(StaticSampler sampler) {
+		return _samplers[static_cast<usize>(sampler)];
 	}
-#endif
 
 	void VulkanContext::CreateInstance() {
 		VkApplicationInfo appInfo{};
@@ -764,7 +742,16 @@ namespace Runtime::RHI {
 			return resultSampler;
 			};
 
-		_samplers[StaticSampler::NearestRepeat] = makeSampler(VK_FILTER_NEAREST, VK_SAMPLER_ADDRESS_MODE_REPEAT, VK_SAMPLER_MIPMAP_MODE_NEAREST, false, false);
+		_samplers[GetSamplerId(StaticSampler::PointClamp)] =	makeSampler(VK_FILTER_NEAREST, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, VK_SAMPLER_MIPMAP_MODE_NEAREST, false, false);
+		_samplers[GetSamplerId(StaticSampler::PointWrap)] =		makeSampler(VK_FILTER_NEAREST, VK_SAMPLER_ADDRESS_MODE_REPEAT, VK_SAMPLER_MIPMAP_MODE_NEAREST, false, false);
+		_samplers[GetSamplerId(StaticSampler::NearestClamp)] =	makeSampler(VK_FILTER_NEAREST, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER, VK_SAMPLER_MIPMAP_MODE_NEAREST, false, false);
+		_samplers[GetSamplerId(StaticSampler::NearestRepeat)] = makeSampler(VK_FILTER_NEAREST, VK_SAMPLER_ADDRESS_MODE_REPEAT, VK_SAMPLER_MIPMAP_MODE_NEAREST, false, false);
+		_samplers[GetSamplerId(StaticSampler::LinearClamp)] =	makeSampler(VK_FILTER_LINEAR, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER, VK_SAMPLER_MIPMAP_MODE_LINEAR, false, false);
+		_samplers[GetSamplerId(StaticSampler::LinearWrap)] =	makeSampler(VK_FILTER_LINEAR, VK_SAMPLER_ADDRESS_MODE_REPEAT, VK_SAMPLER_MIPMAP_MODE_LINEAR, false, false);
+		_samplers[GetSamplerId(StaticSampler::LinearMirror)] =	makeSampler(VK_FILTER_LINEAR, VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT, VK_SAMPLER_MIPMAP_MODE_LINEAR, false, false);
+		_samplers[GetSamplerId(StaticSampler::AnisoClamp)] =	makeSampler(VK_FILTER_LINEAR, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, VK_SAMPLER_MIPMAP_MODE_LINEAR, true, false);
+		_samplers[GetSamplerId(StaticSampler::AnisoMirror)] =	makeSampler(VK_FILTER_LINEAR, VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT, VK_SAMPLER_MIPMAP_MODE_LINEAR, true, false);
+		_samplers[GetSamplerId(StaticSampler::ShadowCompare)] = makeSampler(VK_FILTER_LINEAR, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER, VK_SAMPLER_MIPMAP_MODE_LINEAR, false, true);
 	}
 
 	void VulkanContext::CreateGlobalDescriptors()
@@ -821,7 +808,7 @@ namespace Runtime::RHI {
 
 		u32 samplerIndex = 0;
 
-		for (const auto& [type, sampler] : _samplers) {
+		for (const auto& sampler : _samplers) {
 			VkDescriptorImageInfo info{};
 			info.sampler = sampler;
 

@@ -2,6 +2,7 @@
 
 #include <Engine/Window/WindowSubsystem.h>
 #include <Engine/Renderer/RenderSubsystem.h>
+#include <Engine/Scene/SceneRenderer.h>
 #include <Engine/Subsystem/PluginLoaderSubsystem.h>
 #include <Engine/Reflection/ReflectionSubsystem.h>
 #include <Engine/MT/JobSubsystem.h>
@@ -20,6 +21,7 @@ int main() {
 		engine.AddSubsystem<CusEngine::Reflect::ReflectionSubsystem>();
 		engine.AddSubsystem<CusEngine::MT::JobSubsystem>();
 		engine.AddSubsystem<CusEngine::RenderSubsystem>();
+		engine.AddSubsystem<CusEngine::SceneRendererSubsystem>();
 		engine.AddSubsystem<CusEngine::WindowSubsystem>(); 
 		engine.Run();
 	}

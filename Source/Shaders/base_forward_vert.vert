@@ -1,9 +1,13 @@
 #version 450
 
-vec2 vertices[] = {
-	vec2(0.0f, 0.0f),
-	vec2(0.5f, 0.5f),
-	vec2(1.0f, 0.0f)
+vec2 vertices[6] = {
+	vec2(0.0f, 0.0f), // Bottom-left
+	vec2(1.0f, 0.0f), // Bottom-right
+	vec2(0.0f, 1.0f), // Top-left
+
+	vec2(0.0f, 1.0f), // Top-left
+	vec2(1.0f, 0.0f), // Bottom-right
+	vec2(1.0f, 1.0f)  // Top-right
 };
 
 layout(location = 0) out vec2 vTexCoords;

@@ -12,10 +12,10 @@
 #include <Runtime/RHI/Command/RHICommandBuffer.h>
 #include <Runtime/RHI/Sync/RHIFence.h>
 #include <Runtime/RHI/Queue/RHIQueue.h>
-#include <Runtime/RHI/Pipeline/RHIPipeline.h>
 
 namespace CusEngine {
 	using CommandFunc = std::function<void(Runtime::RHI::CommandBuffer* cmd)>;
+	class Texture2D;
 
 	class ENGINE_API RenderSubsystem final : public Subsystem {
 	public:
@@ -48,8 +48,6 @@ namespace CusEngine {
 			std::vector<Runtime::RHI::Object*> trackedObjects; // TODO(0x): find a better way to track objects mybe cmd
 		} _frames[MaxFramesInFlight];
 
-		FrameData* GetCurrentFrameData();
-
 		std::vector<CommandFunc> _commandQueue;
 		std::vector<Runtime::RHI::Fence*> _renderFinishedFences;
 		Runtime::RHI::Fence* _timelineFence = nullptr;
@@ -61,12 +59,7 @@ namespace CusEngine {
 		u64 _nextSignalValue = (MaxFramesInFlight + 1);
 
 		bool _recreateSwapchainNextFrame = false;
-
-		struct SpritePushConstant {
-			u32 textureID;
-			u32 samplerID;
-		};
-
-		Runtime::RHI::Pipeline* _forwardPassPipeline = nullptr;
+	public:
+		[[nodiscard]] FrameData* GetCurrentFrameData();
 	};
 }

@@ -9,8 +9,6 @@
 #include <Runtime/RHI/Sync/RHIFenceDesc.h>
 #include <Runtime/RHI/Queue/RHIQueue.h>
 
-#include <Engine/Asset/AssetSubsystem.h>
-#include <Engine/Asset/Texture/Texture2D.h>
 #include <imgui.h>
 
 namespace CusEngine {
@@ -18,7 +16,6 @@ namespace CusEngine {
 		Subsystem::OnCreate(engine);
 
 		auto window = engine->GetSubsystem<WindowSubsystem>()->GetWindow();
-		auto assetSystem = engine->GetSubsystem<AssetSubsystem>();
 		if (!window) { return Runtime::Result("Failed to find window"); }
 
 		Runtime::RHI::ContextDesc contextDesc{};
@@ -81,63 +78,16 @@ namespace CusEngine {
 		}
 
 		END_SCOPE(RHIInitilization)
-
-		{
-			Shader* forwardPassVertexShader = assetSystem->Get<Shader>("base_forward_vert.vert");
-			Shader* forwardPassFragmentShader = assetSystem->Get<Shader>("base_forward_frag.frag");
 		
-			Runtime::RHI::PushConstantRange pcRange{};
-			pcRange.size = sizeof(SpritePushConstant);
-			pcRange.offset = 0;
-		
-			Runtime::RHI::PipelineDesc vertexDesc{};
-			vertexDesc.colorFormats = { _swapchain->GetColorFormat() };
-			vertexDesc.depthFormat = _swapchain->GetDepthFormat();
-			vertexDesc.vertexShader = &forwardPassVertexShader->GetDesc();
-			vertexDesc.fragmentShader = &forwardPassFragmentShader->GetDesc();
-			vertexDesc.pushConstantRanges = { pcRange };
-			vertexDesc.blending = false;
-			vertexDesc.depthTest = false;
-		
-			_forwardPassPipeline = _context->CreatePipeline(vertexDesc);
-		}
-
 		return Runtime::Result();
 	}
 
-	void RenderSubsystem::OnUpdate() {
-		BeginFrame();
-
-		FrameData* fd = GetCurrentFrameData();
-		fd->commandBuffer->BeginImGui();
-		ImGui::NewFrame();
-
-		ImGui::ShowDemoWindow();
-
-		BeginSwapchainPass();
-
-		SpritePushConstant pc;
-		pc.textureID = 0;
-		pc.samplerID = 0;
-
-		_forwardPassPipeline->Bind(fd->commandBuffer);
-		_forwardPassPipeline->PushConstant(fd->commandBuffer, &pc, sizeof(SpritePushConstant), 0);
-		fd->commandBuffer->DrawVertex(_forwardPassPipeline, 3);
-
-		ImGui::Render();
-		fd->commandBuffer->RenderImGui();
-
-		EndSwapchainPass();
-
-		EndFrame();
-	}
+	void RenderSubsystem::OnUpdate() { }
 
 	void RenderSubsystem::OnDestroy() {
 		Subsystem::OnDestroy();
 
 		_context->WaitDeviceIdle();
-
-		Runtime::Mem::Allocator::Destroy<Runtime::RHI::Pipeline>(_forwardPassPipeline);
 
 		for (auto& fence : _renderFinishedFences) { Runtime::Mem::Allocator::Destroy<Runtime::RHI::Fence>(fence); }
 		for (auto& frame : _frames) {
@@ -154,8 +104,8 @@ namespace CusEngine {
 	}
 
 	void RenderSubsystem::GetDependencyGraph(DependencyGraph & graph) {
+		graph.Require<AssetSubsystem>(DependencyOrder::Before);
 		graph.Require<WindowSubsystem>(DependencyOrder::After);
-		graph.Require<AssetSubsystem>(DependencyOrder::After);
 	}
 
 	void RenderSubsystem::BeginFrame() {

@@ -4,7 +4,7 @@
 
 namespace Runtime::RHI {
 	enum class StaticSampler : u8 {
-		PointClamp,
+		PointClamp = 0,
 		PointWrap,
 		LinearClamp,
 		LinearWrap,
@@ -13,6 +13,7 @@ namespace Runtime::RHI {
 		NearestRepeat,
 		AnisoClamp,
 		AnisoMirror,
-		ShadowCompare
+		ShadowCompare,
+		COUNT
 	};
 }

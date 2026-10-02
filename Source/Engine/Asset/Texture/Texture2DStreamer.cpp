@@ -38,6 +38,7 @@ namespace CusEngine {
         imageDesc.format = Runtime::RHI::Format::BC3;
         imageDesc.width = width;
         imageDesc.height = height;
+        imageDesc.sampler = Runtime::RHI::StaticSampler::NearestClamp;
         imageDesc.view.type = Runtime::RHI::ImageViewType::Image2D;
         imageDesc.usage = Runtime::RHI::ImageUsage::Sampled | Runtime::RHI::ImageUsage::TransferDst;
         imageDesc.layout = Runtime::RHI::ImageLayout::Undefined;

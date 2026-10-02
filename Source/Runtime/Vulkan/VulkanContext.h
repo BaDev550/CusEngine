@@ -10,6 +10,7 @@
 #include <vector>
 #include <mutex>
 #include <unordered_map>
+#include <array>
 
 namespace Runtime::RHI {
 	class VulkanContext final : public Context {
@@ -38,6 +39,7 @@ namespace Runtime::RHI {
 		void CopyBuffer(VkCommandBuffer cmd, size_t size, VkBuffer srcBuffer, VkBuffer dstBuffer);
 		void TransitionImageLayout(VkCommandBuffer cmd, Image* image, ImageLayout newLayout);
 		u32 RegisterBindlessImage(Image* image);
+		u32 GetSamplerId(StaticSampler sampler);
 
 		[[nodiscard]] VkInstance GetInstance() const { return _instance; }
 		[[nodiscard]] VkDevice GetDevice() const { return _device; }
@@ -49,6 +51,7 @@ namespace Runtime::RHI {
 		[[nodiscard]] VkAllocationCallbacks GetAllocationCallbacks() const { return _allocationCallbacks; }
 		[[nodiscard]] VkDescriptorSet GetBindlessDescriptorSet() const { return _bindlessDescriptorSet; }
 		[[nodiscard]] VkDescriptorSet GetGlobalSamplerSet() const { return _globalSamplerSet; }
+		[[nodiscard]] VkSampler GetSampler(StaticSampler sampler);
 	protected:
 		void CreateInstance();
 		void CreateVMA();
@@ -87,7 +90,7 @@ namespace Runtime::RHI {
 
 		std::vector<Image*> _bindlessImages;
 		std::vector<Buffer*> _bindlessBuffers;
-		std::unordered_map<StaticSampler, VkSampler> _samplers;
+		std::array<VkSampler, (usize)StaticSampler::COUNT> _samplers;
 
 		std::vector<const char*> _extensions;
 		std::vector<const char*> _layers;

@@ -18,6 +18,7 @@ namespace Runtime::RHI {
 		virtual const u32 GetWidth() const noexcept override final { return _desc.width; }
 		virtual const u32 GetHeight() const noexcept override final { return _desc.height; }
 		virtual u32 GetBindlessIndex() noexcept override;
+		virtual u32 GetSamplerIndex() noexcept override;
 
 		[[nodiscard]] VkImage GetImage() const { return _image; }
 		[[nodiscard]] VkImageView GetImageView() const { return _imageView; }
@@ -30,6 +31,7 @@ namespace Runtime::RHI {
 		VkImageView _imageView = VK_NULL_HANDLE;
 		VmaAllocation _allocation = VK_NULL_HANDLE;
 		u32 _bindessId = u32_max;
+		u32 _samplerId = u32_max;
 
 		friend class VulkanContext;
 		friend class VulkanSwapchain;

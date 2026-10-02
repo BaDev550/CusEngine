@@ -33,5 +33,12 @@ namespace Runtime::RHI {
 		return _bindessId;
 	}
 
+	u32 VulkanImage::GetSamplerIndex() noexcept {
+		if (_samplerId == u32_max) {
+			_samplerId = GetOwningRHIContext<VulkanContext>()->GetSamplerId(_desc.sampler);
+		}
+		return _samplerId;
+	}
+
 	[[nodiscard]] VkImageLayout VulkanImage::GetImageLayout() const { return Utils::GetVkImageLayout(_desc.layout); }
 }
