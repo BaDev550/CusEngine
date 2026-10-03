@@ -15,6 +15,8 @@
 #include <Runtime/RHI/Image/RHIImage.h>
 #include <Runtime/RHI/Common/RHIUtils.h>
 
+#include <Engine/Asset/AssetStreamerFactory.h>
+
 namespace CusEngine {
     Runtime::Result Texture2DStreamer::Cook(AssetSource& source) {
         if (source.sourcePath.empty()) {
@@ -141,79 +143,6 @@ namespace CusEngine {
         Logger::Error("Texture2DNVTT", "NVTT compression failed");
         return false;
     }
-
-#if 0
-        // TEMP load texture of testing
-        {
-#if 1 // method 1 idk ms vise it is good but mio is more optimized but life-time trash version of it
-            FileBuffer textureBuffer;
-            std::vector<u8> data = textureBuffer.Read(targetFile.string());
-
-            u32 magic;
-            std::memcpy(&magic, data.data(), sizeof(u32));
-            if (magic != 0x54455854) {
-                Logger::Error("Texture2DImporter", "Not a valid texture asset");
-                return Runtime::Result("");
-            }
-
-            AssetHeader header;
-            std::memcpy(&header, data.data(), sizeof(AssetHeader));
-
-            Logger::Info("Texture2DImporter", "Imported Texture info: \n type:{}\n datasize:{}\n dataoffset:{}\n Runtime::UUID:{}",
-                header.typeName,
-                header.dataSize,
-                header.dataOffset,
-                header.id.Str());
-#endif
-#if 0 // easy but ms fucker :p
-            std::fstream stream(targetFile.string(), std::ios_base::binary | std::ios_base::in);
-            if (!stream.is_open()) {
-                Logger::Error("Texture2DImporter", "Failed to open file");
-                return Runtime::Result("");
-            }
-
-            u32 magic{};
-            stream.read(reinterpret_cast<char*>(&magic), sizeof(u32));
-            if (magic != 0x54455854) {
-                Logger::Error("Texture2DImporter", "Not a valid texture asset");
-                return Runtime::Result("");
-            }
-
-            AssetHeader header{};
-            stream.seekg(stream.beg);
-            stream.read(reinterpret_cast<char*>(&header), sizeof(AssetHeader));
-
-            Logger::Info("Texture2DImporter", "Imported Texture info: \n type:{}\n datasize:{}\n dataoffset:{}\n Runtime::UUID:{}",
-                header.typeName,
-                header.dataSize,
-                header.dataOffset,
-                header.id.Str());
-            stream.close(); 
-#endif
-#if 0 // good but life-cycle of scope not optimal for texture importing to GPU
-            FileBuffer textureBuffer;
-            std::vector<u8> data;
-            textureBuffer.Stream(data, targetFile.string());
-
-            u32 magic;
-            std::memcpy(&magic, data.data(), sizeof(u32));
-            if (magic != 0x54455854) {
-                Logger::Error("Texture2DImporter", "Not a valid texture asset");
-                return Runtime::Result("");
-            }
-
-            AssetHeader header;
-            std::memcpy(&header, data.data(), sizeof(AssetHeader));
-
-            Logger::Info("Texture2DImporter", "Imported Texture info: \n type:{}\n datasize:{}\n dataoffset:{}\n Runtime::UUID:{}",
-                header.typeName,
-                header.dataSize,
-                header.dataOffset,
-                header.id.Str());
-#endif
-        }
-
-        return Runtime::Result();
-    }
-#endif
 }
+
+REGISTER_ASSETSTREAMER(Texture2DStreamer);

@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Engine/Reflection/Object.h>
 #include <Engine/Asset/AssetSource.h>
+#include <Engine/Core/Object.h>
 
 #include <Runtime/Definitions/Result.h>
 

@@ -1,5 +1,4 @@
 #include "AssetSubsystem.h"
-#include <Engine/Reflection/ReflectionSubsystem.h>
 #include <Engine/Subsystem/PluginLoaderSubsystem.h>
 #include <Runtime/IO/FileBuffer.h>
 #include <Runtime/Memory/Memory.h>
@@ -14,39 +13,18 @@
 #include <nlohmann/json.hpp>
 #include <fstream>
 
+#include <Engine/Asset/AssetStreamerFactory.h>
+
 namespace CusEngine {
 	Runtime::Result AssetSubsystem::OnCreate(Engine* engine)
 	{
 		Subsystem::OnCreate(engine);
 
-#if 0
-		auto* reflectSystem = Engine::Get()->GetSubsystem<Reflect::ReflectionSubsystem>();
-		auto streamerClasses = reflectSystem->GetClassesByBase<AssetStreamer>();
-
-		for (const Reflect::ClassType* classType : streamerClasses) {
-			if (classType->Name == "AssetStreamer") continue;
-
-			AssetStreamer* streamer = static_cast<AssetStreamer*>(classType->Instantiate());
-
-			if (streamer) {
-				std::string targetAssetClass = streamer->GetAssetClassName();
-
-				_assetStreamerLookupTable[targetAssetClass] = _assetStreamers.size();
-				_assetStreamers.push_back(streamer);
-				Logger::Info("AssetSubsystem", "Streamer {} added to asset system", classType->Name);
-			}
-			else {
-				Logger::Error("AssetSubsystem", "Failed to instantiate streamer: {}", classType->Name);
-			}
-		}
-#endif
-		Texture2DStreamer* textureStreamer = Runtime::Mem::Allocator::Construct<Texture2DStreamer>();
-		_assetStreamerLookupTable[textureStreamer->GetAssetClassName()] = _assetStreamers.size();
-		_assetStreamers.push_back(textureStreamer);
-
-		ShaderStreamer* shaderStreamer = Runtime::Mem::Allocator::Construct<ShaderStreamer>();
-		_assetStreamerLookupTable[shaderStreamer->GetAssetClassName()] = _assetStreamers.size();
-		_assetStreamers.push_back(shaderStreamer);
+		AssetStreamerFactory::Factory().ForEach([this](const AssetStreamerEntry& info) {
+			AssetStreamer* streamer = info.constructFunc();
+			_assetStreamerLookupTable[streamer->GetAssetClassName()] = _assetStreamers.size();
+			_assetStreamers.push_back(streamer);
+			});
 
 		LoadRegistry();
 
@@ -89,6 +67,7 @@ namespace CusEngine {
 		else {
 			Logger::Error("AssetSubsystem", "Failed to load asset no cooker: {}", cachedSource.type);
 		}
+		return nullptr;
 	}
 
 	void AssetSubsystem::Unload(Runtime::UUID id) {
@@ -123,7 +102,6 @@ namespace CusEngine {
 	}
 
 	void AssetSubsystem::GetDependencyGraph(DependencyGraph& graph) {
-		graph.Require<Reflect::ReflectionSubsystem>(DependencyOrder::After);
 		graph.Require<PluginSubsystem>(DependencyOrder::After);
 	}
 

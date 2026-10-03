@@ -1,7 +1,6 @@
 #pragma once
 #include <Engine/Core/Core.h>
-#include "Engine/Reflection/TypeDescriptor.h"
-#include <Engine/Reflection/ReflectionMacros.h>
+#include <Runtime/Reflection/ReflectionMacros.h>
 
 namespace CusEngine {
     class ENGINE_API CObject {
@@ -12,7 +11,5 @@ namespace CusEngine {
 		CObject& operator=(const CObject&&) = delete;
 		CObject(CObject&&) = delete;
 		CObject& operator=(CObject&&) = delete;
-
-        virtual const Reflect::ClassType* GetClassInfo() const = 0;
     };
 }
