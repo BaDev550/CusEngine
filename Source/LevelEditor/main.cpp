@@ -4,6 +4,7 @@
 #include <Engine/Renderer/RenderSubsystem.h>
 #include <Engine/Window/WindowSubsystem.h>
 #include <Engine/Asset/AssetSubsystem.h>
+#include <Engine/Scene/SceneSubsystem.h>
 #include <Engine/MT/JobSubsystem.h>
 
 #include <LevelEditor/LevelEditor.h>
@@ -16,6 +17,7 @@ int main() {
 		engine.AddSubsystem<CusEngine::MT::JobSubsystem>();
 		engine.AddSubsystem<CusEngine::RenderSubsystem>();
 		engine.AddSubsystem<CusEngine::WindowSubsystem>();
+		engine.AddSubsystem<CusEngine::SceneSubsystem>();
 		engine.AddSubsystem<LevelEditor>();
 		engine.Run();
 	}

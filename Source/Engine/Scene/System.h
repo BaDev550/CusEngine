@@ -12,6 +12,8 @@ namespace CusEngine {
 		virtual Runtime::Result OnCreate() = 0;
 		virtual void OnUpdate(Scene& scene) = 0;
 		virtual void OnDestroy() = 0;
+
+		void SetEngine(Engine* engine) { _engine = engine; }
 	protected:
 		Engine* _engine;
 	};
