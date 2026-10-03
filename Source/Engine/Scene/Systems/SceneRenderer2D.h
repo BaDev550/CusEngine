@@ -1,15 +1,16 @@
 #pragma once
 
-#include <Engine/Renderer/RenderSubsystem.h>
+#include <Engine/Scene/System.h>
+#include <Engine/Asset/Texture/Texture2D.h>
+
+#include <Runtime/RHI/Pipeline/RHIPipeline.h>
 
 namespace CusEngine {
-	class ENGINE_API SceneRendererSubsystem final : public Subsystem {
+	class ENGINE_API SceneRenderer2DSystem final : public System {
 	public:
-		virtual Runtime::Result OnCreate(Engine* engine) override;
-		virtual void OnUpdate() override;
+		virtual Runtime::Result OnCreate() override;
+		virtual void OnUpdate(Scene& scene) override;
 		virtual void OnDestroy() override;
-
-		virtual void GetDependencyGraph(DependencyGraph& graph) override;
 	private:
 		bool _recreateSwapchainNextFrame = false;
 

@@ -16,6 +16,29 @@ namespace CusEngine::Reflect {
             Logger::Info(GetTypeID().name(), "Registered class: {}", pclass.Name);
         }
 
+		for (auto& [name, type] : _classes)
+		{
+			type.BaseClass = nullptr;
+
+			if (type.BaseClassName.empty())
+				continue;
+
+			auto it = _classes.find(type.BaseClassName);
+
+			if (it == _classes.end()) {
+				Logger::Error(
+					"Reflection",
+					"Base class '{}' not found for '{}'",
+					type.BaseClassName,
+					type.Name
+				);
+
+				continue;
+			}
+
+			type.BaseClass = &it->second;
+		}
+
         return Runtime::Result();
     }
 

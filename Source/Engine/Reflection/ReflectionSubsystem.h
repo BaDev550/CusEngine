@@ -16,10 +16,27 @@ namespace CusEngine::Reflect {
 
         const ClassType* GetClass(std::string_view className) const;
 
-        //template<typename T>
-        //const std::unordered_map<std::string, ClassType> GetClassesByBase(T) const {
-        //
-        //}
+        template<typename T>
+		std::vector<const ClassType*> GetClassesByBase() const {
+			std::vector<const ClassType*> result;
+
+			const ClassType* baseClassType = GetClass(T::StaticClassName());
+			if (!baseClassType) {
+				return result;
+			}
+
+			for (const auto& [name, c] : _classes) {
+				if (&c == baseClassType) {
+					continue;
+				}
+
+				if (c.IsA(baseClassType)) {
+					result.push_back(&c);
+				}
+			}
+            
+			return result;
+		}
 
         template<typename T = void>
         T* Create(const std::string& className) {

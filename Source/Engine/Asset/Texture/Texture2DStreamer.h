@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Engine/Asset/AssetStreamer.h>
+#include <Engine/Asset/Texture/Texture2D.h>
 #include <nvtt/nvtt.h>
 
 namespace CusEngine {
@@ -22,10 +23,14 @@ namespace CusEngine {
         virtual void endImage() override {}
     };
 
+    CCLASS()
 	class Texture2DStreamer final : public AssetStreamer {
+        GENERATE_CLASS(Texture2DStreamer)
 	public:
 		virtual Runtime::Result Cook(AssetSource& source) override;
         virtual Asset* Import(AssetSource& source) override;
+
+        virtual std::string GetAssetClassName() override { return Texture2D::StaticClassName().data(); };
 	private:
 		bool CompressImageToBC3(u8* rawData, u32 width, u32 height, std::vector<u8>& compressedImage);
 	};

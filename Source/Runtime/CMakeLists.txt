@@ -13,9 +13,9 @@ target_include_directories(Runtime PUBLIC "${CMAKE_SOURCE_DIR}/Source")
 target_link_libraries(Runtime 
     PUBLIC 
         glm::glm-header-only
+        imgui::imgui
     PRIVATE
         glfw 
-        imgui::imgui
         Vulkan::Vulkan
 	    GPUOpen::VulkanMemoryAllocator
         unofficial::shaderc::shaderc

@@ -16,8 +16,8 @@ namespace CusEngine {
 		u64 dataSize = 0;
 	};
 
-	class ENGINE_API Asset : public Object {
-		REFLECT_CLASS();
+	class ENGINE_API Asset : public CObject {
+		GENERATE_CLASS(Asset)
 	public:
 		Asset() = default;
 		virtual ~Asset() = default;

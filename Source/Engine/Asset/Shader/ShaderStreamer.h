@@ -1,16 +1,21 @@
 #pragma once
 
 #include <Engine/Asset/AssetStreamer.h>
+#include <Engine/Asset/Shader/Shader.h>
 
 #include <shaderc/shaderc.hpp>
 
 namespace CusEngine {
+	CCLASS()
     class ShaderStreamer final : public AssetStreamer {
+		GENERATE_CLASS(ShaderStreamer)
     public:
         static constexpr std::string_view ShaderCacheFileDir = "ShaderCache";
 
         virtual Runtime::Result Cook(AssetSource& source) override;
         virtual Asset* Import(AssetSource& source) override;
+
+		virtual std::string GetAssetClassName() override { return Shader::StaticClassName().data(); };
     };
 	
 	class FileIncluder : public shaderc::CompileOptions::IncluderInterface {

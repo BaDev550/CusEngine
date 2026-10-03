@@ -10,8 +10,6 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
-#include <Engine/Asset/Texture/Texture2D.h>
-
 #include <Engine/Renderer/RenderSubsystem.h>
 #include <Runtime/RHI/Buffer/RHIBuffer.h>
 #include <Runtime/RHI/Image/RHIImage.h>

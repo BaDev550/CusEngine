@@ -14,6 +14,7 @@
 #include <GLFW/glfw3native.h>
 
 #include <imgui.h>
+#include <imgui_internal.h>
 #include <imgui_impl_vulkan.h>
 #include <imgui_impl_glfw.h>
 
@@ -116,7 +117,8 @@ namespace Runtime::RHI {
 
 		vkCreateDescriptorPool(_device, &pool_info, nullptr, &_imguiDescriptorPool); // add check
 
-		ImGui::CreateContext();
+		auto* context = ImGui::CreateContext();
+		ImGui::SetCurrentContext(context);
 		ImGui_ImplGlfw_InitForVulkan(_desc.windowHandle, true);
 
 		ImGui_ImplVulkan_InitInfo init_info = {};
@@ -1026,4 +1028,6 @@ namespace Runtime::RHI {
 		}
 		return 0;
 	}
+
+	ImGuiContext* VulkanContext::GetImGuiContext() { return ImGui::GetCurrentContext(); }
 }

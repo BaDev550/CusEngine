@@ -19,21 +19,34 @@ namespace CusEngine {
 	{
 		Subsystem::OnCreate(engine);
 
+#if 0
 		auto* reflectSystem = Engine::Get()->GetSubsystem<Reflect::ReflectionSubsystem>();
+		auto streamerClasses = reflectSystem->GetClassesByBase<AssetStreamer>();
 
-		//for (auto [id, classType] : reflectSystem->GetClasses()) {
-		//	_assetCookerLookupTable[id] = _assetCookers.size();
-		//	_assetCookers.push_back(Runtime::Mem::Allocator::Construct<Texture2DCooker>());
-		//}
+		for (const Reflect::ClassType* classType : streamerClasses) {
+			if (classType->Name == "AssetStreamer") continue;
 
-		std::string textureTypeName = Texture2D::StaticClassName().data(); // FIXME(0x): wtf baran
-		std::string shaderTypeName = Shader::StaticClassName().data();
+			AssetStreamer* streamer = static_cast<AssetStreamer*>(classType->Instantiate());
 
-		_assetStreamerLookupTable[textureTypeName] = _assetStreamers.size();
-		_assetStreamers.push_back(Runtime::Mem::Allocator::Construct<Texture2DStreamer>());
+			if (streamer) {
+				std::string targetAssetClass = streamer->GetAssetClassName();
 
-		_assetStreamerLookupTable[shaderTypeName] = _assetStreamers.size();
-		_assetStreamers.push_back(Runtime::Mem::Allocator::Construct<ShaderStreamer>());
+				_assetStreamerLookupTable[targetAssetClass] = _assetStreamers.size();
+				_assetStreamers.push_back(streamer);
+				Logger::Info("AssetSubsystem", "Streamer {} added to asset system", classType->Name);
+			}
+			else {
+				Logger::Error("AssetSubsystem", "Failed to instantiate streamer: {}", classType->Name);
+			}
+		}
+#endif
+		Texture2DStreamer* textureStreamer = Runtime::Mem::Allocator::Construct<Texture2DStreamer>();
+		_assetStreamerLookupTable[textureStreamer->GetAssetClassName()] = _assetStreamers.size();
+		_assetStreamers.push_back(textureStreamer);
+
+		ShaderStreamer* shaderStreamer = Runtime::Mem::Allocator::Construct<ShaderStreamer>();
+		_assetStreamerLookupTable[shaderStreamer->GetAssetClassName()] = _assetStreamers.size();
+		_assetStreamers.push_back(shaderStreamer);
 
 		LoadRegistry();
 

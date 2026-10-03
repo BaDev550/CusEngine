@@ -107,7 +107,23 @@ namespace CusEngine {
 		return Result();
 	}
 
-	void RenderSubsystem::OnUpdate() { }
+	void RenderSubsystem::OnUpdate() {
+		RHI::CommandBuffer* cmd = BeginFrame();
+		if (!cmd) return;
+
+		cmd->BeginImGui();
+		ImGui::NewFrame();
+		BeginSwapchainPass();
+
+		for (auto& pass : _renderPasses) { pass(cmd); }
+		_renderPasses.clear();
+
+		ImGui::Render();
+		cmd->RenderImGui();
+		EndSwapchainPass();
+
+		EndFrame();
+	}
 
 	void RenderSubsystem::OnDestroy() {
 		Subsystem::OnDestroy();
@@ -135,7 +151,7 @@ namespace CusEngine {
 		graph.Require<WindowSubsystem>(DependencyOrder::After);
 	}
 
-	void RenderSubsystem::BeginFrame() {
+	RHI::CommandBuffer* RenderSubsystem::BeginFrame() {
 		if (_recreateSwapchainNextFrame) {
 			auto* window = _engine->GetSubsystem<WindowSubsystem>()->GetWindow();
 			_context->WaitDeviceIdle();
@@ -154,7 +170,7 @@ namespace CusEngine {
 		if (result.GetMessage() == "SwapchainIsOutOfDate") {
 			_recreateSwapchainNextFrame = true;
 			BeginFrame();
-			return;
+			return nullptr;
 		}
 		else if (result.GetMessage() == "FailedToAcquireSwapchainImage") {
 			_recreateSwapchainNextFrame = true;
@@ -169,11 +185,13 @@ namespace CusEngine {
 
 		for (auto& command : _commandQueue) { command(frame.commandBuffer); }
 		_commandQueue.clear();
+
+		return frame.commandBuffer;
 	}
 
 	void RenderSubsystem::EndFrame() {
 		if (!_frameRecording) return;
-
+		
 		FrameData* frame = GetCurrentFrameData();
 		RHI::Queue* graphicsQueue = _context->GetGraphicsQueue();
 
@@ -191,8 +209,8 @@ namespace CusEngine {
 		graphicsQueue->Present(_swapchain, _imageIndex, { _renderFinishedFences[_imageIndex] });
 	}
 
+	void RenderSubsystem::Pass(RenderPassFunc func) { _renderPasses.push_back(func); }
 	void RenderSubsystem::Submit(CommandFunc func) { _commandQueue.push_back(func); }
-
 	void RenderSubsystem::Track(RHI::Object* object) { GetCurrentFrameData()->trackedObjects.push_back(object); }
 
 	void RenderSubsystem::BeginSwapchainPass() {

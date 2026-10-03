@@ -3,9 +3,11 @@
 #include <Runtime/RHI/Shader/ShaderDesc.h>
 
 namespace CusEngine {
+	CCLASS()
 	class ENGINE_API Shader final : public Asset {
-		REFLECT_CLASS()
+		GENERATE_CLASS(Shader)
 	public:
+		Shader() = default;
 		Shader(const Runtime::RHI::ShaderDesc& desc) : _desc(desc) {};
 
 		[[nodiscard]] Runtime::RHI::ShaderDesc& GetDesc() { return _desc; }

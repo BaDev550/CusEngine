@@ -13,8 +13,11 @@ namespace CusEngine::Reflect {
 		std::string Name;
 		const std::type_info* TypeID = nullptr;
 
-		std::function<std::any(void*)> Get;
-		std::function<void(void*, std::any)> Set;
+		using GetPtrFn = const void* (*)(const void*);
+		using SetPtrFn = void (*)(void*, const void*);
+
+		GetPtrFn GetPtr = nullptr;
+		SetPtrFn SetPtr = nullptr;
 
 		template<typename ClassType, typename VarType>
 		static Property Bind(const std::string& name, VarType ClassType::* member) {
@@ -22,12 +25,8 @@ namespace CusEngine::Reflect {
 			prop.Name = name;
 			prop.TypeID = &typeid(VarType);
 
-			prop.Get = [member](void* instance) -> std::any {
-				return static_cast<ClassType*>(instance)->*member;
-				};
-			prop.Set = [member](void* instance, std::any value) {
-				static_cast<ClassType*>(instance)->*member = std::any_cast<VarType>(value);
-				};
+			prop.GetPtr = [](const void* instance) -> const void* { return &(static_cast<ClassType*>(instance)->*member); };
+			prop.SetPtr = [](void* instance, const void* value) { static_cast<ClassType*>(instance)->*member = *static_cast<VarType>(value); };
 			return prop;
 		}
 	};
@@ -36,6 +35,8 @@ namespace CusEngine::Reflect {
 	public:
 		std::string Name;
 		usize Size;
+		std::string BaseClassName;
+		const ClassType* BaseClass = nullptr;
 
 		std::function<void* ()> Instantiate = nullptr;
 		std::vector<Property> Properties;
@@ -45,6 +46,15 @@ namespace CusEngine::Reflect {
 				if (prop.Name == name) return &prop;
 			}
 			return nullptr;
+		}
+
+		bool IsA(const ClassType* other) const {
+			const ClassType* current = this;
+			while (current) {
+				if (current == other) return true;
+				current = current->BaseClass;
+			}
+			return false;
 		}
 	};
 }

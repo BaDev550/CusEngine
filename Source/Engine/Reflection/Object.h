@@ -4,9 +4,15 @@
 #include <Engine/Reflection/ReflectionMacros.h>
 
 namespace CusEngine {
-    class ENGINE_API Object {
+    class ENGINE_API CObject {
     public:
-        virtual ~Object() = default;
-        //virtual const Reflect::ClassType* GetTypeInfo() const = 0;
+		CObject() = default;
+		virtual ~CObject() = default;
+		CObject(const CObject&&) = delete;
+		CObject& operator=(const CObject&&) = delete;
+		CObject(CObject&&) = delete;
+		CObject& operator=(CObject&&) = delete;
+
+        virtual const Reflect::ClassType* GetClassInfo() const = 0;
     };
 }

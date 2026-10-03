@@ -6,8 +6,6 @@
 #include <fstream>
 #include <filesystem>
 
-#include <Engine/Asset/Shader/Shader.h>
-
 namespace CusEngine {
 	Runtime::Result ShaderStreamer::Cook(AssetSource& source) { // TEMP!!!!! FIX IT FUCKED UP RHI
 		if (source.sourcePath.empty()) {

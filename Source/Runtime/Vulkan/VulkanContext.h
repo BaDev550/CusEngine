@@ -33,6 +33,7 @@ namespace Runtime::RHI {
 		virtual Pipeline* CreatePipeline(const PipelineDesc& desc) override;
 		virtual Queue* GetGraphicsQueue() { return _graphicsAndPresentQueue; }
 		virtual ContextDesc* GetDesc() override;
+		virtual ImGuiContext* GetImGuiContext() override;
 
 		void SetObjectDebugName(VkDebugUtilsObjectNameInfoEXT* info);
 		void CopyBufferToImage(VkCommandBuffer cmd, VkBuffer buffer, VkImage image, VkImageLayout layout, uint32_t width, uint32_t height); // TODO(0x): move this into commands

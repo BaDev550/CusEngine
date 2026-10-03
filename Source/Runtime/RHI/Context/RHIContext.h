@@ -3,6 +3,7 @@
 
 #include <Runtime/RHI/Context/RHIContextDesc.h>
 
+struct ImGuiContext;
 namespace Runtime::RHI {
 	class Image;
 	class Buffer;
@@ -42,6 +43,7 @@ namespace Runtime::RHI {
 		virtual Pipeline* CreatePipeline(const PipelineDesc& desc) = 0;
 
 		virtual Queue* GetGraphicsQueue() = 0;
+		virtual ImGuiContext* GetImGuiContext() = 0;
 		virtual ContextDesc* GetDesc() = 0;
 	};
 

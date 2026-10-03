@@ -15,7 +15,7 @@
 
 namespace CusEngine {
 	using namespace Runtime;
-
+	using RenderPassFunc = std::function<void(RHI::CommandBuffer* cmd)>;
 	using CommandFunc = std::function<void(RHI::CommandBuffer* cmd)>;
 
 	class Texture2D;
@@ -30,8 +30,9 @@ namespace CusEngine {
 
 		virtual void GetDependencyGraph(DependencyGraph& graph) override;
 
-		void BeginFrame();
+		RHI::CommandBuffer* BeginFrame();
 		void EndFrame();
+		void Pass(RenderPassFunc func);
 		void Submit(CommandFunc func);
 		void Track(RHI::Object* object);
 
@@ -55,6 +56,7 @@ namespace CusEngine {
 			std::vector<RHI::Object*> trackedObjects;
 		} _frames[MaxFramesInFlight];
 
+		std::vector<RenderPassFunc> _renderPasses;
 		std::vector<CommandFunc> _commandQueue;
 		std::vector<RHI::Fence*> _renderFinishedFences;
 		RHI::Fence* _timelineFence = nullptr;
