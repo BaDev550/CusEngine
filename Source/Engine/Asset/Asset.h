@@ -3,6 +3,7 @@
 #include <Engine/Core/Object.h>
 
 #include <Runtime/Definitions/UUID.h>
+#include <Runtime/Reflection/ReflectionMacros.h>
 
 namespace CusEngine {
 	class AssetStreamer;

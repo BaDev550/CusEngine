@@ -1,14 +1,15 @@
 #pragma once
 
 #include <Engine/Asset/AssetSource.h>
-#include <Engine/Core/Object.h>
 
+#include <Runtime/Reflection/Type.h>
 #include <Runtime/Definitions/Result.h>
+#include <Runtime/Reflection/ReflectionMacros.h>
 
 namespace CusEngine {
 	class Asset;
 
-	class ENGINE_API AssetStreamer : public CObject {
+	class ENGINE_API AssetStreamer : public Runtime::Reflection::Type {
 		GENERATE_CLASS(AssetStreamer)
 	public:
 		virtual ~AssetStreamer() = default;

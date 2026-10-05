@@ -15,7 +15,7 @@
 #include <Runtime/RHI/Image/RHIImage.h>
 #include <Runtime/RHI/Common/RHIUtils.h>
 
-#include <Engine/Asset/AssetStreamerFactory.h>
+#include <Runtime/Reflection/TypeRegistry.h>
 
 namespace CusEngine {
     Runtime::Result Texture2DStreamer::Cook(AssetSource& source) {
@@ -145,4 +145,4 @@ namespace CusEngine {
     }
 }
 
-REGISTER_ASSETSTREAMER(Texture2DStreamer);
+REGISTER_CLASS(Texture2DStreamer, AssetStreamer);

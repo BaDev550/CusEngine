@@ -1,5 +1,6 @@
 #include <Engine/Core/Engine.h>
 #include <Runtime/Definitions/Logger.h>
+#include <Runtime/Reflection/TypeRegistry.h>
 
 #include <queue>
 
@@ -39,6 +40,7 @@ namespace CusEngine {
 				Runtime::Mem::Allocator::Destroy(system);
 			}
 		}
+		Runtime::Reflection::TypeRegistry::Get().Shutdown();
 	}
 
 	void Engine::Shutdown(const std::string_view reson) {

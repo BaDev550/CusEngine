@@ -2,6 +2,7 @@
 
 #include <Engine/Scene/Systems/SceneRenderer2D.h>
 #include <Engine/Asset/AssetSubsystem.h>
+#include <Engine/Renderer/RenderSubsystem.h>
 
 namespace CusEngine {
 	Runtime::Result SceneSubsystem::OnCreate(Engine* engine) {
@@ -25,7 +26,10 @@ namespace CusEngine {
 	}
 
 	void SceneSubsystem::OnDestroy() {
+		Subsystem::OnDestroy();
+
 		for (auto& system : _systems) {
+			system->OnDestroy();
 			Runtime::Mem::Allocator::Destroy(system);
 		}
 		Runtime::Mem::Allocator::Destroy(_activeScene);
@@ -33,5 +37,6 @@ namespace CusEngine {
 
 	void SceneSubsystem::GetDependencyGraph(DependencyGraph& graph) {
 		graph.Require<AssetSubsystem>(DependencyOrder::After);
+		graph.Require<RenderSubsystem>(DependencyOrder::After);
 	}
 }

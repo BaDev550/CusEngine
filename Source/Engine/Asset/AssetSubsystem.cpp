@@ -13,15 +13,15 @@
 #include <nlohmann/json.hpp>
 #include <fstream>
 
-#include <Engine/Asset/AssetStreamerFactory.h>
+#include <Runtime/Reflection/TypeRegistry.h>
 
 namespace CusEngine {
 	Runtime::Result AssetSubsystem::OnCreate(Engine* engine)
 	{
 		Subsystem::OnCreate(engine);
 
-		AssetStreamerFactory::Factory().ForEach([this](const AssetStreamerEntry& info) {
-			AssetStreamer* streamer = info.constructFunc();
+		Runtime::Reflection::TypeRegistry::Get().ForEachForBase<AssetStreamer>([this](Runtime::Reflection::Type* type) {
+			AssetStreamer* streamer = static_cast<AssetStreamer*>(type->constructFunc());
 			_assetStreamerLookupTable[streamer->GetAssetClassName()] = _assetStreamers.size();
 			_assetStreamers.push_back(streamer);
 			});

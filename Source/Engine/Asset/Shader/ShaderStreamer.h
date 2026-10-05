@@ -6,7 +6,6 @@
 #include <shaderc/shaderc.hpp>
 
 namespace CusEngine {
-	CCLASS()
     class ShaderStreamer final : public AssetStreamer {
 		GENERATE_CLASS(ShaderStreamer)
     public:

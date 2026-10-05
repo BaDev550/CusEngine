@@ -6,7 +6,7 @@
 #include <fstream>
 #include <filesystem>
 
-#include <Engine/Asset/AssetStreamerFactory.h>
+#include <Runtime/Reflection/TypeRegistry.h>
 
 namespace CusEngine {
 	Runtime::Result ShaderStreamer::Cook(AssetSource& source) { // TEMP!!!!! FIX IT FUCKED UP RHI
@@ -133,4 +133,4 @@ namespace CusEngine {
 	}
 }
 
-REGISTER_ASSETSTREAMER(ShaderStreamer);
+REGISTER_CLASS(ShaderStreamer, AssetStreamer);
