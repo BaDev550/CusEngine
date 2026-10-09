@@ -1,5 +1,6 @@
 ﻿file(GLOB_RECURSE SOURCECODE CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/*.h") 
 add_library(Engine SHARED ${SOURCECODE})
+add_dependencies(Engine ReflectGen)
 
 find_package(glfw3 CONFIG REQUIRED)
 find_package(imgui CONFIG REQUIRED)
@@ -41,7 +42,7 @@ else()
 endif()
 
 target_compile_definitions(Engine PRIVATE ENGINE_EXPORTS)
-target_include_directories(Engine PUBLIC "${CMAKE_SOURCE_DIR}/Source" PRIVATE ${MIO_INCLUDE_DIR} ${NVTT_INCLUDE_DIR} ${Stb_INCLUDE_DIR})
+target_include_directories(Engine PUBLIC "${CMAKE_SOURCE_DIR}/Source" PRIVATE ${REFLECTION_INCLUDE_PATH} ${MIO_INCLUDE_DIR} ${NVTT_INCLUDE_DIR} ${Stb_INCLUDE_DIR})
 
 target_link_libraries(Engine 
     PUBLIC 

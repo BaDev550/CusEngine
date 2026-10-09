@@ -17,6 +17,7 @@ namespace CusEngine {
 		u64 dataSize = 0;
 	};
 
+	CCLASS()
 	class ENGINE_API Asset : public CObject {
 		GENERATE_CLASS(Asset)
 	public:

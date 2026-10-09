@@ -7,6 +7,7 @@
 #include <Engine/Asset/AssetSubsystem.h>
 #include <Engine/Asset/Texture/Texture2D.h>
 #include <Engine/Asset/Shader/Shader.h>
+#include <ReflectManifest.h>
 
 namespace CusEngine {
 	Engine* Engine::_instance = nullptr;
@@ -22,9 +23,9 @@ namespace CusEngine {
 	void Engine::Run() {
 		Logger::Info("Engine", "Engine running...");
 
-		SortAndInitializeSystems();
+		Runtime::Reflection::RegisterGeneratedTypes(Runtime::Reflection::TypeRegistry::Get());
 
-		auto* assetSystem = GetSubsystem<AssetSubsystem>();
+		SortAndInitializeSystems();
 
 		while (_running) {
 
@@ -40,7 +41,6 @@ namespace CusEngine {
 				Runtime::Mem::Allocator::Destroy(system);
 			}
 		}
-		Runtime::Reflection::TypeRegistry::Get().Shutdown();
 	}
 
 	void Engine::Shutdown(const std::string_view reson) {
@@ -113,7 +113,6 @@ namespace CusEngine {
 			else {
 				_systemLookupTable[system->GetTypeID()] = _activeSubsystemList.size();
 				_activeSubsystemList.push_back(system);
-				//Runtime::Mem::Allocator::GetTracker().Record(_activeSubsystemList[_activeSubsystemList.size() - 1], { sizeof(*system), alignof(Subsystem)} );
 			}
 		}
 		_pendingInitList.clear();

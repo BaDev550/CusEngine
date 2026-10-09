@@ -132,5 +132,3 @@ namespace CusEngine {
 		return result;
 	}
 }
-
-REGISTER_CLASS(ShaderStreamer, AssetStreamer);

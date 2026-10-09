@@ -7,13 +7,8 @@
 namespace Runtime::Reflection {
 	class TypeRegistry final {
 	public:
-		void Register(Type* type) {
-			_entiries[type->type] = type;
-
-			Logger::Info("TypeRegistry", "TypeRegistry {} registered", type->GetClassName().data());
-		}
-
-		void Shutdown() {
+		TypeRegistry() = default;
+		~TypeRegistry() {
 			for (auto& [index, type] : _entiries) {
 				Mem::Allocator::Destroy(type);
 			}
@@ -33,9 +28,27 @@ namespace Runtime::Reflection {
 			}
 		}
 
-		Type* GetClass(std::type_index type) {
+		template<typename T, typename Base>
+		void Register() {
+			Type* type = Mem::Allocator::Construct<Type>();
+			type->size = sizeof(T);
+			type->alignment = alignof(T);
+			type->type = typeid(T);
+			type->baseType = typeid(Base);
+			
+			if constexpr (std::is_default_constructible_v<T> && !std::is_abstract_v<T>) {
+				type->constructFunc = []() -> void* { return Mem::Allocator::Construct<T>(); };
+				type->deconstructFunc = [](void* p) { Mem::Allocator::Destroy(static_cast<T*>(p)); };
+			}
+
+			_entiries[type->type] = type;
+			Logger::Info("TypeRegistry", "TypeRegistry {} registered", type->GetClassName().data());
+		}
+
+		template<class ClassT = Type> requires std::is_base_of_v<Type, ClassT>
+		ClassT* GetClass(std::type_index type) {
 			if (_entiries.contains(type))
-				return _entiries[type];
+				return static_cast<ClassT*>(_entiries[type]);
 			return nullptr;
 		}
 
@@ -47,23 +60,10 @@ namespace Runtime::Reflection {
 		std::unordered_map<std::type_index, Type*> _entiries;
 	};
 
-#define REGISTER_CLASS(ClassType, BaseClassType) \
-	namespace { \
-		CusEngine::ClassType* ClassType##_create() { \
-			auto* type = Runtime::Mem::Allocator::Construct<CusEngine::ClassType>(); \
-			return type; \
-		} \
-		struct ClassType##_register { \
-			ClassType##_register() { \
-				CusEngine::ClassType* entry = Runtime::Mem::Allocator::Construct<CusEngine::ClassType>(); \
-				entry->size = sizeof(CusEngine::ClassType); \
-				entry->alignment = alignof(CusEngine::ClassType); \
-				entry->type = typeid(CusEngine::ClassType); \
-				entry->baseType = typeid(CusEngine::BaseClassType); \
-				entry->constructFunc = &ClassType##_create; \
-				Runtime::Reflection::TypeRegistry::Get().Register(std::move(entry)); \
-			} \
-		}; \
-		static ClassType##_register s_##Type##_register; \
-	}
+	template<typename... Rs>
+	struct TypeList {
+		static void RegisterAll(TypeRegistry& r) {
+			(r.template Register<typename Rs::Type, typename Rs::Base>(), ...);
+		}
+	};
 }

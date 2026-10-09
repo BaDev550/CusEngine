@@ -23,6 +23,7 @@ namespace CusEngine {
         virtual void endImage() override {}
     };
 
+    CCLASS()
 	class Texture2DStreamer final : public AssetStreamer {
         GENERATE_CLASS(Texture2DStreamer)
 	public:

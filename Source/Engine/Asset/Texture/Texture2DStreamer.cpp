@@ -144,5 +144,3 @@ namespace CusEngine {
         return false;
     }
 }
-
-REGISTER_CLASS(Texture2DStreamer, AssetStreamer);

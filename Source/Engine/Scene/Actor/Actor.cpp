@@ -7,5 +7,3 @@ namespace CusEngine {
 		Logger::Info("CActor", "Rotation changed");
 	}
 }
-
-REGISTER_CLASS(CActor, CObject);
