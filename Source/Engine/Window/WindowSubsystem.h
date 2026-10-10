@@ -5,7 +5,7 @@
 #include <Engine/Subsystem/Subsystem.h>
 #include <vector>
 
-namespace CusEngine {
+namespace Tourqe::Engine {
 	class ENGINE_API WindowSubsystem final : public Subsystem {
 	public:
 		virtual Runtime::Result OnCreate(Engine* engine) override;

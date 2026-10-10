@@ -3,8 +3,8 @@
 #include <Engine/Asset/Asset.h>
 #include <Runtime/RHI/Image/RHIImage.h>
 
-namespace CusEngine {
-	CCLASS()
+namespace Tourqe::Engine {
+	TCLASS()
 	class ENGINE_API Texture2D final : public Asset { // TEMP CLASS
 		GENERATE_CLASS(Texture2D);
 	public:

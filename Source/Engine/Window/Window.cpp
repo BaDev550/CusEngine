@@ -3,7 +3,7 @@
 #include <Runtime/Memory/Memory.h>
 #include <GLFW/glfw3.h>
 
-namespace CusEngine {
+namespace Tourqe::Engine {
 	Window::Window(const WindowDesc& desc) : _desc(desc) {
 		_handle = glfwCreateWindow(_desc.width, _desc.height, _desc.title.c_str(), nullptr, nullptr);
 		glfwSetWindowUserPointer(_handle, &_desc);

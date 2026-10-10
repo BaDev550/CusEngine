@@ -1,5 +1,6 @@
 #include "Texture2DStreamer.h"
 
+#include <Engine/Core/Engine.h>
 #include <Engine/Asset/Asset.h>
 #include <Runtime/Definitions/Profiler.h>
 #include <Runtime/IO/FileBuffer.h>
@@ -15,9 +16,7 @@
 #include <Runtime/RHI/Image/RHIImage.h>
 #include <Runtime/RHI/Common/RHIUtils.h>
 
-#include <Runtime/Reflection/TypeRegistry.h>
-
-namespace CusEngine {
+namespace Tourqe::Engine {
     Runtime::Result Texture2DStreamer::Cook(AssetSource& source) {
         if (source.sourcePath.empty()) {
             return Runtime::Result("No source file provided!");

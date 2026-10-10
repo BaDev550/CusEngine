@@ -4,7 +4,7 @@
 #include <Engine/Asset/AssetSubsystem.h>
 #include <Engine/Renderer/RenderSubsystem.h>
 
-namespace CusEngine {
+namespace Tourqe::Engine {
 	Runtime::Result SceneSubsystem::OnCreate(Engine* engine) {
 		Subsystem::OnCreate(engine);
 

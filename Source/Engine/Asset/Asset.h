@@ -3,9 +3,8 @@
 #include <Engine/Core/Object.h>
 
 #include <Runtime/Definitions/UUID.h>
-#include <Runtime/Reflection/ReflectionMacros.h>
 
-namespace CusEngine {
+namespace Tourqe::Engine {
 	class AssetStreamer;
 	
 	struct AssetHeader {
@@ -17,8 +16,8 @@ namespace CusEngine {
 		u64 dataSize = 0;
 	};
 
-	CCLASS()
-	class ENGINE_API Asset : public CObject {
+	TCLASS()
+	class ENGINE_API Asset : public TObject {
 		GENERATE_CLASS(Asset)
 	public:
 		Asset() = default;

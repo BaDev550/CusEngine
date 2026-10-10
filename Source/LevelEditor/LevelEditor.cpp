@@ -1,11 +1,14 @@
 #include "LevelEditor.h"
+#include <Engine/Core/Engine.h>
 #include <Engine/Renderer/RenderSubsystem.h>
 
 #include <imgui.h>
 
-Runtime::Result LevelEditor::OnCreate(CusEngine::Engine* engine) {
+using namespace Tourqe::Engine;
+
+Runtime::Result LevelEditor::OnCreate(Engine* engine) {
     Subsystem::OnCreate(engine);
-	auto renderSystem = _engine->GetSubsystem<CusEngine::RenderSubsystem>();
+	auto renderSystem = _engine->GetSubsystem<RenderSubsystem>();
 	auto context = renderSystem->GetContext();
 
 	ImGui::SetCurrentContext(context->GetImGuiContext());
@@ -14,7 +17,7 @@ Runtime::Result LevelEditor::OnCreate(CusEngine::Engine* engine) {
 }
 
 void LevelEditor::OnUpdate() {
-	auto renderSystem = _engine->GetSubsystem<CusEngine::RenderSubsystem>();
+	auto renderSystem = _engine->GetSubsystem<RenderSubsystem>();
 
 	renderSystem->Pass([=](Runtime::RHI::CommandBuffer* cmd) {
 
@@ -26,8 +29,8 @@ void LevelEditor::OnDestroy() {
 
 }
 
-void LevelEditor::GetDependencyGraph(CusEngine::DependencyGraph & graph) {
-	graph.Require<CusEngine::RenderSubsystem>(CusEngine::DependencyOrder::After);
+void LevelEditor::GetDependencyGraph(DependencyGraph & graph) {
+	graph.Require<RenderSubsystem>(DependencyOrder::After);
 }
 
 void Console::Draw() {

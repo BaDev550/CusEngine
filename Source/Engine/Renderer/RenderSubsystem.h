@@ -13,7 +13,7 @@
 #include <Runtime/RHI/Sync/RHIFence.h>
 #include <Runtime/RHI/Queue/RHIQueue.h>
 
-namespace CusEngine {
+namespace Tourqe::Engine {
 	using namespace Runtime;
 	using RenderPassFunc = std::function<void(RHI::CommandBuffer* cmd)>;
 	using CommandFunc = std::function<void(RHI::CommandBuffer* cmd)>;

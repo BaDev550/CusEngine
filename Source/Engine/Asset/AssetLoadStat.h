@@ -1,7 +1,7 @@
 #pragma once
 #include <Engine/Core/Core.h>
 
-namespace CusEngine {
+namespace Tourqe::Engine {
 	enum class AssetState : u8 {
 		InDisk,
 		Loading,

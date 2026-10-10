@@ -2,14 +2,14 @@
 
 #include <Engine/Asset/AssetSource.h>
 
-#include <Runtime/Reflection/Type.h>
 #include <Runtime/Definitions/Result.h>
-#include <Runtime/Reflection/ReflectionMacros.h>
+#include <Runtime/Reflection/ReflectObject.h>
 
-namespace CusEngine {
+namespace Tourqe::Engine {
 	class Asset;
 
-	class ENGINE_API AssetStreamer : public Runtime::Reflection::Type {
+	TCLASS()
+	class ENGINE_API AssetStreamer : public Runtime::Reflection::ReflectObject {
 		GENERATE_CLASS(AssetStreamer)
 	public:
 		virtual ~AssetStreamer() = default;

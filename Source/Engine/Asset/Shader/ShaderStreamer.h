@@ -5,8 +5,8 @@
 
 #include <shaderc/shaderc.hpp>
 
-namespace CusEngine {
-	CCLASS()
+namespace Tourqe::Engine {
+	TCLASS()
     class ShaderStreamer final : public AssetStreamer {
 		GENERATE_CLASS(ShaderStreamer)
     public:

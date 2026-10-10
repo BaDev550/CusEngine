@@ -2,19 +2,18 @@
 #include <Engine/Core/Core.h>
 #include <string_view>
 
-#include <Runtime/Reflection/Type.h>
-#include <Runtime/Reflection/ReflectionMacros.h>
+#include <Runtime/Reflection/ReflectObject.h>
 
-namespace CusEngine {
-	CCLASS()
-    class ENGINE_API CObject : public Runtime::Reflection::Type {
-		GENERATE_CLASS(CObject)
+namespace Tourqe::Engine {
+	TCLASS()
+    class ENGINE_API TObject : public Runtime::Reflection::ReflectObject {
+		GENERATE_CLASS(TObject)
     public:
-		CObject() = default;
-		virtual ~CObject() = default;
-		CObject(const CObject&&) = delete;
-		CObject& operator=(const CObject&&) = delete;
-		CObject(CObject&&) = delete;
-		CObject& operator=(CObject&&) = delete;
+		TObject() = default;
+		virtual ~TObject() = default;
+		TObject(const TObject&&) = delete;
+		TObject& operator=(const TObject&&) = delete;
+		TObject(TObject&&) = delete;
+		TObject& operator=(TObject&&) = delete;
     };
 }

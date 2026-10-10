@@ -5,7 +5,7 @@
 #include <nlohmann/json.hpp>
 #include <string>
 
-namespace CusEngine {
+namespace Tourqe::Engine {
 	struct AssetSource {
 		Runtime::UUID handle;
 		std::string sourcePath;

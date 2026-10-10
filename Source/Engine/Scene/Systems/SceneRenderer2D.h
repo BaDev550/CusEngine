@@ -5,7 +5,7 @@
 
 #include <Runtime/RHI/Pipeline/RHIPipeline.h>
 
-namespace CusEngine {
+namespace Tourqe::Engine {
 	class ENGINE_API SceneRenderer2DSystem final : public System {
 	public:
 		virtual Runtime::Result OnCreate() override;

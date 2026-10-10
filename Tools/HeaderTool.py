@@ -8,16 +8,19 @@ from pathlib import Path
 
 HEADER_EXTS = {".h", ".hpp", ".hh"}
 GENERATED_SUFFIX = ".generated.h"
+MANIFEST_NAME = "reflectManifest.h"
 MARKER = "// reflect: "
+CLASS_MACRO = "TCLASS"
 
 _NOISE = re.compile(
-    r"""//[^\n]*""" 
-    r"""|/\*.*?\*/""" 
+    r"""//[^\n]*"""
+    r"""|/\*.*?\*/"""
     r"""|R"(?P<d>[^(\s]*)\(.*?\)(?P=d)\""""
     r"""|"(?:\\.|[^"\\\n])*\""""
     r"""|(?<![0-9A-Za-z_])'(?:\\.[^'\n]*|[^'\\\n])'""",
     re.S,
 )
+
 
 def strip_noise(text: str) -> str:
     def repl(m: re.Match) -> str:
@@ -30,7 +33,7 @@ def strip_noise(text: str) -> str:
 
 
 _CLASS = (
-    r"(?P<cc>\bCCLASS\s*\([^)]*\)\s*(?P<kw>class|struct)\s+"
+    r"(?P<cc>\b" + CLASS_MACRO + r"\s*\([^)]*\)\s*(?P<kw>class|struct)\s+"
     r"(?:\[\[[^\]]*\]\]\s*)*"
     r"(?:[A-Z0-9_]*(?:API|EXPORT)[A-Z0-9_]*\s+)?"
     r"(?P<name>[A-Za-z_]\w*)\s*(?:final\s*)?"
@@ -39,20 +42,18 @@ _CLASS = (
 _NAMESPACE = r"(?P<ns>\bnamespace\b\s*(?P<nsname>[A-Za-z_][\w:\s]*?)?\s*\{)"
 _TOKEN = re.compile("|".join([_CLASS, _NAMESPACE, r"(?P<open>\{)", r"(?P<close>\})"]))
 
+
 @dataclass
 class ClassInfo:
     name: str
     namespace: str
-    scoped: str
+    scoped: str  # Outer::Inner (no namespace)
     base: str | None
 
     @property
-    def alias(self) -> str:
-        return self.scoped.replace("::", "_") + "_Reflected"
-
-    @property
-    def qualified_alias(self) -> str:
-        return f"{self.namespace}::{self.alias}" if self.namespace else self.alias
+    def qualified(self) -> str:
+        """Fully qualified name, with a leading '::'."""
+        return f"::{self.namespace}::{self.scoped}" if self.namespace else f"::{self.scoped}"
 
 
 def pick_base(bases: str | None, kw: str) -> str | None:
@@ -110,24 +111,34 @@ def parse_header(text: str) -> list[ClassInfo]:
     return found
 
 
-def render_generated_header(header_rel: str, c: ClassInfo, registry_include: str, registry_ns: str) -> str:
-    alias_decl = (
-        f"using {c.alias} = ::{registry_ns}::Reflected<{c.scoped}, {c.base or 'void'}>;"
-    )
+def render_generated_header(header_inc: str, c: ClassInfo, registry_include: str, registry_ns: str) -> str:
+    """Emits a TypeAccessor<T> specialization that builds the type with TypeBuilder."""
     out = [
         "#pragma once",
         "",
-        f"{MARKER}{c.qualified_alias}",
+        f"{MARKER}{c.qualified}",
         "",
         f"#include <{registry_include}>",
-        f"#include <{header_rel}>",
+        f"#include <{header_inc}>",
         "",
+        f"namespace {registry_ns} {{",
+        "\ttemplate<>",
+        f"\tstruct TypeAccessor<{c.qualified}> {{",
+        "\t\tstatic Type Build() {",
     ]
     if c.namespace:
-        out += [f"namespace {c.namespace} {{", f"\t{alias_decl}", "}"]
-    else:
-        out += [alias_decl]
-    out.append("")
+        out.append(f"\t\t\tusing namespace {c.namespace};")
+        out.append("")
+    out.append(f'\t\t\treturn TypeBuilder<{c.qualified}>::ForType("{c.name}")')
+    if c.base:
+        out.append(f"\t\t\t\t.Base<{c.base}>()")
+    out += [
+        "\t\t\t\t.Build();",
+        "\t\t}",
+        "\t};",
+        "}",
+        "",
+    ]
     return "\n".join(out)
 
 
@@ -147,29 +158,38 @@ def collect_entries(inter: Path) -> list[tuple[str, str, str]]:
     return entries
 
 
-def render_manifest(entries: list[tuple[str, str, str]], registry_include: str, registry_ns: str) -> str:
+def render_manifest(
+    entries: list[tuple[str, str, str]],
+    registry_include: str,
+    registry_ns: str,
+    export_macro: str,
+) -> str:
     out = [
         "#pragma once",
         "",
+        "#include <vector>",
         f"#include <{registry_include}>",
+        "",
     ]
     out += [f'#include "{proj}/{name}"' for proj, name, _ in entries]
-    out += ["", f"namespace {registry_ns} {{", "\tusing GeneratedTypes = TypeList<"]
-    last_project = None
-    for i, (proj, _, alias) in enumerate(entries):
-        if proj != last_project:
-            out.append(f"\t\t// {proj}")
-            last_project = proj
-        out.append(f"\t\t{alias}" + ("," if i + 1 < len(entries) else ""))
     out += [
-        "\t>;",
         "",
-        "\tinline void RegisterGeneratedTypes(TypeRegistry& r) {",
-        "\t\tGeneratedTypes::RegisterAll(r);",
-        "\t}",
-        "}",
+        f'extern "C" {export_macro} void GenerateModuleManifestation(std::vector<{registry_ns}::Type>* outTypes) {{'.replace("  ", " "),
+        "\tif (!outTypes)",
+        "\t\treturn;",
+        "",
+        f"\tusing namespace {registry_ns};",
         "",
     ]
+    last_project = None
+    for proj, _, qualified in entries:
+        if proj != last_project:
+            if last_project is not None:
+                out.append("")
+            out.append(f"\t// {proj}")
+            last_project = proj
+        out.append(f"\toutTypes->push_back(TypeAccessor<{qualified}>::Build());")
+    out += ["}", ""]
     return "\n".join(out)
 
 
@@ -181,6 +201,7 @@ def write_if_changed(path: Path, content: str) -> bool:
     path.write_bytes(data)
     return True
 
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="Generate reflection headers and manifest.")
     ap.add_argument("--root", required=True)
@@ -189,8 +210,9 @@ def main() -> int:
     ap.add_argument("--include-base")
     ap.add_argument("--include-prefix")
     ap.add_argument("--intermediate", default="Intermative")
-    ap.add_argument("--registry-include", default="Runtime/Reflection/TypeRegistry.h")
+    ap.add_argument("--registry-include", default="Runtime/Reflection/TypeBuilder.h")
     ap.add_argument("--registry-namespace", default="Runtime::Reflection")
+    ap.add_argument("--export-macro", help="defaults to <PROJECT>_API")
     args = ap.parse_args()
 
     root = Path(args.root).resolve()
@@ -201,6 +223,7 @@ def main() -> int:
     inter = (root / args.intermediate).resolve()
     proj_dir = inter / args.project
     include_prefix = (args.project if args.include_prefix is None else args.include_prefix).strip("/")
+    export_macro = args.export_macro if args.export_macro is not None else f"{args.project.upper()}_API"
 
     if not source.is_dir():
         print(f"HeaderTool: source folder not found: {source}", file=sys.stderr)
@@ -220,7 +243,7 @@ def main() -> int:
 
     for h in headers:
         raw = h.read_text(encoding="utf-8", errors="replace")
-        if "CCLASS" not in raw:
+        if CLASS_MACRO not in raw:
             continue
         classes = parse_header(raw)
         if not classes:
@@ -262,8 +285,8 @@ def main() -> int:
             changed += 1
 
     changed += write_if_changed(
-        inter / "ReflectManifest.h",
-        render_manifest(collect_entries(inter), args.registry_include, args.registry_namespace),
+        inter / MANIFEST_NAME,
+        render_manifest(collect_entries(inter), args.registry_include, args.registry_namespace, export_macro),
     )
 
     print(

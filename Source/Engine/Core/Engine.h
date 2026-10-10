@@ -5,7 +5,11 @@
 #include <unordered_map>
 #include <string_view>
 
-namespace CusEngine {
+namespace Tourqe::Engine {
+	class ReflectionSystem;
+	class PluginSystem;
+	class JobSystem;
+
 	class ENGINE_API Engine final {
 	public:
 		Engine();
@@ -52,5 +56,9 @@ namespace CusEngine {
 		std::unordered_map<std::type_index, usize> _systemLookupTable;
 
 		std::vector<Subsystem*> _pendingDestroyList;
+
+		ReflectionSystem* _reflectionSystem = nullptr;
+		PluginSystem* _pluginSystem = nullptr;
+		JobSystem* _jobSystem = nullptr;
 	};
 }

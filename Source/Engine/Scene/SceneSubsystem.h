@@ -4,7 +4,7 @@
 #include <Engine/Subsystem/Subsystem.h>
 #include <Engine/Scene/System.h>
 
-namespace CusEngine { // All temp classes
+namespace Tourqe::Engine { // All temp classes
 	class Scene {
 	public:
 		bool _initialized = false;

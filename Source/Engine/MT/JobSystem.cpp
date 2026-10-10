@@ -1,6 +1,6 @@
+#include <Engine/MT/JobSystem.h>
+
 #include <Runtime/Definitions/Logger.h>
-#include <Engine/MT/JobSubsystem.h>
-#include <Engine/Window/WindowSubsystem.h>
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -8,10 +8,8 @@
 #include <Windows.h>
 #endif
 
-namespace CusEngine::MT {
-	Runtime::Result JobSubsystem::OnCreate(Engine* engine) {
-		Subsystem::OnCreate(engine);
-
+namespace Tourqe::Engine {
+	JobSystem::JobSystem() {
 		u32 totalCores = std::thread::hardware_concurrency();
 		u32 highCoreCount = std::max(1u, (totalCores * 7) / 10);
 		u32 lowCoreCount = std::max(1u, totalCores - highCoreCount);
@@ -31,17 +29,9 @@ namespace CusEngine::MT {
 				});
 			Logger::Info("EfficiencyCore", "Attached to thread");
 		}
-
-		return Runtime::Result();
 	}
 
-	void JobSubsystem::OnUpdate() {
-		Wait();
-	}
-
-	void JobSubsystem::OnDestroy() {
-		Subsystem::OnDestroy();
-
+	JobSystem::~JobSystem() {
 		Wait();
 
 		{
@@ -58,17 +48,13 @@ namespace CusEngine::MT {
 		_lowPriorityThreads.clear();
 	}
 
-	void JobSubsystem::GetDependencyGraph(DependencyGraph& graph) {
-		graph.Require<WindowSubsystem>(DependencyOrder::After);
-	}
-
-	void JobSubsystem::Wait() {
+	void JobSystem::Wait() {
 		while (_activeJob.load() > 0) {
 			std::this_thread::yield();
 		}
 	}
 
-	void JobSubsystem::Execute(const JobFunc& job, JobPriority priority) {
+	void JobSystem::Execute(const JobFunc& job, JobPriority priority) {
 		{
 			std::lock_guard<std::mutex> lock(_queueMutex);
 			if (priority == JobPriority::High) {
@@ -82,7 +68,7 @@ namespace CusEngine::MT {
 		_cv.notify_all();
 	}
 
-	void JobSubsystem::WorkerLoop(JobPriority priority) {
+	void JobSystem::WorkerLoop(JobPriority priority) {
 		while (true) {
 			JobFunc job;
 
@@ -124,7 +110,7 @@ namespace CusEngine::MT {
 		}
 	}
 
-	void JobSubsystem::SetThreadPowerMode(JobPriority priority) {
+	void JobSystem::SetThreadPowerMode(JobPriority priority) {
 #ifdef _WIN32
 		HANDLE hThread = GetCurrentThread();
 		THREAD_POWER_THROTTLING_STATE throttling{};

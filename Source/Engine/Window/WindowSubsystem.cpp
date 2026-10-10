@@ -3,7 +3,7 @@
 
 #include <GLFW/glfw3.h>
 
-namespace CusEngine {
+namespace Tourqe::Engine {
 	Runtime::Result WindowSubsystem::OnCreate(Engine* engine)
 	{
 		Subsystem::OnCreate(engine);

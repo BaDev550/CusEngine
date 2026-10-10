@@ -2,18 +2,17 @@
 
 #include <Engine/Core/Core.h>
 #include <Engine/Core/Object.h>
-#include <Runtime/Reflection/ReflectionMacros.h>
 
 #include <glm/gtc/quaternion.hpp>
 #include <glm/glm.hpp>
 
-namespace CusEngine {
-	CCLASS()
-	class CActor : public CObject {
-		GENERATE_CLASS(CActor)
+namespace Tourqe::Engine {
+	TCLASS()
+	class TActor : public TObject {
+		GENERATE_CLASS(TActor)
 	public:
-		CActor() = default;
-		virtual ~CActor() = default;
+		TActor() = default;
+		virtual ~TActor() = default;
 
 		void SetRotation(const glm::vec3& rot);
 

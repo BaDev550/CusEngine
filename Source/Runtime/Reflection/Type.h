@@ -1,39 +1,60 @@
 #pragma once
 
 #include <Runtime/Definitions/Types.h>
+#include <Runtime/Definitions/Logger.h>
 #include <functional>
 #include <typeindex>
+#include <string>
 #include <string_view>
 
 namespace Runtime::Reflection {
-
-#define CCLASS(...)
-#define CPROP(...)
-
-#define GENERATE_CLASS(ClassType) \
-public: \ 
-	using Self = ClassType; \
-	static constexpr std::string_view StaticClassName() { return #ClassType; }
-
-	template<typename T, typename B = void>
-	struct Reflected {
-		static_assert(std::is_void_v<B> || std::is_base_of_v<B, T>, "CCLASS base mismatch");
-		using Type = T;
-		using Base = B;
-	};
-
-	class Type {
+	class Type final {
 	public:
+		Type() = default;
 		virtual ~Type() = default;
-		virtual std::string_view GetClassName() { return type.name(); }
+		Type(const Type&) = delete;
+		Type& operator=(const Type&) = delete;
+		Type(Type&&) noexcept = default;
+		Type& operator=(Type&&) noexcept = default;
 
-		usize size;
-		usize alignment;
+		[[nodiscard]] std::type_index GetTypeIndex() const { return _type; }
+		[[nodiscard]] std::type_index GetBaseTypeIndex() const { return _type; }
 
-		std::type_index type = typeid(void);
-		std::type_index baseType = typeid(void);
+		const std::string& GetName() const { return _name; }
+		usize GetSize() const { return _size; }
+		usize GetAlignment() const { return _alignment; }
 
-		std::function<void*()> constructFunc;
-		std::function<void(void* p)> deconstructFunc;
+		void Construct(void* mem) {
+			if (!_constructFunc) {
+				Logger::Error("Type", "{} has No default constructor", _name);
+				return;
+			}
+			_constructFunc(mem);
+		}
+		
+		void DestructAt(void* mem) {
+			if (!_destructFunc) {
+				Logger::Error("Type", "{} has No default deconstructor", _name);
+				return;
+			}
+			_destructFunc(mem);
+		}
+	private:
+		using ConstructFunc = std::function<void(void*)>;
+		using DestructFunc = std::function<void(void*)>;
+
+		std::string _name;
+		usize _size;
+		usize _alignment;
+		bool _abstractClass;
+
+		std::type_index _type = typeid(void);
+		std::type_index _baseType = typeid(void);
+
+		ConstructFunc _constructFunc;
+		DestructFunc _destructFunc;
+
+		template<typename>
+		friend class TypeBuilder;
 	};
 }

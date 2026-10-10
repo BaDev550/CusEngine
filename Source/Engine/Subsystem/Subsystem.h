@@ -10,7 +10,7 @@
 #include <list>
 #include <set>
 
-namespace CusEngine {
+namespace Tourqe::Engine {
 	enum class DependencyOrder {
 		Before = 0,
 		After
@@ -19,8 +19,8 @@ namespace CusEngine {
 	constexpr inline std::string_view OrderToString(DependencyOrder order) {
 		switch (order)
 		{
-		case CusEngine::DependencyOrder::Before: return "Before";
-		case CusEngine::DependencyOrder::After: return "After";
+		case Tourqe::Engine::DependencyOrder::Before: return "Before";
+		case Tourqe::Engine::DependencyOrder::After: return "After";
 		default:
 			break;
 		}

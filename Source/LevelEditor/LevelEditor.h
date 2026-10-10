@@ -13,12 +13,12 @@ private:
 	bool _scrollToBottom = false;
 };
 
-class LevelEditor final : public CusEngine::Subsystem {
+class LevelEditor final : public Tourqe::Engine::Subsystem {
 public:
-	virtual Runtime::Result OnCreate(CusEngine::Engine* engine) override;
+	virtual Runtime::Result OnCreate(Tourqe::Engine::Engine* engine) override;
 	virtual void OnUpdate() override;
 	virtual void OnDestroy() override;
-	virtual void GetDependencyGraph(CusEngine::DependencyGraph& graph) override;
+	virtual void GetDependencyGraph(Tourqe::Engine::DependencyGraph& graph) override;
 private:
 	Console console;
 };

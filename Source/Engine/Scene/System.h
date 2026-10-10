@@ -4,7 +4,7 @@
 #include <Engine/Core/Engine.h>
 #include <Runtime/Definitions/Result.h>
 
-namespace CusEngine {
+namespace Tourqe::Engine {
 	class Scene;
 
 	class ENGINE_API System {

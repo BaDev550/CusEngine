@@ -7,7 +7,7 @@
 #include <Engine/Asset/AssetSource.h>
 #include <unordered_set>
 
-namespace CusEngine {
+namespace Tourqe::Engine {
 	class ENGINE_API AssetSubsystem final : public Subsystem {
 	public:
 		virtual Runtime::Result OnCreate(Engine* engine) override;

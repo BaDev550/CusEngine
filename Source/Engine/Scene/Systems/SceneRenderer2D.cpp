@@ -6,7 +6,7 @@
 
 #include <imgui.h>
 
-namespace CusEngine {
+namespace Tourqe::Engine {
 	Runtime::Result SceneRenderer2DSystem::OnCreate() {
 		auto assetSystem = _engine->GetSubsystem<AssetSubsystem>();
 		auto renderSystem = _engine->GetSubsystem<RenderSubsystem>();

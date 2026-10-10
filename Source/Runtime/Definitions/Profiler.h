@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Runtime/Definitions/UUID.h>
+#include <Runtime/Definitions/Logger.h>
 #include <chrono>
 #include <list>
 #include <string_view>

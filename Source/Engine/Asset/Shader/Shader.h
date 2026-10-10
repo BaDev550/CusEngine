@@ -2,8 +2,8 @@
 #include <Engine/Asset/Asset.h>
 #include <Runtime/RHI/Shader/ShaderDesc.h>
 
-namespace CusEngine {
-	CCLASS()
+namespace Tourqe::Engine {
+	TCLASS()
 	class ENGINE_API Shader final : public Asset {
 		GENERATE_CLASS(Shader)
 	public:

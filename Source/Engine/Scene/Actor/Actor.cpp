@@ -1,9 +1,9 @@
 #include "Actor.h"
 
-#include <Runtime/Reflection/TypeRegistry.h>
+#include <Runtime/Definitions/Logger.h>
 
-namespace CusEngine {
-	void CActor::SetRotation(const glm::vec3& rot) {
+namespace Tourqe::Engine {
+	void TActor::SetRotation(const glm::vec3& rot) {
 		Logger::Info("CActor", "Rotation changed");
 	}
 }

@@ -5,7 +5,7 @@
 #include <functional>
 #include <typeindex>
 
-namespace CusEngine {
+namespace Tourqe::Engine {
 	class AssetStreamer;
 
 	struct AssetStreamerEntry {
@@ -37,18 +37,18 @@ namespace CusEngine {
 
 #define REGISTER_ASSETSTREAMER(Type) \
 	namespace { \
-		CusEngine::AssetStreamer* Type##_create() { \
-			auto* streamer = Runtime::Mem::Allocator::Construct<CusEngine::Type>(); \
+		Tourqe::Engine::AssetStreamer* Type##_create() { \
+			auto* streamer = Runtime::Mem::Allocator::Construct<Tourqe::Engine::Type>(); \
 			return streamer; \
 		} \
 		struct Type##_register { \
 			Type##_register() { \
-				CusEngine::AssetStreamerEntry entry{}; \
-				entry.size = sizeof(CusEngine::Type); \
-				entry.alignment = alignof(CusEngine::Type); \
-				entry.type = typeid(CusEngine::Type); \
+				Tourqe::Engine::AssetStreamerEntry entry{}; \
+				entry.size = sizeof(Tourqe::Engine::Type); \
+				entry.alignment = alignof(Tourqe::Engine::Type); \
+				entry.type = typeid(Tourqe::Engine::Type); \
 				entry.constructFunc = &Type##_create; \
-				CusEngine::AssetStreamerFactory::Factory().Register(entry); \
+				Tourqe::Engine::AssetStreamerFactory::Factory().Register(entry); \
 			} \
 		}; \
 		static Type##_register s_##Type##_register; \

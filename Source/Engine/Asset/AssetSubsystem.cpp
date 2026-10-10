@@ -1,5 +1,4 @@
 #include "AssetSubsystem.h"
-#include <Engine/Subsystem/PluginLoaderSubsystem.h>
 #include <Runtime/IO/FileBuffer.h>
 #include <Runtime/Memory/Memory.h>
 
@@ -13,18 +12,16 @@
 #include <nlohmann/json.hpp>
 #include <fstream>
 
-#include <Runtime/Reflection/TypeRegistry.h>
-
-namespace CusEngine {
+namespace Tourqe::Engine {
 	Runtime::Result AssetSubsystem::OnCreate(Engine* engine)
 	{
 		Subsystem::OnCreate(engine);
 
-		Runtime::Reflection::TypeRegistry::Get().ForEachForBase<AssetStreamer>([this](Runtime::Reflection::Type* type) {
-			AssetStreamer* streamer = static_cast<AssetStreamer*>(type->constructFunc());
-			_assetStreamerLookupTable[streamer->GetAssetClassName()] = _assetStreamers.size();
-			_assetStreamers.push_back(streamer);
-			});
+		//Runtime::Reflection::TypeRegistry::Get().ForEachForBase<AssetStreamer>([this](Runtime::Reflection::Type* type) {
+		//	AssetStreamer* streamer = static_cast<AssetStreamer*>(type->constructFunc());
+		//	_assetStreamerLookupTable[streamer->GetAssetClassName()] = _assetStreamers.size();
+		//	_assetStreamers.push_back(streamer);
+		//	});
 
 		LoadRegistry();
 
@@ -101,9 +98,7 @@ namespace CusEngine {
 		return _assetStreamers[it->second];
 	}
 
-	void AssetSubsystem::GetDependencyGraph(DependencyGraph& graph) {
-		graph.Require<PluginSubsystem>(DependencyOrder::After);
-	}
+	void AssetSubsystem::GetDependencyGraph(DependencyGraph& graph) { }
 
 	void AssetSubsystem::SaveRegistry() {
 		nlohmann::json j;

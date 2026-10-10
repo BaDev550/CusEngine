@@ -4,7 +4,7 @@
 #include <Engine/Asset/Texture/Texture2D.h>
 #include <nvtt/nvtt.h>
 
-namespace CusEngine {
+namespace Tourqe::Engine {
     struct NvttVectorOutputHandler : public nvtt::OutputHandler {
         std::vector<u8>& _buffer;
 
@@ -23,7 +23,7 @@ namespace CusEngine {
         virtual void endImage() override {}
     };
 
-    CCLASS()
+    TCLASS()
 	class Texture2DStreamer final : public AssetStreamer {
         GENERATE_CLASS(Texture2DStreamer)
 	public:

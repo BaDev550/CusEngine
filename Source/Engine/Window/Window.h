@@ -3,7 +3,7 @@
 #include <string>
 
 struct GLFWwindow;
-namespace CusEngine {
+namespace Tourqe::Engine {
 	struct WindowDesc {
 		u32 width = 800;
 		u32 height = 800;

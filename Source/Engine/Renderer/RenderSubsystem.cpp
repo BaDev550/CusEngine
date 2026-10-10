@@ -11,7 +11,7 @@
 
 #include <imgui.h>
 
-namespace CusEngine {
+namespace Tourqe::Engine {
 	Result RenderSubsystem::OnCreate(Engine* engine) {
 		Subsystem::OnCreate(engine);
 

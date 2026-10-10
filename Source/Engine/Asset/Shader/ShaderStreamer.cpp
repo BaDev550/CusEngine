@@ -2,13 +2,12 @@
 
 #include <Engine/Asset/Asset.h>
 #include <Runtime/Definitions/Profiler.h>
+#include <Runtime/Memory/Memory.h>
 #include <Runtime/IO/FileBuffer.h>
 #include <fstream>
 #include <filesystem>
 
-#include <Runtime/Reflection/TypeRegistry.h>
-
-namespace CusEngine {
+namespace Tourqe::Engine {
 	Runtime::Result ShaderStreamer::Cook(AssetSource& source) { // TEMP!!!!! FIX IT FUCKED UP RHI
 		if (source.sourcePath.empty()) {
 			return Runtime::Result("No source file provided!");

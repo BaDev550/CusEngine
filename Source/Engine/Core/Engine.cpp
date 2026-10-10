@@ -1,15 +1,13 @@
 #include <Engine/Core/Engine.h>
 #include <Runtime/Definitions/Logger.h>
-#include <Runtime/Reflection/TypeRegistry.h>
+
+#include <Engine/Reflection/ReflectionSystem.h>
+#include <Engine/Plugin/PluginSystem.h>
+#include <Engine/MT/JobSystem.h>
 
 #include <queue>
 
-#include <Engine/Asset/AssetSubsystem.h>
-#include <Engine/Asset/Texture/Texture2D.h>
-#include <Engine/Asset/Shader/Shader.h>
-#include <ReflectManifest.h>
-
-namespace CusEngine {
+namespace Tourqe::Engine {
 	Engine* Engine::_instance = nullptr;
 
 	Engine::Engine() {
@@ -17,20 +15,32 @@ namespace CusEngine {
 
 		_instance = this;
 		Logger::Info("Engine", "Created");
+
+		_pluginSystem = Runtime::Mem::Allocator::Construct<PluginSystem>();
+		_reflectionSystem = Runtime::Mem::Allocator::Construct<ReflectionSystem>();
+		_jobSystem = Runtime::Mem::Allocator::Construct<JobSystem>();
 	}
-	Engine::~Engine() { Logger::Info("Engine", "Shuting down..."); }
+
+	Engine::~Engine() {
+		Runtime::Mem::Allocator::Destroy(_jobSystem);
+		Runtime::Mem::Allocator::Destroy(_reflectionSystem);
+		Runtime::Mem::Allocator::Destroy(_pluginSystem);
+
+		Logger::Info("Engine", "Shuting down..."); 
+	}
 
 	void Engine::Run() {
 		Logger::Info("Engine", "Engine running...");
-
-		Runtime::Reflection::RegisterGeneratedTypes(Runtime::Reflection::TypeRegistry::Get());
 
 		SortAndInitializeSystems();
 
 		while (_running) {
 
-			for (const auto& subsystem : _activeSubsystemList) {
-				subsystem->OnUpdate();
+			_jobSystem->Wait();
+			{
+				for (const auto& subsystem : _activeSubsystemList) {
+					subsystem->OnUpdate();
+				}
 			}
 		}
 
