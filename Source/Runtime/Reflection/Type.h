@@ -2,6 +2,7 @@
 
 #include <Runtime/Definitions/Types.h>
 #include <Runtime/Definitions/Logger.h>
+#include <Runtime/Memory/Memory.h>
 #include <functional>
 #include <typeindex>
 #include <string>
@@ -18,7 +19,7 @@ namespace Runtime::Reflection {
 		Type& operator=(Type&&) noexcept = default;
 
 		[[nodiscard]] std::type_index GetTypeIndex() const { return _type; }
-		[[nodiscard]] std::type_index GetBaseTypeIndex() const { return _type; }
+		[[nodiscard]] std::type_index GetBaseTypeIndex() const { return _baseType; }
 
 		const std::string& GetName() const { return _name; }
 		usize GetSize() const { return _size; }
@@ -38,6 +39,16 @@ namespace Runtime::Reflection {
 				return;
 			}
 			_destructFunc(mem);
+		}
+
+		void* Create() const {
+			if (!_constructFunc) {
+				Logger::Error("Type", "{} has no default constructor, cannot be created", _name);
+				return nullptr;
+			}
+			void* mem = Mem::Allocator::Allocate(_size, _alignment);
+			_constructFunc(mem);
+			return mem;
 		}
 	private:
 		using ConstructFunc = std::function<void(void*)>;

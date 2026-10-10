@@ -43,6 +43,10 @@ namespace Tourqe::Engine {
 			Logger::Error("EngineSubsystem", "Failed to find subsystem {}", typeindex.name());
 			return nullptr;
 		}
+
+		ReflectionSystem* GetReflectionSystem() const { return _reflectionSystem; }
+		PluginSystem* GetPluginSystem() const { return _pluginSystem; }
+		JobSystem* GetJobSystem() const { return _jobSystem; }
 	private:
 		void SortAndInitializeSystems();
 		static Engine* _instance;

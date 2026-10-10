@@ -13,7 +13,7 @@ int main() {
 		engine.AddSubsystem<Tourqe::Engine::AssetSubsystem>();
 		engine.AddSubsystem<Tourqe::Engine::RenderSubsystem>();
 		engine.AddSubsystem<Tourqe::Engine::WindowSubsystem>();
-		//engine.AddSubsystem<Tourqe::Engine::SceneSubsystem>();
+		engine.AddSubsystem<Tourqe::Engine::SceneSubsystem>();
 		engine.AddSubsystem<LevelEditor>();
 		engine.Run();
 	}

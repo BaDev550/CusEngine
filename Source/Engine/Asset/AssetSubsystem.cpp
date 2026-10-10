@@ -1,11 +1,14 @@
 #include "AssetSubsystem.h"
+#include <Engine/Core/Engine.h>
 #include <Runtime/IO/FileBuffer.h>
 #include <Runtime/Memory/Memory.h>
+#include <Engine/Reflection/ReflectionSystem.h>
 
+#include <Engine/Asset/AssetStreamer.h>
 #include <Engine/Asset/Texture/Texture2DStreamer.h>
 #include <Engine/Asset/Shader/ShaderStreamer.h>
-#include <Engine/Asset/Asset.h>
 
+#include <Engine/Asset/Asset.h>
 #include <Engine/Asset/Texture/Texture2D.h>
 #include <Engine/Asset/Shader/Shader.h>
 
@@ -17,11 +20,12 @@ namespace Tourqe::Engine {
 	{
 		Subsystem::OnCreate(engine);
 
-		//Runtime::Reflection::TypeRegistry::Get().ForEachForBase<AssetStreamer>([this](Runtime::Reflection::Type* type) {
-		//	AssetStreamer* streamer = static_cast<AssetStreamer*>(type->constructFunc());
-		//	_assetStreamerLookupTable[streamer->GetAssetClassName()] = _assetStreamers.size();
-		//	_assetStreamers.push_back(streamer);
-		//	});
+		Engine::Get()->GetReflectionSystem()->ForEachWithBase<AssetStreamer>([this](const Runtime::Reflection::Type& type) {
+			AssetStreamer* streamer = static_cast<AssetStreamer*>(type.Create());
+			_assetStreamerLookupTable[streamer->GetAssetClassName()] = _assetStreamers.size();
+			_assetStreamers.push_back(streamer);
+			Logger::Info("AssetSubsystem", "'{}' Streamer registered", streamer->GetClassName());
+			});
 
 		LoadRegistry();
 
