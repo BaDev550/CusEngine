@@ -20,7 +20,5 @@ namespace Tourqe::Engine {
 		};
 
 		Runtime::RHI::Pipeline* _forwardPassPipeline = nullptr;
-
-		Texture2D* _testSprite;
 	};
 }

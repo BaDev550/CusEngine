@@ -10,7 +10,7 @@ namespace Tourqe::Engine { // All temp classes
 		bool _initialized = false;
 	};
 
-	class ENGINE_API SceneSubsystem : public Subsystem {
+	class ENGINE_API WorldSubsystem : public Subsystem {
 	public:
 		virtual Runtime::Result OnCreate(Engine* engine) override;
 		virtual void OnUpdate() override;

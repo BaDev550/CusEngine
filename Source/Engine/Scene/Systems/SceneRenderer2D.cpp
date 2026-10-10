@@ -29,9 +29,6 @@ namespace Tourqe::Engine {
 
 			_forwardPassPipeline = renderSystem->GetContext()->CreatePipeline(vertexDesc);
 		}
-
-		_testSprite = assetSystem->Get<Texture2D>("guven-catak.jpg");
-
 		return Runtime::Result();
 	}
 
@@ -42,15 +39,7 @@ namespace Tourqe::Engine {
 			auto context = renderSystem->GetContext();
 			auto swapchain = renderSystem->GetSwapchain();
 
-			if (_testSprite->GetAssetState() == AssetState::Ready) {
-				SpritePushConstant pc;
-				pc.textureID = _testSprite->_image->GetBindlessIndex();
-				pc.samplerID = _testSprite->_image->GetSamplerIndex();
 
-				_forwardPassPipeline->Bind(cmd);
-				_forwardPassPipeline->PushConstant(cmd, &pc, sizeof(SpritePushConstant), 0);
-				cmd->DrawVertex(_forwardPassPipeline, 6);
-			}
 			});
 	}
 

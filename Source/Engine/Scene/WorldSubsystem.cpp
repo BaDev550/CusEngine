@@ -1,11 +1,11 @@
-#include "SceneSubsystem.h"
+#include "WorldSubsystem.h"
 
 #include <Engine/Scene/Systems/SceneRenderer2D.h>
 #include <Engine/Asset/AssetSubsystem.h>
 #include <Engine/Renderer/RenderSubsystem.h>
 
 namespace Tourqe::Engine {
-	Runtime::Result SceneSubsystem::OnCreate(Engine* engine) {
+	Runtime::Result WorldSubsystem::OnCreate(Engine* engine) {
 		Subsystem::OnCreate(engine);
 
 		SceneRenderer2DSystem* renderSystem = Runtime::Mem::Allocator::Construct<SceneRenderer2DSystem>();
@@ -19,13 +19,13 @@ namespace Tourqe::Engine {
 		return Runtime::Result();
 	}
 
-	void SceneSubsystem::OnUpdate() {
+	void WorldSubsystem::OnUpdate() {
 		for (auto& system : _systems) {
 			system->OnUpdate(*_activeScene);
 		}
 	}
 
-	void SceneSubsystem::OnDestroy() {
+	void WorldSubsystem::OnDestroy() {
 		Subsystem::OnDestroy();
 
 		for (auto& system : _systems) {
@@ -35,7 +35,7 @@ namespace Tourqe::Engine {
 		Runtime::Mem::Allocator::Destroy(_activeScene);
 	}
 
-	void SceneSubsystem::GetDependencyGraph(DependencyGraph& graph) {
+	void WorldSubsystem::GetDependencyGraph(DependencyGraph& graph) {
 		graph.Require<AssetSubsystem>(DependencyOrder::After);
 		graph.Require<RenderSubsystem>(DependencyOrder::After);
 	}
