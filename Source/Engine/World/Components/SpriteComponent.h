@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Engine/Scene/Components/BaseComponent.h>
+#include <Engine/World/Components/BaseComponent.h>
 #include <Runtime/Definitions/UUID.h>
 
 namespace Tourqe::Engine {

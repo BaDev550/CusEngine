@@ -1,7 +1,7 @@
 #pragma once
 #include <Engine/Asset/AssetLoadStat.h>
-#include <Engine/Core/Object.h>
 
+#include <Runtime/Reflection/ReflectObject.h>
 #include <Runtime/Definitions/UUID.h>
 
 namespace Tourqe::Engine {
@@ -17,7 +17,7 @@ namespace Tourqe::Engine {
 	};
 
 	TCLASS()
-	class ENGINE_API Asset : public TObject {
+	class ENGINE_API Asset : public Runtime::Reflection::ReflectObject {
 		GENERATE_CLASS(Asset)
 	public:
 		Asset() = default;

@@ -15,7 +15,7 @@ namespace Tourqe::Engine {
         virtual Runtime::Result Cook(AssetSource& source) override;
         virtual Asset* Import(AssetSource& source) override;
 
-		virtual std::string GetAssetClassName() override { return Shader::StaticClassName().data(); };
+		virtual std::string GetAssetClassName() override { return Shader::GetStaticClassName().data(); };
     };
 	
 	class FileIncluder : public shaderc::CompileOptions::IncluderInterface {

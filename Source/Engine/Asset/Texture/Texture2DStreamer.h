@@ -30,7 +30,7 @@ namespace Tourqe::Engine {
 		virtual Runtime::Result Cook(AssetSource& source) override;
         virtual Asset* Import(AssetSource& source) override;
 
-        virtual std::string GetAssetClassName() override { return Texture2D::StaticClassName().data(); };
+        virtual std::string GetAssetClassName() override { return Texture2D::GetStaticClassName().data(); };
 	private:
 		bool CompressImageToBC3(u8* rawData, u32 width, u32 height, std::vector<u8>& compressedImage);
 	};

@@ -1,7 +1,8 @@
 #pragma once
 
-#include <Engine/Scene/Actor/Actor.h>
+#include <Engine/World/Objects/Actor.h>
 #include <Runtime/Definitions/Logger.h>
+#include <string>
 
 namespace Tourqe {
 	TCLASS()
@@ -10,6 +11,10 @@ namespace Tourqe {
 	public:
 		virtual void OnCreated() override {
 			Logger::Info("TTestActor", "Created");
+		}
+
+		void PrintSomething() {
+			Logger::Warn("TTestActor", "Yea, {}", GetObjectID().Str());
 		}
 	};
 }

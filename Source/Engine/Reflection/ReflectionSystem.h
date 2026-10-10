@@ -17,8 +17,11 @@ namespace Tourqe::Engine {
 					func(type);
 			}
 		}
+
+		Runtime::Reflection::Type* GetType(const std::string& name);
 	private:
 		std::vector<Runtime::Reflection::Type> _types;
 		std::unordered_map<std::type_index, Runtime::Reflection::Type*> _lookupTable;
+		std::unordered_map<std::string, Runtime::Reflection::Type*> _nameLookupTable;
 	};
 }

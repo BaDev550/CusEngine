@@ -3,7 +3,7 @@
 #include <Engine/Renderer/RenderSubsystem.h>
 #include <Engine/Window/WindowSubsystem.h>
 #include <Engine/Asset/AssetSubsystem.h>
-#include <Engine/Scene/WorldSubsystem.h>
+#include <Engine/World/WorldSubsystem.h>
 
 #include <LevelEditor/LevelEditor.h>
 

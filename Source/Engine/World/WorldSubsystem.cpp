@@ -1,8 +1,12 @@
 #include "WorldSubsystem.h"
 
-#include <Engine/Scene/Systems/SceneRenderer2D.h>
+#include <Engine/World/Systems/SceneRenderer2D.h>
+
 #include <Engine/Asset/AssetSubsystem.h>
 #include <Engine/Renderer/RenderSubsystem.h>
+#include <Engine/MT/JobSystem.h>
+
+#include <Engine/World/Objects/Actor.h>
 
 namespace Tourqe::Engine {
 	Runtime::Result WorldSubsystem::OnCreate(Engine* engine) {
@@ -15,13 +19,24 @@ namespace Tourqe::Engine {
 		_systems.push_back(std::move(renderSystem));
 
 		_activeScene = Runtime::Mem::Allocator::Construct<Scene>();
+		_activeScene->SetWorld(this);
+
+		_lastGcTime = std::chrono::steady_clock::now();
 
 		return Runtime::Result();
 	}
 
 	void WorldSubsystem::OnUpdate() {
+		auto* jobSystem = Engine::Get()->GetJobSystem();
+
 		for (auto& system : _systems) {
 			system->OnUpdate(*_activeScene);
+		}
+
+		auto now = std::chrono::steady_clock::now();
+		if (now - _lastGcTime >= _gcCooldown) {
+			_gc.Collect();
+			_lastGcTime = now;
 		}
 	}
 

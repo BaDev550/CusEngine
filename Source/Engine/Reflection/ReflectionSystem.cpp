@@ -9,6 +9,7 @@ namespace Tourqe::Engine {
 
 		for (auto& type : _types) {
             _lookupTable[type.GetTypeIndex()] = &type;
+            _nameLookupTable[type.GetName()] = &type;
 
 			Logger::Info("ReflectionSubsystem", "Type {} registered", type.GetName());
 		}
@@ -17,4 +18,14 @@ namespace Tourqe::Engine {
     ReflectionSystem::~ReflectionSystem() {
     
     }
+
+	Runtime::Reflection::Type* ReflectionSystem::GetType(const std::string& name)
+	{
+		if (!_nameLookupTable.contains(name)) {
+			Logger::Error("ReflectionSystem", "Requested type '{}' is not registered", name);
+			return nullptr;
+		}
+		auto it = _nameLookupTable.find(name);
+		return it->second;
+	}
 }

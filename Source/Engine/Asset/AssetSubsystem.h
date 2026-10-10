@@ -16,7 +16,7 @@ namespace Tourqe::Engine {
 
 		template<class AssetT> requires(std::is_base_of_v<Asset, AssetT>)
 		AssetT* Get(const std::string& path) {
-			std::string assetType = AssetT::StaticClassName().data();
+			std::string assetType = AssetT::GetStaticClassName().data();
 
 			std::filesystem::path sourcePath = path;
 			std::filesystem::path targetPath = "cooked" / std::filesystem::path(path).replace_extension(ASSET_EXTENSION);

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Engine/Subsystem/Subsystem.h>
+#include "TestActor.h"
 
 class Console final {
 public:
@@ -11,6 +12,8 @@ private:
 
 	std::vector<std::string> _history;
 	bool _scrollToBottom = false;
+
+	Tourqe::TTestActor* _randomactor;
 };
 
 class LevelEditor final : public Tourqe::Engine::Subsystem {

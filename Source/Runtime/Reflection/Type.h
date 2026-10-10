@@ -25,7 +25,7 @@ namespace Runtime::Reflection {
 		usize GetSize() const { return _size; }
 		usize GetAlignment() const { return _alignment; }
 
-		void Construct(void* mem) {
+		void ConstructAt(void* mem) const {
 			if (!_constructFunc) {
 				Logger::Error("Type", "{} has No default constructor", _name);
 				return;
@@ -33,7 +33,7 @@ namespace Runtime::Reflection {
 			_constructFunc(mem);
 		}
 		
-		void DestructAt(void* mem) {
+		void DestructAt(void* mem) const {
 			if (!_destructFunc) {
 				Logger::Error("Type", "{} has No default deconstructor", _name);
 				return;
@@ -46,9 +46,19 @@ namespace Runtime::Reflection {
 				Logger::Error("Type", "{} has no default constructor, cannot be created", _name);
 				return nullptr;
 			}
+
 			void* mem = Mem::Allocator::Allocate(_size, _alignment);
-			_constructFunc(mem);
+			ConstructAt(mem);
+
 			return mem;
+		}
+
+		void Destroy(void* instance) const {
+			if (!instance)
+				return;
+
+			DestructAt(instance);
+			Mem::Allocator::Free(instance);
 		}
 	private:
 		using ConstructFunc = std::function<void(void*)>;
