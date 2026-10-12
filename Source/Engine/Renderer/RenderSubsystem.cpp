@@ -1,5 +1,6 @@
 #include "RenderSubsystem.h"
 #include <Engine/Core/Engine.h>
+#include <Engine/Reflection/ReflectionSystem.h>
 #include <Engine/Window/WindowSubsystem.h>
 #include <Engine/Asset/AssetSubsystem.h>
 
@@ -9,7 +10,7 @@
 #include <Runtime/RHI/Sync/RHIFenceDesc.h>
 #include <Runtime/RHI/Queue/RHIQueue.h>
 
-#include <imgui.h>
+#include <queue>
 
 namespace Tourqe::Engine {
 	Result RenderSubsystem::OnCreate(Engine* engine) {
@@ -103,7 +104,9 @@ namespace Tourqe::Engine {
 		}
 
 		END_SCOPE(RHIInitilization)
-		
+
+		_swapchainRenderPass = RegisterRenderPass<SwapchainRenderPass>();
+
 		return Result();
 	}
 
@@ -111,16 +114,12 @@ namespace Tourqe::Engine {
 		RHI::CommandBuffer* cmd = BeginFrame();
 		if (!cmd) return;
 
-		cmd->BeginImGui();
-		ImGui::NewFrame();
-		BeginSwapchainPass();
-
-		for (auto& pass : _renderPasses) { pass(cmd); }
-		_renderPasses.clear();
-
-		ImGui::Render();
-		cmd->RenderImGui();
-		EndSwapchainPass();
+		for (const auto& pass : _renderPasses) { 
+			pass->Begin(cmd);
+			pass->SubmitQueueForRender(cmd);
+			pass->End(cmd);
+		}
+		cmd->TransitionImageLayout(_swapchainRenderPass->GetColorAttachmentImage(), RHI::ImageLayout::PresentSrc);
 
 		EndFrame();
 	}
@@ -131,6 +130,10 @@ namespace Tourqe::Engine {
 		_context->WaitDeviceIdle();
 
 		Mem::Allocator::Destroy<RHI::Image>(_defaultWhiteImage);
+
+		for (auto& pass : _renderPasses) {
+			Mem::Allocator::Destroy(pass);
+		}
 
 		for (auto& fence : _renderFinishedFences) { Mem::Allocator::Destroy<RHI::Fence>(fence); }
 		for (auto& frame : _frames) {
@@ -209,37 +212,8 @@ namespace Tourqe::Engine {
 		graphicsQueue->Present(_swapchain, _imageIndex, { _renderFinishedFences[_imageIndex] });
 	}
 
-	void RenderSubsystem::Pass(RenderPassFunc func) { _renderPasses.push_back(func); }
 	void RenderSubsystem::Submit(CommandFunc func) { _commandQueue.push_back(func); }
 	void RenderSubsystem::Track(RHI::Object* object) { GetCurrentFrameData()->trackedObjects.push_back(object); }
-
-	void RenderSubsystem::BeginSwapchainPass() {
-		FrameData* fd = GetCurrentFrameData();
-
-		RHI::Image* colorAttachmentImage = _swapchain->GetColorAttachments()[_imageIndex];
-		RHI::Image* depthAttachmentImage = _swapchain->GetDepthAttachment();
-
-		RHI::ColorAttachment colorAttachment{};
-		colorAttachment.image = colorAttachmentImage;
-		colorAttachment.clearColor = glm::vec4(0.1f, 0.1f, 0.1f, 1.0f);
-
-		RHI::RenderingSubmitInfo info{};
-		info.colorAttachments = { colorAttachment };
-		info.depthAttachment = depthAttachmentImage;
-		info.extent = _swapchain->GetExtent();
-
-		fd->commandBuffer->BeginDynamicRendering(info);
-	}
-
-	void RenderSubsystem::EndSwapchainPass()
-	{
-		FrameData* fd = GetCurrentFrameData();
-
-		RHI::Image* colorAttachmentImage = _swapchain->GetColorAttachments()[_imageIndex];
-
-		fd->commandBuffer->EndDynamicRendering();
-		fd->commandBuffer->TransitionImageLayout(colorAttachmentImage, RHI::ImageLayout::PresentSrc);
-	}
 
 	RHI::Buffer* RenderSubsystem::CreateStagingBuffer(usize dataSizeInBytes)
 	{
@@ -258,5 +232,35 @@ namespace Tourqe::Engine {
 	RenderSubsystem::FrameData* RenderSubsystem::GetCurrentFrameData() {
 		Logger::Assert(_frameRecording, "RenderSubsystem", "No active frame");
 		return &_frames[_currentFrameIndex];
+	}
+
+	std::vector<RenderPass*> RenderSubsystem::SortPasses(std::vector<RenderPass*> passes)
+	{
+		std::ranges::sort(passes, {}, [](auto* p) { return p->GetClassName(); });
+		std::unordered_map<std::string_view, size_t> index;
+		for (size_t i = 0; i < passes.size(); ++i) index[passes[i]->GetClassName()] = i;
+
+		std::vector<std::vector<size_t>> next(passes.size());
+		std::vector<size_t> indegree(passes.size());
+		for (size_t i = 0; i < passes.size(); ++i) {
+			for (auto dep : passes[i]->GetDependencies()) {
+				auto it = index.find(dep);
+				if (it == index.end()) { Logger::Error("RenderGraph", "{} depends on missing pass {}", passes[i]->GetClassName().data(), dep.data()); continue; }
+				next[it->second].push_back(i);
+				++indegree[i];
+			}
+		}
+
+		std::queue<size_t> ready;
+		for (size_t i = 0; i < passes.size(); ++i) if (!indegree[i]) ready.push(i);
+
+		std::vector<RenderPass*> sorted;
+		while (!ready.empty()) {
+			size_t i = ready.front(); ready.pop();
+			sorted.push_back(passes[i]);
+			for (size_t n : next[i]) if (--indegree[n] == 0) ready.push(n);
+		}
+		if (sorted.size() != passes.size()) Logger::Error("RenderGraph", "Cycle in render pass dependencies");
+		return sorted;
 	}
 }

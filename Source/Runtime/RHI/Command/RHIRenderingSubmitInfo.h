@@ -2,12 +2,14 @@
 
 #include <vector>
 #include <glm/glm.hpp>
+#include <Runtime/RHI/Image/RHILoadOp.h>
 
 namespace Runtime::RHI {
 	class Image;
 
 	struct ColorAttachment {
 		Image* image = nullptr;
+		ImageLoadOp loadOp = ImageLoadOp::Clear;
 		glm::vec4 clearColor = glm::vec4(0.1f, 0.1f, 0.1f, 1.0f);
 
 		ColorAttachment() = default;

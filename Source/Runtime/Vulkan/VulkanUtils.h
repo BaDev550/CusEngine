@@ -5,6 +5,7 @@
 #include <Runtime/RHI/Common/RHIUtils.h>
 #include <Runtime/RHI/Queue/RHIQueueDesc.h>
 #include <Runtime/RHI/Command/RHICommandBufferDesc.h>
+#include <Runtime/RHI/Image/RHILoadOp.h>
 
 #include <vulkan/vulkan.h>
 #include <vma/vk_mem_alloc.h>
@@ -135,6 +136,18 @@ namespace Runtime::RHI::Utils {
 		default:
 			Logger::Error("Vulkan RHI Utils", "Unknown command buffer type");
 			return VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+		}
+	}
+
+	constexpr [[nodiscard]] VkAttachmentLoadOp GetVkLoadOp(ImageLoadOp op) noexcept {
+		switch (op)
+		{
+		case Runtime::RHI::ImageLoadOp::Load: return VK_ATTACHMENT_LOAD_OP_LOAD;
+		case Runtime::RHI::ImageLoadOp::Clear: return VK_ATTACHMENT_LOAD_OP_CLEAR;
+		case Runtime::RHI::ImageLoadOp::DontCare: return VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+		default:
+			Logger::Error("Vulkan RHI Utils", "Unknown load Op");
+			break;
 		}
 	}
 }

@@ -13,9 +13,11 @@
 #include <Runtime/RHI/Sync/RHIFence.h>
 #include <Runtime/RHI/Queue/RHIQueue.h>
 
+#include <Engine/Renderer/RenderPass.h>
+#include <Engine/Renderer/RenderPasses/SwapchainRenderPass.h>
+
 namespace Tourqe::Engine {
 	using namespace Runtime;
-	using RenderPassFunc = std::function<void(RHI::CommandBuffer* cmd)>;
 	using CommandFunc = std::function<void(RHI::CommandBuffer* cmd)>;
 
 	class Texture2D;
@@ -32,7 +34,6 @@ namespace Tourqe::Engine {
 
 		RHI::CommandBuffer* BeginFrame();
 		void EndFrame();
-		void Pass(RenderPassFunc func);
 		void Submit(CommandFunc func);
 		void Track(RHI::Object* object);
 
@@ -56,7 +57,8 @@ namespace Tourqe::Engine {
 			std::vector<RHI::Object*> trackedObjects;
 		} _frames[MaxFramesInFlight];
 
-		std::vector<RenderPassFunc> _renderPasses;
+		SwapchainRenderPass* _swapchainRenderPass = nullptr;
+		std::vector<RenderPass*> _renderPasses;
 		std::vector<CommandFunc> _commandQueue;
 		std::vector<RHI::Fence*> _renderFinishedFences;
 		RHI::Fence* _timelineFence = nullptr;
@@ -70,7 +72,29 @@ namespace Tourqe::Engine {
 		bool _recreateSwapchainNextFrame = false;
 
 		RHI::Image* _defaultWhiteImage = nullptr;
+
+		[[nodiscard]] std::vector<RenderPass*> SortPasses(std::vector<RenderPass*> passes);
 	public:
 		[[nodiscard]] FrameData* GetCurrentFrameData();
+		
+		template<typename TPass>
+		TPass* GetRenderPass() {
+			for (RenderPass* pass : _renderPasses) {
+				if (pass->GetClassName() == TPass::GetStaticClassName()) return static_cast<TPass*>(pass);
+			}
+			return nullptr;
+		}
+
+		template<typename TPass>
+			requires std::is_base_of_v<RenderPass, TPass>
+		TPass* RegisterRenderPass() {
+			TPass* pass = Runtime::Mem::Allocator::Construct<TPass>();
+			pass->SetRenderSubsystem(this);
+			_renderPasses.push_back(std::move(pass));
+			_renderPasses = SortPasses(std::move(_renderPasses));
+			Logger::Info("RenderSubsystem", "'{}' RenderPass added to render queue", pass->GetClassName());
+			pass->OnInitialized();
+			return pass;
+		}
 	};
 }

@@ -49,7 +49,7 @@ namespace Runtime::RHI {
 			VulkanImage* vkImage = static_cast<VulkanImage*>(colorAttachment.image);
 			attachmentInfo.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
 			attachmentInfo.imageView = vkImage->GetImageView();
-			attachmentInfo.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+			attachmentInfo.loadOp = Utils::GetVkLoadOp(colorAttachment.loadOp);
 			attachmentInfo.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 			attachmentInfo.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 			attachmentInfo.clearValue.color = { 
