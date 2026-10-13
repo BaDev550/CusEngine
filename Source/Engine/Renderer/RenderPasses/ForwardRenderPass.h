@@ -7,10 +7,8 @@ namespace Tourqe::Engine {
 	class ForwardRenderPass final : public RenderPass {
 		GENERATE_CLASS(ForwardRenderPass)
 	public:
-		ForwardRenderPass();
+		ForwardRenderPass(RenderSubsystem* system);
 		~ForwardRenderPass();
-
-		virtual void OnInitialized() override;
 
 		virtual void Begin(Runtime::RHI::CommandBuffer* cmd) override;
 		virtual void End(Runtime::RHI::CommandBuffer* cmd) override;

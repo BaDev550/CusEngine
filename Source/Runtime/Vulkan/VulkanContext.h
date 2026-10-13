@@ -36,6 +36,8 @@ namespace Runtime::RHI {
 		virtual ImGuiContext* GetImGuiContext() override;
 
 		void SetObjectDebugName(VkDebugUtilsObjectNameInfoEXT* info);
+		void BeginDebugLabel(VkCommandBuffer cmd, VkDebugUtilsLabelEXT* label);
+		void EndDebugLabel(VkCommandBuffer cmd);
 		void CopyBufferToImage(VkCommandBuffer cmd, VkBuffer buffer, VkImage image, VkImageLayout layout, uint32_t width, uint32_t height); // TODO(0x): move this into commands
 		void CopyBuffer(VkCommandBuffer cmd, size_t size, VkBuffer srcBuffer, VkBuffer dstBuffer);
 		void TransitionImageLayout(VkCommandBuffer cmd, Image* image, ImageLayout newLayout);

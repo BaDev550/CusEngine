@@ -518,6 +518,20 @@ namespace Runtime::RHI {
 		}
 	}
 
+	void VulkanContext::BeginDebugLabel(VkCommandBuffer cmd, VkDebugUtilsLabelEXT* label) {
+		PFN_vkCmdBeginDebugUtilsLabelEXT pfnVkCmdBeginDebugUtilsLabelEXT = (PFN_vkCmdBeginDebugUtilsLabelEXT)vkGetDeviceProcAddr(_device, "vkCmdBeginDebugUtilsLabelEXT");
+		if (pfnVkCmdBeginDebugUtilsLabelEXT != nullptr) {
+			pfnVkCmdBeginDebugUtilsLabelEXT(cmd, label);
+		}
+	}
+
+	void VulkanContext::EndDebugLabel(VkCommandBuffer cmd) {
+		PFN_vkCmdEndDebugUtilsLabelEXT pfnVkCmdEndDebugUtilsLabelEXT = (PFN_vkCmdEndDebugUtilsLabelEXT)vkGetDeviceProcAddr(_device, "vkCmdEndDebugUtilsLabelEXT");
+		if (pfnVkCmdEndDebugUtilsLabelEXT != nullptr) {
+			pfnVkCmdEndDebugUtilsLabelEXT(cmd);
+		}
+	}
+
 	void VulkanContext::CopyBufferToImage(VkCommandBuffer cmd, VkBuffer buffer, VkImage image, VkImageLayout layout, uint32_t width, uint32_t height) {
 		VkBufferImageCopy region{};
 		region.bufferOffset = 0;

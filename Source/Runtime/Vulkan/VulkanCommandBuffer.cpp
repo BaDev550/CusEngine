@@ -36,7 +36,7 @@ namespace Runtime::RHI {
 		vkResetCommandBuffer(_commandBuffer, VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT);
 	}
 
-	void VulkanCommandBuffer::BeginDynamicRendering(const RenderingSubmitInfo& info) {
+	void VulkanCommandBuffer::BeginDynamicRendering(const RenderingSubmitInfo& info, PassDebugInfo* debugInfo) {
 		VulkanContext* vkContext = GetOwningRHIContext<VulkanContext>();
 
 		u32 colorAttachmentCount = static_cast<uint32_t>(info.colorAttachments.size());
@@ -85,6 +85,18 @@ namespace Runtime::RHI {
 		renderInfo.pColorAttachments = colorAttachmentInfos.data();
 		renderInfo.pDepthAttachment = &depthAttachmentInfo;
 
+		if (debugInfo) {
+			VkDebugUtilsLabelEXT passLabel{};
+			passLabel.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT;
+			passLabel.pLabelName = debugInfo->label.c_str();
+			passLabel.color[0] = debugInfo->color.x;
+			passLabel.color[1] = debugInfo->color.y;
+			passLabel.color[2] = debugInfo->color.z;
+			passLabel.color[3] = 1;
+
+			vkContext->BeginDebugLabel(_commandBuffer, &passLabel);
+			_debugPassAttached = true;
+		}
 		vkCmdBeginRendering(_commandBuffer, &renderInfo);
 
 		{
@@ -106,7 +118,11 @@ namespace Runtime::RHI {
 	}
 
 	void VulkanCommandBuffer::EndDynamicRendering() {
+		VulkanContext* vkContext = GetOwningRHIContext<VulkanContext>();
+
 		vkCmdEndRendering(_commandBuffer);
+		if (_debugPassAttached)
+			vkContext->EndDebugLabel(_commandBuffer);
 	}
 
 	void VulkanCommandBuffer::TransitionImageLayout(Image* image, ImageLayout newLayout) {

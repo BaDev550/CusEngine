@@ -16,7 +16,7 @@ namespace Runtime::RHI {
 		virtual void RenderImGui() override;
 		virtual void Reset() override;
 
-		virtual void BeginDynamicRendering(const RenderingSubmitInfo& info) override;
+		virtual void BeginDynamicRendering(const RenderingSubmitInfo& info, PassDebugInfo* debugInfo = nullptr) override;
 		virtual void EndDynamicRendering() override;
 
 		virtual void TransitionImageLayout(Image* image, ImageLayout newLayout) override;
@@ -29,6 +29,7 @@ namespace Runtime::RHI {
 	private:
 		CommandBufferDesc _desc;
 		VkCommandBuffer _commandBuffer = VK_NULL_HANDLE;
+		b8 _debugPassAttached = false;
 
 		friend class VulkanCommandPool;
 	};

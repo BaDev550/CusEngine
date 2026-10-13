@@ -6,12 +6,9 @@
 #include <Engine/Asset/AssetSubsystem.h>
 
 namespace Tourqe::Engine {
-	ForwardRenderPass::ForwardRenderPass() {
+	ForwardRenderPass::ForwardRenderPass(RenderSubsystem* system) : RenderPass(system) {
 		Depends<SwapchainRenderPass>();
-	}
 
-	void ForwardRenderPass::OnInitialized()
-	{
 		auto assetSystem = Engine::Get()->GetSubsystem<AssetSubsystem>();
 		auto swapchainRenderPass = GetRenderSystem()->GetRenderPass<SwapchainRenderPass>();
 		{

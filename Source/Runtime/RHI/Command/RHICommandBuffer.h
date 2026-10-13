@@ -21,7 +21,7 @@ namespace Runtime::RHI {
 		virtual void RenderImGui() = 0;
 		virtual void Reset() = 0;
 		
-		virtual void BeginDynamicRendering(const RenderingSubmitInfo& info) = 0;
+		virtual void BeginDynamicRendering(const RenderingSubmitInfo& info, PassDebugInfo* debugInfo = nullptr) = 0;
 		virtual void EndDynamicRendering() = 0;
 
 		virtual void TransitionImageLayout(Image* image, ImageLayout newLayout) = 0;

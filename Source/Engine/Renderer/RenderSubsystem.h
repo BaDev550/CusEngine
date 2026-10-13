@@ -88,12 +88,11 @@ namespace Tourqe::Engine {
 		template<typename TPass>
 			requires std::is_base_of_v<RenderPass, TPass>
 		TPass* RegisterRenderPass() {
-			TPass* pass = Runtime::Mem::Allocator::Construct<TPass>();
-			pass->SetRenderSubsystem(this);
+			TPass* pass = Runtime::Mem::Allocator::Construct<TPass>(this);
 			_renderPasses.push_back(std::move(pass));
 			_renderPasses = SortPasses(std::move(_renderPasses));
 			Logger::Info("RenderSubsystem", "'{}' RenderPass added to render queue", pass->GetClassName());
-			pass->OnInitialized();
+			//pass->OnInitialized();
 			return pass;
 		}
 	};

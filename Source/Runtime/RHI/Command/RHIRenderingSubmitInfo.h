@@ -7,6 +7,11 @@
 namespace Runtime::RHI {
 	class Image;
 
+	struct PassDebugInfo {
+		std::string label = "RenderPass";
+		glm::vec3 color = glm::vec3(1.0f, 1.0f, 1.0f);
+	};
+
 	struct ColorAttachment {
 		Image* image = nullptr;
 		ImageLoadOp loadOp = ImageLoadOp::Clear;

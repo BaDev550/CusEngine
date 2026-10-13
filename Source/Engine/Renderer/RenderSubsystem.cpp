@@ -105,7 +105,21 @@ namespace Tourqe::Engine {
 
 		END_SCOPE(RHIInitilization)
 
-		_swapchainRenderPass = RegisterRenderPass<SwapchainRenderPass>();
+
+		{
+			_swapchainRenderPass = RegisterRenderPass<SwapchainRenderPass>();
+			//auto* reflectionSystem = Engine::Get()->GetReflectionSystem();
+			//reflectionSystem->ForEachWithBase<RenderPass>([this](const Runtime::Reflection::Type& type) {
+			//	if (type.GetName() != _swapchainRenderPass->GetClassName()) {
+			//		RenderPass* pass = static_cast<RenderPass*>(type.Create());
+			//		_renderPasses.push_back(std::move(pass));
+			//		Logger::Info("RenderSubsystem", "'{}' RenderPass added to render queue", pass->GetClassName());
+			//		pass->SetRenderSubsystem(this);
+			//		pass->OnInitialized();
+			//	}
+			//	});
+			//_renderPasses = SortPasses(std::move(_renderPasses));
+		}
 
 		return Result();
 	}

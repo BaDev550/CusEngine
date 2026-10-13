@@ -3,6 +3,11 @@
 #include <Engine/Renderer/RenderSubsystem.h>
 
 namespace Tourqe::Engine {
+	SwapchainRenderPass::SwapchainRenderPass(RenderSubsystem* system) : RenderPass(system) {
+		_debugInfo.label = GetClassName();
+		_debugInfo.color = glm::vec3(1.0f, 0.0f, 0.0f);
+	}
+
 	void SwapchainRenderPass::Begin(Runtime::RHI::CommandBuffer* cmd) {
 		auto* swapchain = GetRenderSystem()->GetSwapchain();
 		u32 imageIndex = GetRenderSystem()->GetImageIndex();
@@ -18,7 +23,7 @@ namespace Tourqe::Engine {
 		_renderSubmitInfo.depthAttachment = _depthAttachmentImage;
 		_renderSubmitInfo.extent = swapchain->GetExtent();
 
-		cmd->BeginDynamicRendering(_renderSubmitInfo);
+		cmd->BeginDynamicRendering(_renderSubmitInfo, &_debugInfo);
 	}
 
 	void SwapchainRenderPass::End(Runtime::RHI::CommandBuffer* cmd) {

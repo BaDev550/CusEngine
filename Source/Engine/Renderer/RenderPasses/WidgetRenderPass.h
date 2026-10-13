@@ -7,10 +7,8 @@ namespace Tourqe::Engine {
 	class WidgetRenderPass final : public RenderPass {
 	GENERATE_CLASS(WidgetRenderPass)
 	public:
-		WidgetRenderPass();
+		WidgetRenderPass(RenderSubsystem* system);
 		~WidgetRenderPass();
-
-		virtual void OnInitialized() override;
 
 		virtual void Begin(Runtime::RHI::CommandBuffer* cmd) override;
 		virtual void End(Runtime::RHI::CommandBuffer* cmd) override;
