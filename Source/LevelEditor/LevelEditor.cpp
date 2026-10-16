@@ -1,10 +1,7 @@
 #include "LevelEditor.h"
 
 #include <Engine/Core/Engine.h>
-
 #include <Engine/Renderer/RenderSubsystem.h>
-#include <Engine/Renderer/RenderPasses/WidgetRenderPass.h>
-
 #include <Engine/World/WorldSubsystem.h>
 
 #include <imgui.h>
@@ -23,11 +20,10 @@ Runtime::Result LevelEditor::OnCreate(Engine* engine) {
 
 void LevelEditor::OnUpdate() {
 	auto renderSystem = _engine->GetSubsystem<RenderSubsystem>();
-	auto* widgetRenderPass = renderSystem->GetRenderPass<WidgetRenderPass>();
-
-	widgetRenderPass->Submit([this](Runtime::RHI::CommandBuffer* cmd) {
-		console.Draw();
-		});
+	
+	//widgetRenderPass->Submit([this](Runtime::RHI::CommandBuffer* cmd) {
+	//	console.Draw();
+	//	});
 }
 
 void LevelEditor::OnDestroy() {

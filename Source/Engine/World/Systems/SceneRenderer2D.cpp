@@ -10,18 +10,12 @@ namespace Tourqe::Engine {
 	Runtime::Result SceneRenderer2DSystem::OnCreate() {
 		auto* renderSystem = _engine->GetSubsystem<RenderSubsystem>();
 
-		_forwardRenderPass = renderSystem->RegisterRenderPass<ForwardRenderPass>();
-		_widgetRenderPass = renderSystem->RegisterRenderPass<WidgetRenderPass>();
-
 		return Runtime::Result();
 	}
 
 	void SceneRenderer2DSystem::OnUpdate(Scene& scene) {
 		auto renderSystem = _engine->GetSubsystem<RenderSubsystem>();
 
-		_forwardRenderPass->Submit([](Runtime::RHI::CommandBuffer* cmd) {
-
-			});
 	}
 
 	void SceneRenderer2DSystem::OnDestroy() { }
