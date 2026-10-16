@@ -25,15 +25,13 @@ namespace Tourqe::Engine {
 		Runtime::Mem::Allocator::Destroy(_jobSystem);
 		Runtime::Mem::Allocator::Destroy(_reflectionSystem);
 		Runtime::Mem::Allocator::Destroy(_pluginSystem);
-
-		Logger::Info("Engine", "Shuting down..."); 
 	}
 
 	void Engine::Run() {
 		Logger::Info("Engine", "Engine running...");
 
 		SortAndInitializeSystems();
-
+		
 		while (_running) {
 			for (const auto& subsystem : _activeSubsystemList) {
 				subsystem->OnUpdate();
@@ -43,6 +41,7 @@ namespace Tourqe::Engine {
 		}
 
 		_jobSystem->Wait();
+		Logger::Info("Engine", "Shuting down...");
 
 		for (auto it = _pendingDestroyList.rbegin(); it != _pendingDestroyList.rend(); ++it) {
 			Subsystem* system = *it;
@@ -121,11 +120,11 @@ namespace Tourqe::Engine {
 		for (Subsystem* system : _pendingInitList) {
 			if (Runtime::Result result = system->OnCreate(this); !result) {
 				Logger::Error(system->GetTypeID().name(), "Failed to Create reson: {}", result.GetMessage());
-				_pendingDestroyList.push_back(system);
 			}
 			else {
 				_systemLookupTable[system->GetTypeID()] = _activeSubsystemList.size();
 				_activeSubsystemList.push_back(system);
+				_pendingDestroyList.push_back(system);
 			}
 		}
 		_pendingInitList.clear();

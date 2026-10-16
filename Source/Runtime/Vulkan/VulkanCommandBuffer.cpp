@@ -25,8 +25,8 @@ namespace Runtime::RHI {
 	}
 
 	void VulkanCommandBuffer::BeginImGui() {
-		ImGui_ImplVulkan_NewFrame();
 		ImGui_ImplWin32_NewFrame();
+		ImGui_ImplVulkan_NewFrame();
 	}
 
 	void VulkanCommandBuffer::RenderImGui() {

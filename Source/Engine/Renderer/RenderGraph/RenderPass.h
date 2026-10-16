@@ -21,7 +21,7 @@ namespace Tourqe::Engine {
 
 	class RenderPass final {
 	public:
-		RenderPass(const std::string& name, RenderPassExecuteFn execFunc) : _name(name), _exetureFunc(execFunc) {}
+		RenderPass(const std::string& name, RenderPassExecuteFn execFunc) : _name(name), _exetureFunc(execFunc), _hasSideEffect(false), _alive(false) {}
 
 		const std::string GetName() const { return _name; }
 
@@ -33,6 +33,7 @@ namespace Tourqe::Engine {
 		void ExecFunc(Runtime::RHI::CommandBuffer* cmd, const RenderGraphResourceContainer& container) const { _exetureFunc(cmd, container); }
 		
 		void AddBarrier(const RenderPassBarrier& barrier) { _barriers.push_back(barrier); }
+		void SetSideEffect(b8 hasSideEffect) { _hasSideEffect = hasSideEffect; }
 		void SetLife(b8 alive) { _alive = alive; }
 	private:
 		std::string _name;
@@ -47,6 +48,7 @@ namespace Tourqe::Engine {
 	public:
 		void Read(RenderGraphHandle handle, Runtime::RHI::ImageLayout layout) { _pass->GetAccesses().emplace_back(handle, layout, false); }
 		void Write(RenderGraphHandle handle, Runtime::RHI::ImageLayout layout) { _pass->GetAccesses().emplace_back(handle, layout, true); }
+		void ForceRender() { _pass->SetSideEffect(true); }
 	private:
 		explicit RenderPassBuilder(RenderPass* pass) : _pass(pass) {}
 

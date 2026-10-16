@@ -10,8 +10,8 @@
 int main() {
 	{
 		Tourqe::Engine::Engine engine{};
-		engine.AddSubsystem<Tourqe::Engine::AssetSubsystem>();
 		engine.AddSubsystem<Tourqe::Engine::WindowSubsystem>();
+		engine.AddSubsystem<Tourqe::Engine::AssetSubsystem>();
 		engine.AddSubsystem<Tourqe::Engine::RenderSubsystem>();
 		engine.AddSubsystem<Tourqe::Engine::WorldSubsystem>();
 		engine.AddSubsystem<LevelEditor>();

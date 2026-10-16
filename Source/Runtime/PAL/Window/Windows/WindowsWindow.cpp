@@ -1,6 +1,9 @@
 #include "WindowsWindow.h"
 
 #include <Runtime/Memory/Memory.h>
+#include <imgui.h>
+
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 namespace Runtime::PAL {
 	Window* CreateNewWindow(const WindowDesc& desc) {
@@ -15,6 +18,9 @@ namespace Runtime::PAL {
 	}
 
 	LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+		if (ImGui_ImplWin32_WndProcHandler(hwnd, uMsg, wParam, lParam))
+			return true;
+
 		WindowDesc* desc = GetWindowDescParam(hwnd);
 		switch (uMsg)
 		{
@@ -36,7 +42,6 @@ namespace Runtime::PAL {
 			if (desc->width == 0 || desc->height == 0) desc->minimized = true;
 			else desc->minimized = false;
 
-			Logger::Info("WindowsWindow", "Window resized to {}x{}", desc->width, desc->height);
 			break;
 		}
 		case WM_DESTROY: {

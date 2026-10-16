@@ -118,8 +118,15 @@ namespace Runtime::RHI {
 		vkCreateDescriptorPool(_device, &pool_info, nullptr, &_imguiDescriptorPool); // add check
 
 		auto* context = ImGui::CreateContext();
+		auto& io = ImGui::GetIO();
+		io.WantCaptureKeyboard = true;
+		io.WantCaptureMouse = true;
+		
+		io.ConfigFlags |= ImGuiConfigFlags_IsSRGB;
+		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+
 		ImGui::SetCurrentContext(context);
-		ImGui_ImplWin32_Init(&_desc.windowHandle);
+		ImGui_ImplWin32_Init(reinterpret_cast<void*>(_desc.windowHandle));
 		
 		ImGui_ImplVulkan_InitInfo init_info = {};
 		init_info.Instance = _instance;
@@ -127,9 +134,10 @@ namespace Runtime::RHI {
 		init_info.PhysicalDevice = _physicalDevice;
 		init_info.Device = _device;
 		init_info.Queue = _graphicsAndPresentQueue->GetVkQueue();
+		init_info.QueueFamily = _graphicsAndPresentQueue->GetQueueFamilyIndex();
 		init_info.DescriptorPool = _imguiDescriptorPool;
-		init_info.MinImageCount = 3;
-		init_info.ImageCount = 3;
+		init_info.MinImageCount = 2;
+		init_info.ImageCount = 2;
 		init_info.UseDynamicRendering = true;
 
 		VkFormat format = VK_FORMAT_R8G8B8A8_SRGB;
@@ -138,10 +146,11 @@ namespace Runtime::RHI {
 		info.colorAttachmentCount = 1;
 		info.pColorAttachmentFormats = &format;
 		info.depthAttachmentFormat = VK_FORMAT_D32_SFLOAT;
-
+		
 		init_info.PipelineInfoMain.PipelineRenderingCreateInfo = info;
-
+		
 		ImGui_ImplVulkan_Init(&init_info);
+		Logger::Info("RHIContextVulkan", "ImGui initialized");
 	}
 
 	void VulkanContext::DestroyImGui() {

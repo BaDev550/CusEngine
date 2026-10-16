@@ -41,7 +41,7 @@ namespace Runtime::RHI {
 		createInfo.preTransform = surfaceCaps.currentTransform;
 		createInfo.presentMode = _desc.vsync ? VK_PRESENT_MODE_FIFO_KHR : VK_PRESENT_MODE_IMMEDIATE_KHR;
 		Logger::Assert((vkCreateSwapchainKHR(vkContext->GetDevice(), &createInfo, nullptr, &_swapchain) == VK_SUCCESS), GetObjectDebugName(), "Failed to create swapchain");
-		Logger::Info(GetObjectDebugName(), "Swapchain created: width:{}, height:{}", desc.width, desc.height);
+		Logger::Info(GetObjectDebugName(), "Swapchain created: width:{} height:{} vsync:{}", desc.width, desc.height, desc.vsync);
 
 		{
 			std::vector<VkImage> vkImages;
@@ -120,23 +120,34 @@ namespace Runtime::RHI {
 	}
 
 	void VulkanSwapchain::Destroy() {
+		if (_swapchain == VK_NULL_HANDLE && _colorAttachments.empty() && !_depthAttachment) return;
+
 		VulkanContext* vkContext = GetOwningRHIContext<VulkanContext>();
 
 		for (auto& image : _colorAttachments) {
 			Mem::Allocator::Destroy(image);
 		}
-		Mem::Allocator::Destroy(_depthAttachment);
 		_colorAttachments.clear();
 
-		vkDestroySwapchainKHR(vkContext->GetDevice(), _swapchain, nullptr);
+		if (_depthAttachment) {
+			Mem::Allocator::Destroy(_depthAttachment);
+			_depthAttachment = nullptr;
+		}
+
+		if (_swapchain != VK_NULL_HANDLE) {
+			vkDestroySwapchainKHR(vkContext->GetDevice(), _swapchain, nullptr);
+			_swapchain = VK_NULL_HANDLE;
+		}
+		_imageCount = 0;
+
 	}
 
 	Result VulkanSwapchain::AcquireNextImage(u32& imageIndex, Fence* imageAvailableFence = nullptr) {
 		VulkanFence* vkFence = static_cast<VulkanFence*>(imageAvailableFence);
 		VkResult result = vkAcquireNextImageKHR(GetOwningRHIContext<VulkanContext>()->GetDevice(), _swapchain, UINT64_MAX, vkFence->GetSemaphore(), vkFence->GetVkFence(), &imageIndex);
-		if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
-			return Result("SwapchainIsOutOfDate");
-		}
+		if (result == VK_ERROR_OUT_OF_DATE_KHR) return Result("SwapchainIsOutOfDate");
+		if (result == VK_SUBOPTIMAL_KHR) return Result("SwapchainIsSuboptimal");
+		if (result != VK_SUCCESS) return Result("FailedToAcquireSwapchainImage");
 		
 		return Result();
 	}
