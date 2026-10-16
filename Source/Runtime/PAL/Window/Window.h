@@ -10,6 +10,8 @@ namespace Runtime::PAL {
 		u32 width = 800;
 		u32 height = 800;
 		std::string title = "Window";
+
+		b8 minimized = false;
 	};
 
 	class Window {
@@ -22,6 +24,7 @@ namespace Runtime::PAL {
 		[[nodiscard]] virtual PALInstance GetInstance() const = 0;
 		[[nodiscard]] virtual const u32 GetWidth() const = 0;
 		[[nodiscard]] virtual const u32 GetHeight() const = 0;
+		[[nodiscard]] virtual const b8 IsMinimized() const = 0;
 	};
 
 	Window* CreateNewWindow(const WindowDesc& desc);

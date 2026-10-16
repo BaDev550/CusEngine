@@ -32,6 +32,10 @@ namespace Runtime::PAL {
 		case WM_SIZE: {
 			desc->width = LOWORD(lParam);
 			desc->height = HIWORD(lParam);
+
+			if (desc->width == 0 || desc->height == 0) desc->minimized = true;
+			else desc->minimized = false;
+
 			Logger::Info("WindowsWindow", "Window resized to {}x{}", desc->width, desc->height);
 			break;
 		}

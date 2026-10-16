@@ -171,7 +171,11 @@ namespace Tourqe::Engine {
 
 	RHI::CommandBuffer* RenderSubsystem::BeginFrame() {
 		auto* window = _engine->GetSubsystem<WindowSubsystem>()->GetWindow();
-		if (window->GetWidth() == 0 || window->GetHeight() == 0) return nullptr;
+		if (window->IsMinimized()) {
+			_canSubmitCommand = false;
+			_commandQueue.clear();
+			return nullptr;
+		}
 
 		if (_recreateSwapchainNextFrame) {
 			_context->WaitDeviceIdle();
@@ -189,8 +193,7 @@ namespace Tourqe::Engine {
 		Result result = _swapchain->AcquireNextImage(_imageIndex, frame.imageAvailableFence);
 		if (result.GetMessage() == "SwapchainIsOutOfDate") {
 			_recreateSwapchainNextFrame = true;
-			BeginFrame();
-			return nullptr;
+			return BeginFrame();
 		}
 		else if (result.GetMessage() == "FailedToAcquireSwapchainImage") {
 			_recreateSwapchainNextFrame = true;
@@ -202,6 +205,7 @@ namespace Tourqe::Engine {
 		frame.commandPool->Reset();
 		frame.commandBuffer->Begin();
 		_frameRecording = true;
+		_canSubmitCommand = true;
 
 		for (auto& command : _commandQueue) { command(frame.commandBuffer); }
 		_commandQueue.clear();
@@ -230,7 +234,11 @@ namespace Tourqe::Engine {
 		_frameRecording = false;
 	}
 
-	void RenderSubsystem::Submit(CommandFunc func) { _commandQueue.push_back(func); }
+	void RenderSubsystem::Submit(CommandFunc func) { 
+		if (!_canSubmitCommand) return;
+		_commandQueue.push_back(func); 
+	}
+
 	void RenderSubsystem::Track(RHI::Object* object) { GetCurrentFrameData()->trackedObjects.push_back(object); }
 
 	RHI::Buffer* RenderSubsystem::CreateStagingBuffer(usize dataSizeInBytes)

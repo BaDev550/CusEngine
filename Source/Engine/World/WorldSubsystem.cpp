@@ -6,8 +6,6 @@
 #include <Engine/Renderer/RenderSubsystem.h>
 #include <Engine/MT/JobSystem.h>
 
-#include <Engine/World/Objects/Actor.h>
-
 namespace Tourqe::Engine {
 	Runtime::Result WorldSubsystem::OnCreate(Engine* engine) {
 		Subsystem::OnCreate(engine);

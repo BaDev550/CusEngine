@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Engine/Subsystem/Subsystem.h>
-#include "TestActor.h"
 
 class Console final {
 public:

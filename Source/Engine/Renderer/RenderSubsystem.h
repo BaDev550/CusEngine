@@ -40,6 +40,7 @@ namespace Tourqe::Engine {
 		void BeginSwapchainPass();
 		void EndSwapchainPass();
 
+		b8 CanSubmitRenderCommands() const { return _canSubmitCommand; }
 		u32 GetImageIndex() const { return _imageIndex; }
 		RHI::Buffer* CreateStagingBuffer(usize dataSizeInBytes);
 
@@ -64,6 +65,7 @@ namespace Tourqe::Engine {
 		RHI::Fence* _timelineFence = nullptr;
 
 		b8 _frameRecording = false;
+		b8 _canSubmitCommand = true;
 		u32 _imageIndex = 0;
 		u32 _currentFrameIndex = 0;
 		u64 _signalValue = 0;

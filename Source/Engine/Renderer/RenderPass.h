@@ -12,7 +12,7 @@
 namespace Tourqe::Engine {
 	class RenderSubsystem;
 
-	class RenderPass : public Runtime::Reflection::ReflectObject {
+	class ENGINE_API RenderPass : public Runtime::Reflection::ReflectObject {
 		GENERATE_CLASS(RenderPass)
 	public:
 		using RenderPassSubmit = std::function<void(Runtime::RHI::CommandBuffer* cmd)>; // TODO(0x): add rendering list
@@ -23,7 +23,7 @@ namespace Tourqe::Engine {
 
 		virtual void Begin(Runtime::RHI::CommandBuffer* cmd) = 0;
 		virtual void End(Runtime::RHI::CommandBuffer* cmd) = 0;
-		void Submit(RenderPassSubmit submit) { _submitList.push_back(std::move(submit)); }
+		void Submit(RenderPassSubmit submit);
 		void SubmitQueueForRender(Runtime::RHI::CommandBuffer* cmd) { for (auto& submit : _submitList) { submit(cmd); } _submitList.clear(); }
 		
 		[[nodiscard]] const Runtime::RHI::RenderingSubmitInfo& GetRenderSubmitInfo() const { return _renderSubmitInfo; }
