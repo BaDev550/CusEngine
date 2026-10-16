@@ -19,9 +19,6 @@ namespace Tourqe::Engine {
 		_systems.push_back(std::move(renderSystem));
 
 		_activeScene = Runtime::Mem::Allocator::Construct<Scene>();
-		_activeScene->SetWorld(this);
-
-		_lastGcTime = std::chrono::steady_clock::now();
 
 		return Runtime::Result();
 	}
@@ -31,12 +28,6 @@ namespace Tourqe::Engine {
 
 		for (auto& system : _systems) {
 			system->OnUpdate(*_activeScene);
-		}
-
-		auto now = std::chrono::steady_clock::now();
-		if (now - _lastGcTime >= _gcCooldown) {
-			_gc.Collect();
-			_lastGcTime = now;
 		}
 	}
 

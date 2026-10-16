@@ -2,9 +2,8 @@
 
 #include <Engine/Core/Core.h>
 #include <Engine/Subsystem/Subsystem.h>
-#include <Engine/World/Scene/Scene.h>
+#include <Engine/World/ECS/Scene.h>
 #include <Engine/World/System.h>
-#include <Engine/World/Systems/GarbageCollector.h>
 
 namespace Tourqe::Engine { // All temp classes
 	class ENGINE_API WorldSubsystem : public Subsystem {
@@ -15,14 +14,9 @@ namespace Tourqe::Engine { // All temp classes
 		
 		virtual void GetDependencyGraph(DependencyGraph& graph) override;
 
-		[[nodiscard]] GarbageCollector& GetGC() { return _gc; }
 		[[nodiscard]] Scene* GetActiveScene() const { return _activeScene; }
 	private:
 		std::vector<System*> _systems;
 		Scene* _activeScene;
-
-		GarbageCollector _gc;
-		std::chrono::steady_clock::time_point _lastGcTime; // CHANGE!
-		const std::chrono::seconds _gcCooldown{ 20 };
 	}; 
 }

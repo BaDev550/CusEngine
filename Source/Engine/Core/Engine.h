@@ -51,7 +51,7 @@ namespace Tourqe::Engine {
 		void SortAndInitializeSystems();
 		static Engine* _instance;
 
-		bool _running = true;
+		b8 _running = true;
 
 		std::vector<Subsystem*> _pendingInitList;
 		std::unordered_map<std::type_index, usize> _systemInitLookupTable;

@@ -16,7 +16,7 @@ namespace Tourqe::Engine {
         UnloadAll();
     }
 
-    bool PluginSystem::LoadPlugin(const std::string& pluginName) {
+    b8 PluginSystem::LoadPlugin(const std::string& pluginName) {
 #ifdef _WIN32
         HMODULE handle = LoadLibraryA(pluginName.c_str());
         if (handle) {

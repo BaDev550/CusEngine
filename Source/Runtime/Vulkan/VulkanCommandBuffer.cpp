@@ -7,7 +7,8 @@
 
 #include <imgui.h>
 #include <imgui_impl_vulkan.h>
-#include <imgui_impl_glfw.h>
+
+#include <imgui_impl_win32.h>
 
 namespace Runtime::RHI {
 	VulkanCommandBuffer::VulkanCommandBuffer(Context* context, const CommandBufferDesc& desc) : CommandBuffer(context), _desc(desc) { }
@@ -25,7 +26,7 @@ namespace Runtime::RHI {
 
 	void VulkanCommandBuffer::BeginImGui() {
 		ImGui_ImplVulkan_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
+		ImGui_ImplWin32_NewFrame();
 	}
 
 	void VulkanCommandBuffer::RenderImGui() {

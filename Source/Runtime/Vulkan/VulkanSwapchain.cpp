@@ -134,12 +134,10 @@ namespace Runtime::RHI {
 	Result VulkanSwapchain::AcquireNextImage(u32& imageIndex, Fence* imageAvailableFence = nullptr) {
 		VulkanFence* vkFence = static_cast<VulkanFence*>(imageAvailableFence);
 		VkResult result = vkAcquireNextImageKHR(GetOwningRHIContext<VulkanContext>()->GetDevice(), _swapchain, UINT64_MAX, vkFence->GetSemaphore(), vkFence->GetVkFence(), &imageIndex);
-		if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+		if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
 			return Result("SwapchainIsOutOfDate");
 		}
-		else if (result == VK_SUBOPTIMAL_KHR) {
-			return Result("FailedToAcquireSwapchainImage");
-		}
+		
 		return Result();
 	}
 }

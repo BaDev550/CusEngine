@@ -1,7 +1,6 @@
 ﻿file(GLOB_RECURSE SOURCECODE CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/*.h") 
 add_library(Runtime STATIC ${SOURCECODE})
 
-find_package(glfw3 CONFIG REQUIRED)
 find_package(imgui CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(Vulkan REQUIRED)
@@ -15,7 +14,6 @@ target_link_libraries(Runtime
         glm::glm-header-only
         imgui::imgui
     PRIVATE
-        glfw 
         Vulkan::Vulkan
 	    GPUOpen::VulkanMemoryAllocator
         unofficial::shaderc::shaderc

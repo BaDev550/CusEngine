@@ -14,7 +14,7 @@ namespace Tourqe::Engine {
             _buffer.reserve(_buffer.size() + size);
         }
 
-        virtual bool writeData(const void* data, int size) override {
+        virtual b8 writeData(const void* data, int size) override {
             const u8* src = static_cast<const u8*>(data);
             _buffer.insert(_buffer.end(), src, src + size);
             return true;
@@ -32,6 +32,6 @@ namespace Tourqe::Engine {
 
         virtual std::string GetAssetClassName() override { return Texture2D::GetStaticClassName().data(); };
 	private:
-		bool CompressImageToBC3(u8* rawData, u32 width, u32 height, std::vector<u8>& compressedImage);
+		b8 CompressImageToBC3(u8* rawData, u32 width, u32 height, std::vector<u8>& compressedImage);
 	};
 }

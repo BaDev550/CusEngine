@@ -55,8 +55,8 @@ namespace Tourqe::Engine {
 		void Unload(Runtime::UUID id);
 
 		AssetStreamer* GetAssetCookerOfType(const std::string& type);
-		bool AssetInCache(Runtime::UUID id);
-		bool AssetLoaded(Runtime::UUID id);
+		b8 AssetInCache(Runtime::UUID id);
+		b8 AssetLoaded(Runtime::UUID id);
 		void SaveRegistry();
 		void LoadRegistry();
 		

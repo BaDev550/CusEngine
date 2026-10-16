@@ -1,7 +1,7 @@
 #pragma once
 #include <Runtime/Definitions/Types.h>
 #include <Runtime/Memory/Memory.h>
-#include <Engine/Window/Window.h>
+#include <Runtime/PAL/Window/Window.h>
 #include <Engine/Subsystem/Subsystem.h>
 #include <vector>
 
@@ -12,10 +12,8 @@ namespace Tourqe::Engine {
 		virtual void OnUpdate() override;
 		virtual void OnDestroy() override;
 
-		Window* GetWindow() const { return _window; }
+		Runtime::PAL::Window* GetWindow() const { return _window; }
 	private:
-		bool _glfwInitialized = false;
-
-		Window* _window = nullptr;
+		Runtime::PAL::Window* _window = nullptr;
 	};
 }

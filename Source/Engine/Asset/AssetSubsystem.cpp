@@ -75,7 +75,7 @@ namespace Tourqe::Engine {
 
 	}
 
-	bool AssetSubsystem::AssetLoaded(Runtime::UUID id) {
+	b8 AssetSubsystem::AssetLoaded(Runtime::UUID id) {
 		if (_assets.find(id) == _assets.end()) {
 			Logger::Warn("AssetSubsystem", "Asset {} is not loaded", id.Str());
 			return false;
@@ -83,7 +83,7 @@ namespace Tourqe::Engine {
 		return true;
 	}
 
-	bool AssetSubsystem::AssetInCache(Runtime::UUID id) {
+	b8 AssetSubsystem::AssetInCache(Runtime::UUID id) {
 		if (_cachedAssetSources.find(id) == _cachedAssetSources.end()) {
 			Logger::Warn("AssetSubsystem", "Asset {} is not in cache", id.Str());
 			return false;

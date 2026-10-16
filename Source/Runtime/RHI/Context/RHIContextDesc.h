@@ -1,7 +1,6 @@
 #pragma once
 #include <Engine/Core/Core.h>
-
-struct GLFWwindow;
+#include <Runtime/PAL/Window/Window.h>
 
 namespace Runtime::RHI {
 	struct ContextDesc {
@@ -19,6 +18,7 @@ namespace Runtime::RHI {
 		} features;
 		bool enableValidationLayer = false;
 
-		GLFWwindow* windowHandle = nullptr;
+		Runtime::PAL::PALInstance instance;
+		Runtime::PAL::WindowHandle windowHandle;
 	};
 }

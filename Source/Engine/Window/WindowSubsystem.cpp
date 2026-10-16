@@ -1,25 +1,17 @@
 #include <Engine/Window/WindowSubsystem.h>
 #include <Engine/Core/Engine.h>
-
-#include <GLFW/glfw3.h>
+#include <Engine/MT/JobSystem.h>
 
 namespace Tourqe::Engine {
 	Runtime::Result WindowSubsystem::OnCreate(Engine* engine)
 	{
 		Subsystem::OnCreate(engine);
 
-		if (!_glfwInitialized) {
-			Logger::Assert(glfwInit(), "GLFW", "Failed to initialize GLFW context");
-			glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-			glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
-			_glfwInitialized = true;
-		}
-
-		WindowDesc desc{};
+		Runtime::PAL::WindowDesc desc{};
 		desc.width = 800;
 		desc.height = 800;
 		desc.title = "Engine Debug Window";
-		_window = Runtime::Mem::Allocator::Construct<Window>(desc);
+		_window = Runtime::PAL::CreateNewWindow(desc);
 		if (!_window) Runtime::Result("Failed to create window");
 
 		return Runtime::Result();
@@ -37,9 +29,5 @@ namespace Tourqe::Engine {
 		Subsystem::OnDestroy();
 
 		Runtime::Mem::Allocator::Destroy(_window);
-
-		if (_glfwInitialized) {
-			glfwTerminate();
-		}
 	}
 }

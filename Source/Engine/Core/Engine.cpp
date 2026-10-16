@@ -35,22 +35,24 @@ namespace Tourqe::Engine {
 		SortAndInitializeSystems();
 
 		while (_running) {
+			for (const auto& subsystem : _activeSubsystemList) {
+				subsystem->OnUpdate();
+			}
 
 			_jobSystem->Wait();
-			{
-				for (const auto& subsystem : _activeSubsystemList) {
-					subsystem->OnUpdate();
-				}
-			}
 		}
 
-		for (auto it = _activeSubsystemList.rbegin(); it != _activeSubsystemList.rend(); ++it) {
+		_jobSystem->Wait();
+
+		for (auto it = _pendingDestroyList.rbegin(); it != _pendingDestroyList.rend(); ++it) {
 			Subsystem* system = *it;
 			if (system) {
 				system->OnDestroy();
 				Runtime::Mem::Allocator::Destroy(system);
 			}
 		}
+		_pendingDestroyList.clear();
+		_activeSubsystemList.clear();
 	}
 
 	void Engine::Shutdown(const std::string_view reson) {
@@ -119,6 +121,7 @@ namespace Tourqe::Engine {
 		for (Subsystem* system : _pendingInitList) {
 			if (Runtime::Result result = system->OnCreate(this); !result) {
 				Logger::Error(system->GetTypeID().name(), "Failed to Create reson: {}", result.GetMessage());
+				_pendingDestroyList.push_back(system);
 			}
 			else {
 				_systemLookupTable[system->GetTypeID()] = _activeSubsystemList.size();

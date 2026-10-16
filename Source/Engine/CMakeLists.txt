@@ -4,7 +4,6 @@ add_reflection(Engine)
 
 include(NVTT)
 
-find_package(glfw3 CONFIG REQUIRED)
 find_package(imgui CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(unofficial-shaderc CONFIG REQUIRED)
@@ -29,7 +28,6 @@ target_link_libraries(Engine
         glm::glm-header-only
     PRIVATE
         Runtime
-        glfw 
         imgui::imgui
         nlohmann_json::nlohmann_json
         unofficial::shaderc::shaderc

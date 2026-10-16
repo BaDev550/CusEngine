@@ -10,16 +10,16 @@
 #include <Runtime/Vulkan/VulkanBuffer.h>
 #include <Runtime/Vulkan/VulkanPipeline.h>
 
-#include <GLFW/glfw3.h>
-#include <GLFW/glfw3native.h>
-
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <imgui_impl_vulkan.h>
-#include <imgui_impl_glfw.h>
 
 #define VMA_IMPLEMENTATION
 #include <vma/vk_mem_alloc.h>
+
+#include <windows.h>
+#include <vulkan/vulkan_win32.h>
+#include <imgui_impl_win32.h>
 
 namespace Runtime::RHI {
 #define ENABLE_FEATURE_IF_SUPPORTED(supported, feature) \
@@ -33,7 +33,7 @@ namespace Runtime::RHI {
 		const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
 		void* pUserData) {
 
-		Logger::Error("RHIContextVulkan", "%s", pCallbackData->pMessage);
+		Logger::Error("RHIContextVulkan", "{}", pCallbackData->pMessage);
 		return VK_FALSE;
 	}
 
@@ -119,8 +119,8 @@ namespace Runtime::RHI {
 
 		auto* context = ImGui::CreateContext();
 		ImGui::SetCurrentContext(context);
-		ImGui_ImplGlfw_InitForVulkan(_desc.windowHandle, true);
-
+		ImGui_ImplWin32_Init(&_desc.windowHandle);
+		
 		ImGui_ImplVulkan_InitInfo init_info = {};
 		init_info.Instance = _instance;
 		init_info.ApiVersion = VK_API_VERSION_1_3;
@@ -146,7 +146,7 @@ namespace Runtime::RHI {
 
 	void VulkanContext::DestroyImGui() {
 		ImGui_ImplVulkan_Shutdown();
-		ImGui_ImplGlfw_Shutdown();
+		ImGui_ImplWin32_Shutdown();
 		vkDestroyDescriptorPool(_device, _imguiDescriptorPool, nullptr);
 		ImGui::DestroyContext();
 	}
@@ -992,15 +992,23 @@ namespace Runtime::RHI {
 	}
 
 	void VulkanContext::CreateSurface() {
-		glfwCreateWindowSurface(_instance, _desc.windowHandle, nullptr, &_surface);
+		VkWin32SurfaceCreateInfoKHR info{};
+		info.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
+		info.hinstance = reinterpret_cast<HINSTANCE>(_desc.instance);
+		info.hwnd = reinterpret_cast<HWND>(_desc.windowHandle);
+
+		VkResult result = vkCreateWin32SurfaceKHR(_instance, &info, nullptr, &_surface);
+		if (result != VK_SUCCESS) { Logger::Error("RHIContextVulkan", "Failed to create Win32 surface!"); }
+		else {
+			Logger::Info("RHIContextVulkan", "Successfully created Vulkan surface.");
+		}
 	}
 
 	std::vector<const char*> VulkanContext::GetRequiredExtensions() {
-		uint32_t glfwExtensionCount = 0;
-		const char** glfwExtensions;
-		glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+		std::vector<const char*> extensions;
 
-		std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
+		extensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
+		extensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
 
 		if (_desc.enableValidationLayer) {
 			extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);

@@ -108,7 +108,7 @@ namespace Tourqe::Engine {
         return std::move(texture);
     }
 
-    bool Texture2DStreamer::CompressImageToBC3(u8* rawData, u32 width, u32 height, std::vector<u8>& compressedImage) {
+    b8 Texture2DStreamer::CompressImageToBC3(u8* rawData, u32 width, u32 height, std::vector<u8>& compressedImage) {
         compressedImage.clear();
 
         BEGIN_SCOPE(Texture2DNVTT);
@@ -131,7 +131,7 @@ namespace Tourqe::Engine {
         nvtt::Context context;
         context.enableCudaAcceleration(true);
 
-        bool result = context.compress(surface, 0, 0, compOptions, outputOptions);
+        b8 result = context.compress(surface, 0, 0, compOptions, outputOptions);
 
         if (result) {
             Logger::Info("Texture2DNVTT", "Image compressed");

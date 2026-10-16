@@ -12,7 +12,6 @@
 namespace Tourqe::Engine {
 	class RenderSubsystem;
 
-	TCLASS()
 	class RenderPass : public Runtime::Reflection::ReflectObject {
 		GENERATE_CLASS(RenderPass)
 	public:

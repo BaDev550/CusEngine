@@ -6,9 +6,8 @@
 #include <Runtime/RHI/Common/RHIFormat.h>
 
 namespace Tourqe::Engine {
-	TCLASS()
 	class ENGINE_API SwapchainRenderPass final : public RenderPass {
-		GENERATE_CLASS(SwapchainRenderPass)
+		GENERATE_CLASS(SwapchainRenderPass);
 	public:
 		SwapchainRenderPass(RenderSubsystem* system);
 

@@ -63,13 +63,13 @@ namespace Tourqe::Engine {
 		std::vector<RHI::Fence*> _renderFinishedFences;
 		RHI::Fence* _timelineFence = nullptr;
 
-		bool _frameRecording = false;
+		b8 _frameRecording = false;
 		u32 _imageIndex = 0;
 		u32 _currentFrameIndex = 0;
 		u64 _signalValue = 0;
 		u64 _nextSignalValue = (MaxFramesInFlight + 1);
 
-		bool _recreateSwapchainNextFrame = false;
+		b8 _recreateSwapchainNextFrame = false;
 
 		RHI::Image* _defaultWhiteImage = nullptr;
 
@@ -92,7 +92,6 @@ namespace Tourqe::Engine {
 			_renderPasses.push_back(std::move(pass));
 			_renderPasses = SortPasses(std::move(_renderPasses));
 			Logger::Info("RenderSubsystem", "'{}' RenderPass added to render queue", pass->GetClassName());
-			//pass->OnInitialized();
 			return pass;
 		}
 	};

@@ -32,6 +32,7 @@ namespace Tourqe::Engine {
 		contextDesc.features.timelineSemaphore = true;
 		contextDesc.features.samplerAnisotropy = true;
 		contextDesc.windowHandle = window->GetHandle();
+		contextDesc.instance = window->GetInstance();
 
 		RHI::SwapchainDesc swapchainDesc{};
 		swapchainDesc.width = window->GetWidth();
@@ -169,8 +170,10 @@ namespace Tourqe::Engine {
 	}
 
 	RHI::CommandBuffer* RenderSubsystem::BeginFrame() {
+		auto* window = _engine->GetSubsystem<WindowSubsystem>()->GetWindow();
+		if (window->GetWidth() == 0 || window->GetHeight() == 0) return nullptr;
+
 		if (_recreateSwapchainNextFrame) {
-			auto* window = _engine->GetSubsystem<WindowSubsystem>()->GetWindow();
 			_context->WaitDeviceIdle();
 			_swapchain->Destroy();
 			_swapchain->Recreate(window->GetWidth(), window->GetHeight());
@@ -181,8 +184,8 @@ namespace Tourqe::Engine {
 		const u64 waitValue = _nextSignalValue - MaxFramesInFlight;
 		FrameData& frame = _frames[_currentFrameIndex];
 
-		_timelineFence->Wait(waitValue);
-
+		_timelineFence->Wait(_nextSignalValue - MaxFramesInFlight);
+	
 		Result result = _swapchain->AcquireNextImage(_imageIndex, frame.imageAvailableFence);
 		if (result.GetMessage() == "SwapchainIsOutOfDate") {
 			_recreateSwapchainNextFrame = true;
@@ -208,7 +211,7 @@ namespace Tourqe::Engine {
 
 	void RenderSubsystem::EndFrame() {
 		if (!_frameRecording) return;
-		
+
 		FrameData* frame = GetCurrentFrameData();
 		RHI::Queue* graphicsQueue = _context->GetGraphicsQueue();
 
@@ -224,6 +227,7 @@ namespace Tourqe::Engine {
 		_signalValue++;
 
 		graphicsQueue->Present(_swapchain, _imageIndex, { _renderFinishedFences[_imageIndex] });
+		_frameRecording = false;
 	}
 
 	void RenderSubsystem::Submit(CommandFunc func) { _commandQueue.push_back(func); }

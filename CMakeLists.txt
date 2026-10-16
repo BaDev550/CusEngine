@@ -18,5 +18,4 @@ include(Reflection)
 
 add_subdirectory("Source/Engine")
 add_subdirectory("Source/Runtime")
-add_subdirectory("Source/Playground")
 add_subdirectory("Source/LevelEditor")

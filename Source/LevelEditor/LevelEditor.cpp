@@ -98,15 +98,8 @@ void Console::ProcessCommand(std::string_view command) {
 	}
 	else if (command == "spawnObject") {
 		auto* world = Tourqe::Engine::Engine::Get()->GetSubsystem<WorldSubsystem>();
-		Transform spawnTransform;
-		spawnTransform.position = { 1.0f, 0.3f, 0.1f };
 
-		_randomactor = static_cast<Tourqe::TTestActor*>(world->GetActiveScene()->SpawnActorFromClass(Tourqe::TTestActor::GetStaticClassName().data(), spawnTransform));
-		_randomactor->PrintSomething();
-	}
-	else if (command == "destroyObject") {
-		auto* world = Tourqe::Engine::Engine::Get()->GetSubsystem<WorldSubsystem>();
-		world->GetActiveScene()->DestroyActor(_randomactor);
+		world->GetActiveScene()->CreateEntity();
 	}
 	else {
 		Log("Unknown command: " + std::string(command));

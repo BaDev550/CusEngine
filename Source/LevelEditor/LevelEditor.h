@@ -12,8 +12,6 @@ private:
 
 	std::vector<std::string> _history;
 	bool _scrollToBottom = false;
-
-	Tourqe::TTestActor* _randomactor;
 };
 
 class LevelEditor final : public Tourqe::Engine::Subsystem {

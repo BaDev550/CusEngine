@@ -1,29 +1,44 @@
 #pragma once
-#include <Engine/Core/Core.h>
 
-#include <thread>
-#include <mutex>
-#include <functional>
+#include <atomic>
 #include <condition_variable>
+#include <cstdint>
+#include <functional>
+#include <mutex>
 #include <queue>
+#include <thread>
+#include <vector>
+#include <Runtime/Definitions/Types.h>
 
-namespace Tourqe::Engine { // TODO(0x): change this entair fucking system!
-	enum class JobPriority {
-		Low = 0,
-		High
+namespace Tourqe::Engine {
+	using JobFunc = std::function<void()>;
+
+	enum class JobPriority : u8 {
+		High,
+		Low
 	};
 
-	using JobFunc = std::function<void()>;
-	class ENGINE_API JobSystem final {
+	class JobSystem {
 	public:
 		JobSystem();
 		~JobSystem();
-		
+		JobSystem(const JobSystem&) = delete;
+		JobSystem& operator=(const JobSystem&) = delete;
+		JobSystem(JobSystem&&) = delete;
+		JobSystem& operator=(JobSystem&&) = delete;
+
+		void Execute(JobFunc job, JobPriority priority = JobPriority::High);
+		void ParallelFor(u32 count, u32 batchSize, const std::function<void(u32 begin, u32 end)>& body, JobPriority priority = JobPriority::High);
+
 		void Wait();
-		void Execute(const JobFunc& job, JobPriority priority);
+		bool IsBusy() const { return _pendingJobs.load(std::memory_order_acquire) > 0; }
+
+		u32 GetHighWorkerCount() const { return static_cast<u32>(_highPriorityThreads.size()); }
+		u32 GetLowWorkerCount() const { return static_cast<u32>(_lowPriorityThreads.size()); }
 	private:
 		void WorkerLoop(JobPriority priority);
-		void SetThreadPowerMode(JobPriority priority);
+		void FinishJob();
+		static void ConfigureCurrentThread(JobPriority priority, u32 index);
 
 		std::vector<std::thread> _highPriorityThreads;
 		std::vector<std::thread> _lowPriorityThreads;
@@ -32,9 +47,11 @@ namespace Tourqe::Engine { // TODO(0x): change this entair fucking system!
 		std::queue<JobFunc> _lowQueue;
 
 		std::mutex _queueMutex;
-		std::condition_variable _cv;
+		std::condition_variable _workCv;
+		bool _stopping = false;
 
-		std::atomic<u32> _activeJob{ 0 };
-		std::atomic<bool> _stopping{ false };
+		std::atomic<u32> _pendingJobs{ 0 };
+		std::mutex _idleMutex;
+		std::condition_variable _idleCv;
 	};
 }

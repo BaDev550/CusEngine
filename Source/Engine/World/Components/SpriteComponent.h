@@ -12,6 +12,6 @@ namespace Tourqe::Engine {
 		Runtime::UUID TextureAssetHandle;
 
 		TPROP()
-		bool Visible;
+		b8 Visible;
 	};
 }

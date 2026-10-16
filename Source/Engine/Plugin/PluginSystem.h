@@ -9,7 +9,7 @@ namespace Tourqe::Engine {
         PluginSystem();
         ~PluginSystem();
 
-        bool LoadPlugin(const std::string& pluginName);
+        b8 LoadPlugin(const std::string& pluginName);
         void UnloadAll();
     private:
         std::vector<void*> _loadedPlugins;

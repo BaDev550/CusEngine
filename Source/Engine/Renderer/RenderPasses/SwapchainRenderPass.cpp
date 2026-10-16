@@ -14,6 +14,7 @@ namespace Tourqe::Engine {
 
 		_colorAttachmentImage = swapchain->GetColorAttachments()[imageIndex];
 		_depthAttachmentImage = swapchain->GetDepthAttachment();
+		cmd->TransitionImageLayout(_colorAttachmentImage, RHI::ImageLayout::ColorAttachment);
 
 		RHI::ColorAttachment colorAttachment{};
 		colorAttachment.image = _colorAttachmentImage;

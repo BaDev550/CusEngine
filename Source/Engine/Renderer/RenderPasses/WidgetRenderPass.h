@@ -3,9 +3,8 @@
 #include <Engine/Renderer/RenderPass.h>
 
 namespace Tourqe::Engine {
-	TCLASS()
 	class WidgetRenderPass final : public RenderPass {
-	GENERATE_CLASS(WidgetRenderPass)
+		GENERATE_CLASS(WidgetRenderPass);
 	public:
 		WidgetRenderPass(RenderSubsystem* system);
 		~WidgetRenderPass();
