@@ -3,10 +3,11 @@
 
 namespace Runtime::RHI {
 	enum class ShaderStage : u8 {
-		Vertex = 0,
-		Fragment = BIT(1),
-		Mesh = BIT(2),
-		Compute = BIT(3),
+		None = 0,
+		Vertex = BIT(1),
+		Fragment = BIT(2),
+		Mesh = BIT(3),
+		Compute = BIT(4),
 		All = Vertex | Fragment | Mesh | Compute
 	};
 	CORE_DEFINE_ENUM_FLAG_OPERATORS(ShaderStage);

@@ -6,6 +6,8 @@
 #include <Runtime/RHI/Queue/RHIQueueDesc.h>
 #include <Runtime/RHI/Command/RHICommandBufferDesc.h>
 #include <Runtime/RHI/Image/RHILoadOp.h>
+#include <Runtime/RHI/Shader/ShaderStage.h>
+#include <Runtime/RHI/Descriptor/DescriptorType.h>
 
 #include <vulkan/vulkan.h>
 #include <vma/vk_mem_alloc.h>
@@ -147,6 +149,30 @@ namespace Runtime::RHI::Utils {
 		case Runtime::RHI::ImageLoadOp::DontCare: return VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 		default:
 			Logger::Error("Vulkan RHI Utils", "Unknown load Op");
+			break;
+		}
+	}
+
+	constexpr [[nodiscard]] VkShaderStageFlags GetVkShaderStage(ShaderStage stage) noexcept {
+		VkShaderStageFlags result = 0;
+		if ((stage & ShaderStage::Vertex) != ShaderStage::None)	result |= VK_SHADER_STAGE_VERTEX_BIT;
+		if ((stage & ShaderStage::Fragment) != ShaderStage::None) result |= VK_SHADER_STAGE_FRAGMENT_BIT;
+		if ((stage & ShaderStage::Compute) != ShaderStage::None) result |= VK_SHADER_STAGE_COMPUTE_BIT;
+		if ((stage & ShaderStage::Mesh) != ShaderStage::None) result |= VK_SHADER_STAGE_MESH_BIT_EXT;
+		if ((stage & ShaderStage::All) != ShaderStage::None) result |= VK_SHADER_STAGE_ALL;
+		return result;
+	}
+
+	constexpr [[nodiscard]] VkDescriptorType GetVkDescriptorType(DescriptorType type) noexcept {
+		switch (type)
+		{
+		case Runtime::RHI::DescriptorType::Sampler: return VK_DESCRIPTOR_TYPE_SAMPLER;
+		case Runtime::RHI::DescriptorType::SampledImage: return VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+		case Runtime::RHI::DescriptorType::StorageImage: return VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+		case Runtime::RHI::DescriptorType::UniformBuffer: return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		case Runtime::RHI::DescriptorType::StorageBuffer: return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+		default:
+			Logger::Error("Vulkan RHI Utils", "Unknowned descriptor type");
 			break;
 		}
 	}
