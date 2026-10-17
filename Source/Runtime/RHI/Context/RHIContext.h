@@ -13,6 +13,7 @@ namespace Runtime::RHI {
 	class Queue;
 	class Fence;
 	class Pipeline;
+	class ImGuiContext;
 
 	struct ImageDesc;
 	struct BufferDesc;
@@ -28,9 +29,6 @@ namespace Runtime::RHI {
 		Context() = default;
 		virtual ~Context() = default;
 
-		virtual void InitializeImGui() = 0;
-		virtual void DestroyImGui() = 0;
-
 		virtual void WaitDeviceIdle() = 0;
 		virtual void Shutdown() = 0;
 
@@ -41,9 +39,9 @@ namespace Runtime::RHI {
 		virtual Queue* CreateQueue(const QueueDesc& desc) = 0;
 		virtual Fence* CreateFence(const FenceDesc& desc) = 0;
 		virtual Pipeline* CreatePipeline(const PipelineDesc& desc) = 0;
+		virtual ImGuiContext* CreateImGuiContext() = 0;
 
 		virtual Queue* GetGraphicsQueue() = 0;
-		virtual ImGuiContext* GetImGuiContext() = 0;
 		virtual ContextDesc* GetDesc() = 0;
 	};
 

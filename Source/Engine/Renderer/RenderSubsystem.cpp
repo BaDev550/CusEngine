@@ -47,8 +47,7 @@ namespace Tourqe::Engine {
 		_context = RHI::CreateContext(contextDesc);
 		if (!_context) 
 			return Result("Failed to create context");
-		_context->InitializeImGui();
-
+		
 		_swapchain = _context->CreateSwapchain(swapchainDesc);
 
 		{
@@ -108,6 +107,8 @@ namespace Tourqe::Engine {
 				});
 		}
 
+		_imguiContext = _context->CreateImGuiContext();
+
 		END_SCOPE(RHIInitilization)
 
 		return Result();
@@ -117,14 +118,12 @@ namespace Tourqe::Engine {
 		RHI::CommandBuffer* cmd = BeginFrame();
 		if (!cmd) return;
 
-		cmd->BeginImGui();
+		_imguiContext->Begin();
 		ImGui::NewFrame();
 
 		ImGui::ShowDemoWindow();
 
 		ImGui::Render();
-		ImDrawData* data = ImGui::GetDrawData();
-
 
 		RenderGraph graph;
 
@@ -198,7 +197,7 @@ namespace Tourqe::Engine {
 
 				cmd->BeginDynamicRendering(info, &debugInfo);
 
-				cmd->RenderImGui();
+				_imguiContext->Flush(cmd);
 				cmd->EndDynamicRendering();
 			});
 		graph.Compile();
@@ -223,7 +222,7 @@ namespace Tourqe::Engine {
 
 		Mem::Allocator::Destroy<RHI::Fence>(_timelineFence);
 		Mem::Allocator::Destroy<RHI::Swapchain>(_swapchain);
-		_context->DestroyImGui();
+		Mem::Allocator::Destroy(_imguiContext);
 		_context->Shutdown();
 		Mem::Allocator::Destroy<RHI::Context>(_context);
 	}

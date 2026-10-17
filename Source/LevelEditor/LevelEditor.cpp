@@ -13,7 +13,7 @@ Runtime::Result LevelEditor::OnCreate(Engine* engine) {
 	auto renderSystem = _engine->GetSubsystem<RenderSubsystem>();
 	auto context = renderSystem->GetContext();
 
-	ImGui::SetCurrentContext(context->GetImGuiContext());
+	//ImGui::SetCurrentContext(context->GetImGuiContext());
 
     return Runtime::Result();
 }

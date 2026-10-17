@@ -17,8 +17,6 @@ namespace Runtime::RHI {
 
 		virtual void Begin() = 0;
 		virtual void End() = 0;
-		virtual void BeginImGui() = 0;
-		virtual void RenderImGui() = 0;
 		virtual void Reset() = 0;
 		
 		virtual void BeginDynamicRendering(const RenderingSubmitInfo& info, PassDebugInfo* debugInfo = nullptr) = 0;

@@ -24,15 +24,6 @@ namespace Runtime::RHI {
 		vkEndCommandBuffer(_commandBuffer);
 	}
 
-	void VulkanCommandBuffer::BeginImGui() {
-		ImGui_ImplWin32_NewFrame();
-		ImGui_ImplVulkan_NewFrame();
-	}
-
-	void VulkanCommandBuffer::RenderImGui() {
-		ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), _commandBuffer);
-	}
-
 	void VulkanCommandBuffer::Reset() {
 		vkResetCommandBuffer(_commandBuffer, VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT);
 	}

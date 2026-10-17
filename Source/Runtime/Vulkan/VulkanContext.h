@@ -18,9 +18,6 @@ namespace Runtime::RHI {
 		VulkanContext(const ContextDesc& desc);
 		virtual ~VulkanContext();
 
-		virtual void InitializeImGui() override;
-		virtual void DestroyImGui() override;
-
 		virtual void WaitDeviceIdle() override;
 		virtual void Shutdown() final override;
 
@@ -31,9 +28,9 @@ namespace Runtime::RHI {
 		virtual Queue* CreateQueue(const QueueDesc& desc) override;
 		virtual Fence* CreateFence(const FenceDesc& desc) override;
 		virtual Pipeline* CreatePipeline(const PipelineDesc& desc) override;
+		virtual ImGuiContext* CreateImGuiContext() override;
 		virtual Queue* GetGraphicsQueue() { return _graphicsAndPresentQueue; }
 		virtual ContextDesc* GetDesc() override;
-		virtual ImGuiContext* GetImGuiContext() override;
 
 		void SetObjectDebugName(VkDebugUtilsObjectNameInfoEXT* info);
 		void BeginDebugLabel(VkCommandBuffer cmd, VkDebugUtilsLabelEXT* label);
@@ -82,8 +79,6 @@ namespace Runtime::RHI {
 		
 		VmaAllocator _allocator;
 		VkAllocationCallbacks _allocationCallbacks;
-
-		VkDescriptorPool _imguiDescriptorPool;
 
 		VkDescriptorSetLayout _bindlessDescriptorLayout;
 		VkDescriptorPool _bindlessDescriptorPool;

@@ -12,8 +12,6 @@ namespace Runtime::RHI {
 
 		virtual void Begin() override;
 		virtual void End() override;
-		virtual void BeginImGui() override;
-		virtual void RenderImGui() override;
 		virtual void Reset() override;
 
 		virtual void BeginDynamicRendering(const RenderingSubmitInfo& info, PassDebugInfo* debugInfo = nullptr) override;

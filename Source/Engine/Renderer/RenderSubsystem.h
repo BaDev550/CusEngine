@@ -12,6 +12,7 @@
 #include <Runtime/RHI/Command/RHICommandBuffer.h>
 #include <Runtime/RHI/Sync/RHIFence.h>
 #include <Runtime/RHI/Queue/RHIQueue.h>
+#include <Runtime/RHI/ImGui/ImGuiContext.h>
 
 namespace Tourqe::Engine {
 	using namespace Runtime;
@@ -46,6 +47,7 @@ namespace Tourqe::Engine {
 	private:
 		RHI::Context* _context = nullptr;
 		RHI::Swapchain* _swapchain = nullptr;
+		RHI::ImGuiContext* _imguiContext = nullptr;
 
 		struct FrameData {
 			RHI::CommandPool* commandPool = nullptr;
