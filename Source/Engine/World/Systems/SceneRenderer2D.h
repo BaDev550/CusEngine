@@ -11,5 +11,13 @@ namespace Tourqe::Engine {
 		virtual Runtime::Result OnCreate() override;
 		virtual void OnUpdate(Scene& scene) override;
 		virtual void OnDestroy() override;
+	private:
+		struct SpritePushConstant {
+			u32 textureID;
+			u32 samplerID;
+		};
+
+		Texture2D* _randomTexture = nullptr;
+		Runtime::RHI::Pipeline* _forwardPassPipeline = nullptr;
 	};
 }

@@ -41,6 +41,15 @@ namespace Runtime::Reflection {
 			_destructFunc(mem);
 		}
 
+		void Move(void* dst, void* src) {
+			if (!_moveFunc) {
+				Logger::Error("Type", "{} has no default move constructor", _name);
+				return;
+			}
+
+			_moveFunc(dst, src);
+		}
+
 		void* Create() const {
 			if (!_constructFunc) {
 				Logger::Error("Type", "{} has no default constructor, cannot be created", _name);
@@ -63,6 +72,7 @@ namespace Runtime::Reflection {
 	private:
 		using ConstructFunc = std::function<void(void*)>;
 		using DestructFunc = std::function<void(void*)>;
+		using MoveFunc = std::function<void(void*, void*)>;
 
 		std::string _name;
 		usize _size;
@@ -74,6 +84,7 @@ namespace Runtime::Reflection {
 
 		ConstructFunc _constructFunc;
 		DestructFunc _destructFunc;
+		MoveFunc _moveFunc;
 
 		template<typename>
 		friend class TypeBuilder;

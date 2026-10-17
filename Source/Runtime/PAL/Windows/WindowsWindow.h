@@ -11,6 +11,8 @@ namespace Runtime::PAL {
 		WindowsWindow(const WindowDesc& desc);
 		~WindowsWindow();
 
+		[[nodiscard]] virtual const Platform GetPlatform() const final { return Platform::Windows; }
+
 		virtual b8 ShouldClose() const final;
 		virtual void PollEvents() final;
 		[[nodiscard]] virtual WindowHandle GetHandle() const final;

@@ -44,6 +44,7 @@ namespace Tourqe::Engine {
 
 		[[nodiscard]] RHI::Context* GetContext() { return _context; }
 		[[nodiscard]] RHI::Swapchain* GetSwapchain() { return _swapchain; }
+		[[nodiscard]] RHI::ImGuiContext* GetImGuiContext() { return _imguiContext; }
 	private:
 		RHI::Context* _context = nullptr;
 		RHI::Swapchain* _swapchain = nullptr;

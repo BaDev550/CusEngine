@@ -12,5 +12,7 @@ namespace Tourqe::Engine {
 		virtual ~BaseComponent() = default;
 		BaseComponent(const BaseComponent&) = delete;
 		BaseComponent& operator=(const BaseComponent&) = delete;
+		BaseComponent(BaseComponent&&) noexcept = default;
+		BaseComponent& operator=(BaseComponent&&) noexcept = default;
 	};
 }

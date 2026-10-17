@@ -18,7 +18,10 @@ namespace Runtime::RHI {
 		} features;
 		bool enableValidationLayer = false;
 
-		Runtime::PAL::PALInstance instance;
-		Runtime::PAL::WindowHandle windowHandle;
+		struct PlatformDesc {
+			Runtime::PAL::PALInstance instance;
+			Runtime::PAL::WindowHandle windowHandle;
+			Runtime::PAL::Platform platform;
+		} platformDesc;
 	};
 }

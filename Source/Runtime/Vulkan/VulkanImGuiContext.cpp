@@ -1,16 +1,16 @@
 #include "VulkanImGuiContext.h"
 #include "VulkanQueue.h"
 #include "VulkanCommandBuffer.h"
+#include "VulkanContext.h"
+
+#include <Runtime/Memory/Memory.h>
 
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <imgui_impl_vulkan.h>
-#include <imgui_impl_win32.h>
 
 namespace Runtime::RHI {
-	VulkanImGuiContext::VulkanImGuiContext(VkInstance instance, VkPhysicalDevice physicalDevice, VkDevice device, Runtime::RHI::Queue* queue, Runtime::PAL::WindowHandle handle)
-	: _owningDevice(device) 
-	{
+	VulkanImGuiContext::VulkanImGuiContext(VulkanContext* owner, Runtime::RHI::Queue* queue) : _owner(*owner) {
 		VkDescriptorPoolSize pool_sizes[] = {
 			{ VK_DESCRIPTOR_TYPE_SAMPLER, 1000 },
 			{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000 },
@@ -32,7 +32,7 @@ namespace Runtime::RHI {
 		pool_info.poolSizeCount = std::size(pool_sizes);
 		pool_info.pPoolSizes = pool_sizes;
 
-		vkCreateDescriptorPool(device, &pool_info, nullptr, &_imguiDescriptorPool); // add check
+		vkCreateDescriptorPool(owner->GetDevice(), &pool_info, nullptr, &_imguiDescriptorPool); // add check
 
 		auto* context = ImGui::CreateContext();
 		auto& io = ImGui::GetIO();
@@ -42,15 +42,14 @@ namespace Runtime::RHI {
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
 		ImGui::SetCurrentContext(context);
-		ImGui_ImplWin32_Init(reinterpret_cast<void*>(handle));
-
+		_PALContext = PAL::CreateImGuiForPlatform(owner->GetDesc()->platformDesc.windowHandle);
 		VulkanQueue* vkQueue = static_cast<VulkanQueue*>(queue);
 
 		ImGui_ImplVulkan_InitInfo init_info = {};
-		init_info.Instance = instance;
+		init_info.Instance = owner->GetInstance();
 		init_info.ApiVersion = VK_API_VERSION_1_3;
-		init_info.PhysicalDevice = physicalDevice;
-		init_info.Device = device;
+		init_info.PhysicalDevice = owner->GetPhysicalDevice();
+		init_info.Device = owner->GetDevice();
 		init_info.Queue = vkQueue->GetVkQueue();
 		init_info.QueueFamily = vkQueue->GetQueueFamilyIndex();
 		init_info.DescriptorPool = _imguiDescriptorPool;
@@ -73,14 +72,14 @@ namespace Runtime::RHI {
 
 	VulkanImGuiContext::~VulkanImGuiContext() {
 		ImGui_ImplVulkan_Shutdown();
-		ImGui_ImplWin32_Shutdown();
-		vkDestroyDescriptorPool(_owningDevice, _imguiDescriptorPool, nullptr);
+		Mem::Allocator::Destroy(_PALContext);
+		vkDestroyDescriptorPool(_owner.GetDevice(), _imguiDescriptorPool, nullptr);
 		ImGui::DestroyContext();
 	}
 
 	void VulkanImGuiContext::Begin() const {
-		ImGui_ImplWin32_NewFrame();
 		ImGui_ImplVulkan_NewFrame();
+		_PALContext->NewFrame();
 	}
 
 	void VulkanImGuiContext::Flush(Runtime::RHI::CommandBuffer* cmd) const {

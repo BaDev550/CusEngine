@@ -109,7 +109,7 @@ namespace Runtime::RHI {
 	}
 
 	ImGuiContext* VulkanContext::CreateImGuiContext() {
-		VulkanImGuiContext* context = Mem::Allocator::Construct<VulkanImGuiContext>(_instance, _physicalDevice, _device, _graphicsAndPresentQueue, _desc.windowHandle);
+		VulkanImGuiContext* context = Mem::Allocator::Construct<VulkanImGuiContext>(this, _graphicsAndPresentQueue);
 		return context;
 	}
 
@@ -161,7 +161,7 @@ namespace Runtime::RHI {
 		VkImageTiling vkTiling = Utils::GetVkImageTiling(desc.tileMode);
 		VkImageUsageFlags vKUsage = Utils::GetVkImageUsage(desc.usage);
 		VkImageAspectFlags vkAspectFlags = Utils::IsFormatDepth(desc.format) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
-
+		
 		VkImageCreateInfo imageInfo{};
 		imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 		imageInfo.imageType = VK_IMAGE_TYPE_2D;
@@ -935,15 +935,27 @@ namespace Runtime::RHI {
 	}
 
 	void VulkanContext::CreateSurface() {
-		VkWin32SurfaceCreateInfoKHR info{};
-		info.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
-		info.hinstance = reinterpret_cast<HINSTANCE>(_desc.instance);
-		info.hwnd = reinterpret_cast<HWND>(_desc.windowHandle);
+		switch (_desc.platformDesc.platform)
+		{
+		case PAL::Platform::Windows: {
+			VkWin32SurfaceCreateInfoKHR info{};
+			info.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
+			info.hinstance = reinterpret_cast<HINSTANCE>(_desc.platformDesc.instance);
+			info.hwnd = reinterpret_cast<HWND>(_desc.platformDesc.windowHandle);
 
-		VkResult result = vkCreateWin32SurfaceKHR(_instance, &info, nullptr, &_surface);
-		if (result != VK_SUCCESS) { Logger::Error("RHIContextVulkan", "Failed to create Win32 surface!"); }
-		else {
-			Logger::Info("RHIContextVulkan", "Successfully created Vulkan surface.");
+			VkResult result = vkCreateWin32SurfaceKHR(_instance, &info, nullptr, &_surface);
+			if (result != VK_SUCCESS) { Logger::Error("RHIContextVulkan", "Failed to create Win32 surface!"); }
+			else {
+				Logger::Info("RHIContextVulkan", "Successfully created Vulkan surface.");
+			}
+		}
+		case PAL::Platform::Linux: {
+			Logger::Warn("RHIContextVulkan", "No Linux support at time");
+			break;
+		}
+		default:
+			Logger::Fatal("RHIContextVulkan", "Unknowned platform");
+			break;
 		}
 	}
 

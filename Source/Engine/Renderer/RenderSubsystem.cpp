@@ -35,8 +35,9 @@ namespace Tourqe::Engine {
 		contextDesc.features.synchronization2 = true;
 		contextDesc.features.timelineSemaphore = true;
 		contextDesc.features.samplerAnisotropy = true;
-		contextDesc.windowHandle = window->GetHandle();
-		contextDesc.instance = window->GetInstance();
+		contextDesc.platformDesc.windowHandle = window->GetHandle();
+		contextDesc.platformDesc.instance = window->GetInstance();
+		contextDesc.platformDesc.platform = window->GetPlatform();
 
 		RHI::SwapchainDesc swapchainDesc{};
 		swapchainDesc.width = window->GetWidth();
@@ -115,15 +116,15 @@ namespace Tourqe::Engine {
 	}
 
 	void RenderSubsystem::OnUpdate() {
-		RHI::CommandBuffer* cmd = BeginFrame();
-		if (!cmd) return;
-
 		_imguiContext->Begin();
 		ImGui::NewFrame();
 
 		ImGui::ShowDemoWindow();
 
 		ImGui::Render();
+
+		RHI::CommandBuffer* cmd = BeginFrame();
+		if (!cmd) return;
 
 		RenderGraph graph;
 
@@ -144,7 +145,7 @@ namespace Tourqe::Engine {
 			Runtime::RHI::ImageLayout::DepthAttachment
 		);
 
-		graph.AddPass("Scene",
+		graph.AddPass("Swapchain",
 			[&](RenderPassBuilder& builder) {
 				builder.Write(backbuffer, Runtime::RHI::ImageLayout::ColorAttachment);
 				builder.Write(depthbuffer, Runtime::RHI::ImageLayout::DepthAttachment);
@@ -163,7 +164,7 @@ namespace Tourqe::Engine {
 				info.extent = glm::vec2(width, height);
 
 				Runtime::RHI::PassDebugInfo debugInfo{};
-				debugInfo.label = "ScenePass";
+				debugInfo.label = "SwapchainPass";
 				debugInfo.color = glm::vec3(1.0f, 1.0f, 0.0f);
 
 				cmd->BeginDynamicRendering(info, &debugInfo);
@@ -171,37 +172,11 @@ namespace Tourqe::Engine {
 				cmd->EndDynamicRendering();
 			});
 
-		graph.AddPass("Widget",
-			[&](RenderPassBuilder& builder) {
-				builder.Write(backbuffer, Runtime::RHI::ImageLayout::ColorAttachment);
-				builder.Write(depthbuffer, Runtime::RHI::ImageLayout::DepthAttachment);
-				builder.ForceRender();
-			},
-			[=](Runtime::RHI::CommandBuffer* cmd, const RenderGraphResourceContainer& res) {
-				auto* color = res.GetImage(backbuffer);
-				auto* depth = res.GetImage(depthbuffer);
-
-				Runtime::RHI::ColorAttachment colorAttachment{};
-				colorAttachment.image = color;
-				colorAttachment.loadOp = Runtime::RHI::ImageLoadOp::Load;
-				colorAttachment.clearColor = glm::vec4(0.5f, 0.5f, 0.5f, 1.0f);
-
-				Runtime::RHI::RenderingSubmitInfo info{};
-				info.colorAttachments = { colorAttachment };
-				info.depthAttachment = depth;
-				info.extent = glm::vec2(width, height);
-
-				Runtime::RHI::PassDebugInfo debugInfo{};
-				debugInfo.label = "WidgetPass";
-				debugInfo.color = glm::vec3(1.0f, 0.0f, 0.0f);
-
-				cmd->BeginDynamicRendering(info, &debugInfo);
-
-				_imguiContext->Flush(cmd);
-				cmd->EndDynamicRendering();
-			});
 		graph.Compile();
 		graph.Execute(cmd);
+
+		for (auto& command : _commandQueue) { command(cmd); }
+		_commandQueue.clear();
 
 		EndFrame();
 	}
@@ -269,9 +244,6 @@ namespace Tourqe::Engine {
 		frame.commandBuffer->Begin();
 		_frameRecording = true;
 		_canSubmitCommand = true;
-
-		for (auto& command : _commandQueue) { command(frame.commandBuffer); }
-		_commandQueue.clear();
 
 		return frame.commandBuffer;
 	}
