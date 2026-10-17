@@ -1,6 +1,7 @@
 #pragma once
 #include <Engine/Subsystem/Subsystem.h>
 #include <Engine/Asset/Shader/Shader.h>
+#include <Engine/Renderer/RenderGraph/RenderGraph.h>
 
 #include <Runtime/RHI/Swapchain/RHISwapchain.h>
 #include <Runtime/RHI/Context/RHIContext.h>
@@ -42,6 +43,8 @@ namespace Tourqe::Engine {
 		u32 GetImageIndex() const { return _imageIndex; }
 		RHI::Buffer* CreateStagingBuffer(usize dataSizeInBytes);
 
+		RenderGraph& GetRenderGraph() { return _graph; }
+
 		[[nodiscard]] RHI::Context* GetContext() { return _context; }
 		[[nodiscard]] RHI::Swapchain* GetSwapchain() { return _swapchain; }
 		[[nodiscard]] RHI::ImGuiContext* GetImGuiContext() { return _imguiContext; }
@@ -49,6 +52,7 @@ namespace Tourqe::Engine {
 		RHI::Context* _context = nullptr;
 		RHI::Swapchain* _swapchain = nullptr;
 		RHI::ImGuiContext* _imguiContext = nullptr;
+		RenderGraph _graph;
 
 		struct FrameData {
 			RHI::CommandPool* commandPool = nullptr;

@@ -7,9 +7,7 @@
 
 namespace Tourqe::Engine {
 	RenderGraph::~RenderGraph() {
-		for (auto& pass : _passes) {
-			Runtime::Mem::Allocator::Destroy(pass);
-		}
+		ClearPasses();
 	}
 
 	RenderGraphHandle RenderGraph::ImportImage(const std::string& name, Runtime::RHI::Image* img, Runtime::RHI::ImageLayout inital, Runtime::RHI::ImageLayout final) {
@@ -44,6 +42,8 @@ namespace Tourqe::Engine {
 		std::vector<b8> needed(_resources.size(), false);
 		for (i32 i = static_cast<i32>(_passes.size()) - 1; i >= 0; i--) {
 			RenderPass* pass = _passes[i];
+			if (!pass) continue;
+
 			b8 live = pass->HasSideEffects();
 			for (const RenderPassAccess& a : pass->GetAccesses()) {
 				if (a.write && ((_resources[a.handle.id].state == AssetState::Loaded) || needed[a.handle.id])) live = true;
@@ -63,6 +63,8 @@ namespace Tourqe::Engine {
 
 		for (i32 i = 0; i < static_cast<i32>(_passes.size()); i++) {
 			RenderPass* pass = _passes[i];
+			if (!pass) continue;
+
 			pass->GetBarriers().clear();
 
 			if (!pass->IsAlive()) continue;
@@ -100,6 +102,8 @@ namespace Tourqe::Engine {
 
 		RenderGraphResourceContainer view(&_resources);
 		for (auto pass : _passes) {
+			if (!pass) continue;
+
 			if (!pass->IsAlive()) continue;
 			for (const RenderPassBarrier& barrier : pass->GetBarriers()) EmitBarrier(cmd, barrier);
 			pass->ExecFunc(cmd, view);
@@ -109,5 +113,14 @@ namespace Tourqe::Engine {
 
 	void RenderGraph::EmitBarrier(Runtime::RHI::CommandBuffer * cmd, const RenderPassBarrier & barrier) {
 		cmd->TransitionImageLayout(_resources[barrier.handle.id].physicalAttachment, barrier.after);
+	}
+
+	void RenderGraph::ClearPasses() {
+		for (auto& pass : _passes) {
+			Runtime::Mem::Allocator::Destroy(pass);
+			pass = nullptr;
+		}
+		_finalBarriers.clear();
+		_resources.clear();
 	}
 }

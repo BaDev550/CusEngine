@@ -10,8 +10,6 @@
 #include <Runtime/RHI/Sync/RHIFenceDesc.h>
 #include <Runtime/RHI/Queue/RHIQueue.h>
 
-#include <Engine/Renderer/RenderGraph/RenderGraph.h>
-
 #include <queue>
 
 #include <imgui.h>
@@ -126,26 +124,24 @@ namespace Tourqe::Engine {
 		RHI::CommandBuffer* cmd = BeginFrame();
 		if (!cmd) return;
 
-		RenderGraph graph;
-
 		u32 width = (u32)GetSwapchain()->GetExtent().x;
 		u32 height = (u32)GetSwapchain()->GetExtent().y;
 
-		auto backbuffer = graph.ImportImage(
+		auto backbuffer = _graph.ImportImage(
 			"BackBuffer",
 			GetSwapchain()->GetColorAttachments()[_imageIndex],
 			Runtime::RHI::ImageLayout::Undefined,
 			Runtime::RHI::ImageLayout::PresentSrc
 		);
 
-		auto depthbuffer = graph.ImportImage(
+		auto depthbuffer = _graph.ImportImage(
 			"DepthBuffer", 
 			GetSwapchain()->GetDepthAttachment(),
 			Runtime::RHI::ImageLayout::Undefined,
 			Runtime::RHI::ImageLayout::DepthAttachment
 		);
 
-		graph.AddPass("Swapchain",
+		_graph.AddPass("Swapchain",
 			[&](RenderPassBuilder& builder) {
 				builder.Write(backbuffer, Runtime::RHI::ImageLayout::ColorAttachment);
 				builder.Write(depthbuffer, Runtime::RHI::ImageLayout::DepthAttachment);
@@ -172,13 +168,15 @@ namespace Tourqe::Engine {
 				cmd->EndDynamicRendering();
 			});
 
-		graph.Compile();
-		graph.Execute(cmd);
-
 		for (auto& command : _commandQueue) { command(cmd); }
 		_commandQueue.clear();
 
+		_graph.Compile();
+		_graph.Execute(cmd);
+
 		EndFrame();
+
+		_graph.ClearPasses();
 	}
 
 	void RenderSubsystem::OnDestroy() {

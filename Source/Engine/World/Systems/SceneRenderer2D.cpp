@@ -31,7 +31,7 @@ namespace Tourqe::Engine {
 			_forwardPassPipeline = renderSystem->GetContext()->CreatePipeline(vertexDesc);
 		}
 
-		_randomTexture = assetSystem->Get<Texture2D>("RenderResult.png");
+		_randomTexture = assetSystem->Get<Texture2D>("dog-meme.png");
 
 		return Runtime::Result();
 	}
@@ -40,7 +40,7 @@ namespace Tourqe::Engine {
 		auto renderSystem = _engine->GetSubsystem<RenderSubsystem>();
 
 		renderSystem->Submit([=](Runtime::RHI::CommandBuffer* cmd) {
-			RenderGraph graph;
+			RenderGraph& graph = renderSystem->GetRenderGraph();
 
 			u32 width = (u32)renderSystem->GetSwapchain()->GetExtent().x;
 			u32 height = (u32)renderSystem->GetSwapchain()->GetExtent().y;
@@ -124,9 +124,6 @@ namespace Tourqe::Engine {
 					renderSystem->GetImGuiContext()->Flush(cmd);
 					cmd->EndDynamicRendering();
 				});
-
-			graph.Compile();
-			graph.Execute(cmd);
 			});
 	}
 

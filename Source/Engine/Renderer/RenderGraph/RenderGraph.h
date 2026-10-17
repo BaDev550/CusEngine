@@ -13,6 +13,7 @@ namespace Tourqe::Engine {
 		void AddPass(std::string name, SetupFn setup, RenderPassExecuteFn execute);
 
 		void Compile();
+		void ClearPasses();
 		void Execute(Runtime::RHI::CommandBuffer* cmd);
 	private:
 		void EmitBarrier(Runtime::RHI::CommandBuffer* cmd, const RenderPassBarrier& barrier);
